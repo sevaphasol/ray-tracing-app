@@ -80,7 +80,7 @@ class TextField : public hui::ContainerWidget {
 
         border_->SetFillColor( { 0, 0, 0, 0 } );
         border_->SetBorderColor( { 118, 185, 0, 255 } );
-        border_->SetBorderThickness( 1.0f );
+        border_->SetBorderThickness( -1.0f );
         border_->SetSize( { w - 1.05f * label_->GetText().length() * 12.0f, h } );
         border_->SetPos( { 1.75f * label_->GetText().length() * 6.5f, 0 } );
 

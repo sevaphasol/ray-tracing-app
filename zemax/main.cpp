@@ -1,30 +1,33 @@
+#include "cum/manager.hpp"
 #include "custom-hui-impl/plugin_manager.hpp"
 #include "custom-hui-impl/window_manager.hpp"
 #include "dr4/math/vec2.hpp"
-#include "gfx/ui/window_manager.hpp"
 #include "zemax/config.hpp"
 #include "zemax/view/zemax.hpp"
 
-#include "misc/dr4_ifc.hpp"
+#include <dlfcn.h>
 #include <memory>
 
 int
 main()
 {
+    cum::Manager manager;
+
+    auto* pp_plugin  = manager.LoadFromFile( "lib/libpp.so" );
+    auto* dr4_plugin = manager.LoadFromFile( "lib/libdr4.so" );
+
     cum::PluginManager pm;
 
-    pm.loadDrawLib( "lib/libdr4.so" );
-    pm.loadDrawBackend();
+    pm.setupDR4( dr4_plugin );
+    pm.setupPP( pp_plugin );
 
-    auto* dr4_backend = pm.getDrawLibBackend();
-
-    auto* window = dr4_backend->CreateWindow();
-    window->SetSize( { zemax::Config::Window::Width, zemax::Config::Window::Height } );
-    window->SetTitle( "Test" );
-    pm.setWindow( window );
+    pm.getWindow()->SetSize( { zemax::Config::Window::Width, zemax::Config::Window::Height } );
+    pm.getWindow()->SetTitle( "Test" );
     hui::WindowManager wm( &pm, zemax::Config::Window::BackgroundColor );
-    auto*              font = window->CreateFont();
+
+    auto* font = pm.getWindow()->CreateFont();
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
+
     wm.addWidget( std::make_unique<zemax::view::Zemax>( &pm, font ) );
 
     wm.run();

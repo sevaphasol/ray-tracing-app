@@ -7,6 +7,7 @@
 #include "zemax/config.hpp"
 #include "zemax/view/control_panel.hpp"
 #include "zemax/view/scene.hpp"
+#include "zemax/view/snapshot_annotator.hpp"
 #include <any>
 #include <memory>
 
@@ -23,11 +24,13 @@ class Zemax : public hui::ContainerWidget {
                   Config::Scene::Size,
                   Config::Scene::BackgroundColor,
                   Config::Camera::Position ),
-          panel_( pm, font, scene_.getModel() )
+          panel_( pm, font, scene_.getModel() ),
+          snp_annotator_( pm, Config::Scene::Position, Config::Scene::Size )
     {
         // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
         scene_.setParent( this );
         panel_.setParent( this );
+        snp_annotator_.setParent( this );
     }
 
     ~Zemax() = default;
@@ -35,6 +38,11 @@ class Zemax : public hui::ContainerWidget {
     bool
     propagateEventToChildren( const hui::Event& event ) override
     {
+        if ( event.apply( &snp_annotator_ ) )
+        {
+            return true;
+        }
+
         if ( event.apply( &panel_ ) )
         {
             return true;
@@ -44,20 +52,23 @@ class Zemax : public hui::ContainerWidget {
         {
             return true;
         }
-
         return false;
     }
 
     void
     RedrawMyTexture() const override
     {
+        texture_->Clear( { 0, 0, 0 } );
+
         scene_.Redraw();
         panel_.Redraw();
+        snp_annotator_.Redraw();
     }
 
   private:
-    Scene        scene_;
-    ControlPanel panel_;
+    Scene             scene_;
+    ControlPanel      panel_;
+    SnapshotAnnotator snp_annotator_;
 };
 
 } // namespace view

@@ -1,7 +1,9 @@
 #include "widget.hpp"
 #include "container_widget.hpp"
+#include "dr4/math/rect.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/mouse_buttons.hpp"
+#include "event.hpp"
 #include "plugin_manager.hpp"
 #include <cassert>
 
@@ -123,11 +125,19 @@ Widget::onMouseMove( const Event& event )
 
     if ( is_dragging_ )
     {
-        setRelPos( mouse_pos - drag_offset_ - getParentAbsPos() );
+        setRelPos( getRelPos() + event.info.mouseMove.rel );
+
+        // setRelPos( mouse_pos - drag_offset_ - getParentAbsPos() );
         return true;
     }
 
     return is_hovered_;
+}
+
+bool
+Widget::onMe( dr4::Vec2f rel ) const
+{
+    return dr4::Rect2f( pos_, size_ ).Contains( rel );
 }
 
 dr4::Vec2f
@@ -216,7 +226,7 @@ Widget::DrawOnParentTexture() const
 void
 Widget::Redraw() const
 {
-    texture_->Clear( { 0, 0, 0 } );
+    texture_->Clear( { 0, 0, 0, 0 } );
     RedrawMyTexture();
     DrawOnParentTexture();
 }

@@ -36,6 +36,9 @@ class Widget {
     virtual bool
     onMouseMove( const hui::Event& event );
 
+    virtual bool
+    onMe( dr4::Vec2f rel ) const;
+
     bool
     isHovered() const;
 

@@ -71,7 +71,7 @@ class Scene : public hui::Widget {
         border_->SetSize( size );
         border_->SetFillColor( { 0, 0, 0, 0 } );
         border_->SetBorderColor( { 118, 185, 0, 255 } );
-        border_->SetBorderThickness( 2.0f );
+        border_->SetBorderThickness( -2.0f );
 
         // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
 
@@ -330,7 +330,7 @@ class Scene : public hui::Widget {
             select_rect_->SetSize( { max_x - min_x, max_y - min_y } );
             select_rect_->SetFillColor( { 0, 0, 0, 0 } );
             select_rect_->SetBorderColor( { 255, 0, 0, 255 } );
-            select_rect_->SetBorderThickness( 2.0f );
+            select_rect_->SetBorderThickness( -2.0f );
 
             texture_->Draw( *select_rect_ );
             //

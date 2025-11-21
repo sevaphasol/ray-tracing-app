@@ -341,7 +341,7 @@ ScrollBar::ScrollBar( cum::PluginManager* pm, const dr4::Vec2f& pos )
     border_->SetSize( getSize() );
     border_->SetFillColor( { 64, 64, 64, 128 } );
     border_->SetBorderColor( { 32, 32, 32, 255 } );
-    border_->SetBorderThickness( 4.0f );
+    border_->SetBorderThickness( -4.0f );
 }
 
 void

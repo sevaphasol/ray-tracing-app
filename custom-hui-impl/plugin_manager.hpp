@@ -4,22 +4,47 @@
 #include <dlfcn.h>
 #include <exception>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
-#include "dr4/math/rect.hpp"
+#include "cum/ifc/pp.hpp"
+#include "cum/plugin.hpp"
 #include "dr4/window.hpp"
-#include "misc/dr4_ifc.hpp"
+
+#include "cum/ifc/dr4.hpp"
 
 namespace cum {
 
 class PluginManager {
   public:
-    PluginManager() {}
-
-    dr4::DR4Backend*
-    getDrawLibBackend()
+    void
+    setupDR4( Plugin* plg )
     {
-        return drawlib_backend_;
+        backend_dr4_.reset( dynamic_cast<cum::DR4BackendPlugin*>( plg ) );
+
+        if ( backend_dr4_ == nullptr )
+        {
+            throw std::runtime_error( "Failed dynamic cast dr4backend" );
+        }
+
+        window_ = backend_dr4_->CreateWindow();
+    }
+
+    void
+    setupPP( Plugin* plg )
+    {
+        backend_pp_.reset( dynamic_cast<cum::PPToolPlugin*>( plg ) );
+
+        if ( backend_pp_ == nullptr )
+        {
+            throw std::runtime_error( "Failed dynamic cast ppbackend" );
+        }
+    }
+
+    cum::PPToolPlugin*
+    getPluginPP()
+    {
+        return backend_pp_.get();
     }
 
     const dr4::Window*
@@ -34,63 +59,11 @@ class PluginManager {
         return window_;
     }
 
-    void
-    setWindow( dr4::Window* window )
-    {
-        window_ = window;
-    }
-
-    // auto
-    // getGetBounds()
-    // {
-    // return get_bounds_;
-    // }
-
-    //     void
-    //     loadGetBounds()
-    //     {
-    //         auto* get_bounds_func = dlsym( drawlib_, "_ZNK3dr44Text9GetBoundsEv" );
-    //         if ( get_bounds_func == nullptr )
-    //         {
-    //             std::cerr << "Couldn't load Text::GetBounds() symbol" << std::endl;
-    //         }
-    //
-    //         get_bounds_ = reinterpret_cast<dr4::Rect2f ( dr4::Text::* )()>( get_bounds_func );
-    //     }
-
-    void
-    loadDrawLib( const char* name )
-    {
-        drawlib_ = dlopen( name, RTLD_LAZY );
-        if ( drawlib_ == nullptr )
-        {
-            throw std::runtime_error( dlerror() );
-        }
-    }
-
-    void
-    loadDrawBackend()
-    {
-        auto* create_backend_func = dlsym( drawlib_, dr4::DR4BackendFunctionName );
-        if ( create_backend_func == nullptr )
-        {
-            std::cerr << "Couldn't load createDr4Backend symbol" << std::endl;
-        }
-
-        drawlib_backend_ = reinterpret_cast<dr4::DR4Backend* (*)()>( create_backend_func )();
-        if ( drawlib_backend_ == nullptr )
-        {
-            std::cerr << "Couldn't create DR4Backend" << std::endl;
-        }
-    }
-
   private:
-    void* drawlib_; // Library for drawing graphics
+    std::unique_ptr<cum::DR4BackendPlugin> backend_dr4_;
+    std::unique_ptr<cum::PPToolPlugin>     backend_pp_;
 
     dr4::Window* window_;
-    // dr4::Rect2f ( dr4::Text::*get_bounds_ )();
-
-    dr4::DR4Backend* drawlib_backend_;
 };
 
 } // namespace cum

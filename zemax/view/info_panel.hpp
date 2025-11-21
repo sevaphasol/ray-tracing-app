@@ -26,7 +26,7 @@ class ObjInfoPanel : public hui::Widget {
         rect_->SetSize( { w, h } );
         rect_->SetFillColor( Config::Scene::ObjInfoPanel::FillColor );
         rect_->SetBorderColor( Config::Scene::ObjInfoPanel::OutlineColor );
-        rect_->SetBorderThickness( Config::Scene::ObjInfoPanel::OutlineThickness );
+        rect_->SetBorderThickness( -Config::Scene::ObjInfoPanel::OutlineThickness );
     }
 
     ObjInfoPanel( cum::PluginManager* pm, const dr4::Font* font, const dr4::Vec2f& size )

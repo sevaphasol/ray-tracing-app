@@ -23,7 +23,7 @@ class ScrollableButtonsWidget : public hui::ContainerWidget {
         border_->SetSize( size );
         border_->SetFillColor( { 0, 0, 0, 0 } );
         border_->SetBorderColor( { 118, 185, 0, 255 } );
-        border_->SetBorderThickness( 2.f );
+        border_->SetBorderThickness( -2.f );
 
         scroll_bar_.setParent( this );
     };

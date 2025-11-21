@@ -52,7 +52,7 @@ class ControlPanel : public hui::ContainerWidget {
         border_->SetSize( getSize() );
         border_->SetFillColor( Config::ControlPanel::BackgroundColor );
         border_->SetBorderColor( Config::ControlPanel::BorderColor );
-        border_->SetBorderThickness( Config::ControlPanel::BorderThickness );
+        border_->SetBorderThickness( -Config::ControlPanel::BorderThickness );
 
         setupButton( ButtonCode::MoveLeft,
                      Config::ControlPanel::Button::MvL::Position,
