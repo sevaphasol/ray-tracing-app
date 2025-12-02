@@ -20,14 +20,15 @@ file( GLOB_RECURSE MY_HUI_IMPL_SRC CONFIGURE_DEPENDS
 	${CMAKE_CURRENT_SOURCE_DIR}/custom-hui-impl/*.cpp
 )
 add_library( MyHuiImpl STATIC ${MY_HUI_IMPL_SRC} )
-target_include_directories( MyHuiImpl PUBLIC 3rd_party/dr4hui-backend/interface/include )
-target_link_libraries( MyHuiImpl PUBLIC dr4hui-interface )
+# target_include_directories( MyHuiImpl PUBLIC 3rd_party/dr4hui-backend/interface/include )
+target_link_libraries( MyHuiImpl PUBLIC dr4 )
 
 add_subdirectory( gfxlib )
 target_link_libraries( zemax PRIVATE gfx )
-target_link_libraries( zemax PRIVATE dr4hui-interface )
+target_link_libraries( zemax PRIVATE dr4 )
+target_link_libraries( zemax PRIVATE pp  )
 target_link_libraries( zemax PRIVATE MyHuiImpl )
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}")
 target_compile_options(zemax PRIVATE -O3)
-install(TARGETS zemax DESTINATION build)
+# install(TARGETS zemax DESTINATION build)

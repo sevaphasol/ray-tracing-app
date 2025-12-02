@@ -13,8 +13,8 @@ main()
 {
     cum::Manager manager;
 
-    auto* pp_plugin  = manager.LoadFromFile( "lib/libpp.so" );
-    auto* dr4_plugin = manager.LoadFromFile( "lib/libdr4.so" );
+    auto* pp_plugin  = manager.LoadFromFile( "plugins/libplugin_pp.so" );
+    auto* dr4_plugin = manager.LoadFromFile( "plugins/libplugin_dr4.so" );
 
     cum::PluginManager pm;
 
