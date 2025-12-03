@@ -170,6 +170,11 @@ class ToolPanel : public hui::ContainerWidget {
             {
                 if ( buttons_[i]->isPressed() )
                 {
+                    if ( active_tool_idx_.has_value() )
+                    {
+                        ( *tools_ )[active_tool_idx_.value()]->OnEnd();
+                    }
+
                     active_tool_idx_ = i;
                     ( *tools_ )[i]->OnStart();
                     return true;

@@ -346,9 +346,9 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         border_->SetSize( { w, h } );
 
         theme_ = { { 0, 0, 0, 0 },
-                   { 255, 0, 0, 255 },
+                   { 0, 118, 185, 255 },
                    { 255, 255, 255, 255 },
-                   12,
+                   18,
                    { 128, 128, 128, 255 } };
     }
 
