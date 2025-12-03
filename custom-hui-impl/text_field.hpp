@@ -177,8 +177,6 @@ class TextField : public hui::ContainerWidget {
         {
             if ( str_.size() > 0 )
             {
-                // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__
-                // );
                 str_.pop_back();
             }
         } else
@@ -188,14 +186,10 @@ class TextField : public hui::ContainerWidget {
                 return true;
             }
 
-            // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
-
             str_ += *str;
         }
 
         text_->SetText( str_ );
-
-        // fprintf( stderr, "%s\n", str_.data() );
 
         auto  new_w = text_->GetBounds().x;
         float ch_w  = new_w - old_w;

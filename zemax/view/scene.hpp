@@ -50,8 +50,6 @@ class Scene : public hui::Widget {
         //
         // texture_->SetSize( zemax::Config::Scene::Size );
 
-        // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
-
         // std::cerr << pixels_ << std::endl;
 
         pixels_.reset( pm->getWindow()->CreateImage() );
@@ -73,12 +71,8 @@ class Scene : public hui::Widget {
         border_->SetBorderColor( { 118, 185, 0, 255 } );
         border_->SetBorderThickness( -2.0f );
 
-        // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
-
         model_.addLight( gfx::core::Vector3f( 3, 3, -3 ), 1.0, 0.3, 0.9 );
         model_.addLight( gfx::core::Vector3f( 0, 0, -11 ), 0.2, 0.3, 0.9 );
-
-        // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
 
         // model_.addTorus( model::Material( gfx::core::Color( 118, 185, 0 ) ), { 0, 0, -5 }, 1, 2
         // );
@@ -150,8 +144,6 @@ class Scene : public hui::Widget {
         // ),
         //  gfx::core::Vector3f( -5, -5, -5 ),
         //  gfx::core::Vector3f( 1, 1, 1 ) );
-
-        // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
     }
 
     void

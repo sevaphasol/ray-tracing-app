@@ -124,8 +124,6 @@ class ToolPanel : public hui::ContainerWidget {
     {
         setDraggable( true );
 
-        // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
-
         for ( size_t i = 0; i < tools_->size(); ++i )
         {
             buttons_.push_back(
@@ -140,9 +138,6 @@ class ToolPanel : public hui::ContainerWidget {
                                                zemax::Config::ControlPanel::Button::FontColor,
                                                zemax::Config::ControlPanel::Button::FontSize ) );
 
-            // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__,
-            // __PRETTY_FUNCTION__ );
-
             buttons_[i]->setParent( this );
             // buttons_[i]->setLabelFont( font, 12 );
             // buttons_[i]->setLabelText( std::string( ( *tools_ )[i]->Icon() ) );
@@ -154,14 +149,10 @@ class ToolPanel : public hui::ContainerWidget {
 
         rect_.reset( pm->getWindow()->CreateRectangle() );
 
-        // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
-
         rect_->SetSize( { 2 * 10 + 50, 2 * 10 + 50 * float( tools->size() ) } );
         rect_->SetBorderColor( { 118, 185, 0 } );
         rect_->SetFillColor( { 8, 8, 8 } );
         rect_->SetBorderThickness( 2.0f );
-
-        // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
     }
 
     bool
@@ -180,6 +171,7 @@ class ToolPanel : public hui::ContainerWidget {
                 if ( buttons_[i]->isPressed() )
                 {
                     active_tool_idx_ = i;
+                    ( *tools_ )[i]->OnStart();
                     return true;
                 }
             }
@@ -205,6 +197,8 @@ class ToolPanel : public hui::ContainerWidget {
     bool
     propagateEventToChildren( const hui::Event& event ) override final
     {
+        bool my_event = false;
+
         for ( auto& btn : buttons_ )
         {
             // std::cerr << "Giving to Button " << typeid( event ).name() << std::endl;
@@ -212,13 +206,13 @@ class ToolPanel : public hui::ContainerWidget {
             if ( event.apply( btn.get() ) )
             {
                 // std::cerr << "Button took" << std::endl;
-                return true;
+                my_event = true;
             }
 
             // std::cerr << "Button didn't took" << std::endl;
         }
 
-        return false;
+        return my_event;
     }
 
     void

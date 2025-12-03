@@ -84,10 +84,8 @@ void
 WindowManager::draw()
 {
     window_->Clear( background_color_ );
-    // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
     desktop_.Redraw();
     window_->Draw( *desktop_.getTexture() );
-    // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
     window_->Display();
 }
 

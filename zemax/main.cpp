@@ -13,7 +13,9 @@ main()
 {
     cum::Manager manager;
 
-    auto* pp_plugin  = manager.LoadFromFile( "plugins/libplugin_pp.so" );
+    // auto* pp_plugin  = manager.LoadFromFile( "plugins/libpiska.so" );
+    auto* pp_plugin  = manager.LoadFromFile( "plugins/libgeomprim.so" );
+    // auto* pp_plugin  = manager.LoadFromFile( "plugins/libplugin_pp.so" );
     auto* dr4_plugin = manager.LoadFromFile( "plugins/libplugin_dr4.so" );
 
     cum::PluginManager pm;
@@ -27,6 +29,7 @@ main()
 
     auto* font = pm.getWindow()->CreateFont();
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
+    pm.getWindow()->SetDefaultFont( font );
 
     wm.addWidget( std::make_unique<zemax::view::Zemax>( &pm, font ) );
 

@@ -347,7 +347,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         theme_ = { { 0, 0, 0, 0 },
                    { 255, 0, 0, 255 },
-                   { 255, 0, 0, 255 },
+                   { 255, 255, 255, 255 },
                    12,
                    { 128, 128, 128, 255 } };
     }
@@ -412,6 +412,14 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     bool
     onKeyPress( const hui::Event& event ) override final
     {
+        for ( auto& tool : tools_ )
+        {
+            if ( tool->OnKeyDown( event.info.key ) )
+            {
+                return true;
+            }
+        }
+
         if ( event.info.key.sym == dr4::KEYCODE_ESCAPE )
         {
             for ( auto& tool : tools_ )
@@ -553,6 +561,20 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         }
 
         return true;
+    }
+
+    bool
+    onTextEnter( const hui::Event& event ) override final
+    {
+        for ( auto& tool : tools_ )
+        {
+            if ( tool->OnText( event.info.text ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     bool
