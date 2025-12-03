@@ -420,6 +420,14 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
+        if ( selected_shape_ != nullptr )
+        {
+            if ( selected_shape_->OnKeyDown( event.info.key ) )
+            {
+                return true;
+            }
+        }
+
         if ( event.info.key.sym == dr4::KEYCODE_ESCAPE )
         {
             for ( auto& tool : tools_ )
@@ -439,20 +447,20 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return true;
         }
 
-        if ( active_ )
-        {
-            switch ( event.info.key.sym )
-            {
-                case dr4::KEYCODE_R:
-                    single_tool_->OnStart();
-                    return true;
-                case dr4::KEYCODE_DELETE:
-                    DelShape( selected_shape_ );
-                    selected_shape_ = nullptr;
-                default:
-                    break;
-            }
-        }
+        // if ( active_ )
+        // {
+        //     switch ( event.info.key.sym )
+        //     {
+        //         case dr4::KEYCODE_R:
+        //             single_tool_->OnStart();
+        //             return true;
+        //         case dr4::KEYCODE_DELETE:
+        //             DelShape( selected_shape_ );
+        //             selected_shape_ = nullptr;
+        //         default:
+        //             break;
+        //     }
+        // }
 
         return false;
     }
@@ -536,8 +544,6 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         //                 return true;
         //             }
         //         }
-
-        // std::cerr << "Propagating to shapes" << std::endl;
 
         for ( auto& pair : shapes_ )
         {
