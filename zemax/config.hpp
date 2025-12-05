@@ -2,9 +2,7 @@
 
 #include "dr4/math/color.hpp"
 #include "dr4/math/vec2.hpp"
-#include "gfx/core/color.hpp"
-#include "gfx/core/vector2.hpp"
-#include "gfx/core/vector3.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <cstdint>
 #include <sys/types.h>
 
@@ -261,7 +259,7 @@ struct Config
 
     struct Camera
     {
-        static inline const gfx::core::Vector3f Position = { 0.0f, 0.0f, 0.0f };
+        static inline const model::Vector3f Position = { 0.0f, 0.0f, 0.0f };
 
         static inline const float MoveFactor    = 0.1f;
         static inline const float ObjMoveFactor = 0.1f;

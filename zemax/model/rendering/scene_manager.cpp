@@ -1,6 +1,4 @@
 #include "zemax/model/rendering/scene_manager.hpp"
-#include "gfx/core/color.hpp"
-#include "gfx/core/vector3.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/hex_prism.hpp"
 #include "zemax/model/primitives/impls/plane.hpp"
@@ -9,6 +7,8 @@
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
+#include "zemax/model/rendering/color.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -16,64 +16,60 @@
 namespace zemax {
 namespace model {
 
-SceneManager::SceneManager( const gfx::core::Vector3f& camera_pos,
-                            float                      screen_width,
-                            float                      screen_height )
+SceneManager::SceneManager( const Vector3f& camera_pos, float screen_width, float screen_height )
     : camera_( camera_pos, screen_width, screen_height )
 {
 }
 
 void
-SceneManager::addLight( gfx::core::Vector3f pos,
-                        float               embedded_intensity,
-                        float               diffuse_intensity,
-                        float               glare_intensity )
+SceneManager::addLight( Vector3f pos,
+                        float    embedded_intensity,
+                        float    diffuse_intensity,
+                        float    glare_intensity )
 {
     lights_.push_back( Light( pos, embedded_intensity, diffuse_intensity, glare_intensity ) );
 }
 
 void
-SceneManager::addSphere( const Material& material, const gfx::core::Vector3f& center, float radius )
+SceneManager::addSphere( const Material& material, const Vector3f& center, float radius )
 {
     objects_.push_back( std::make_unique<Sphere>( material, center, radius ) );
 }
 
 void
-SceneManager::addPlane( const Material&            material,
-                        const gfx::core::Vector3f& base_point,
-                        const gfx::core::Vector3f& normal )
+SceneManager::addPlane( const Material& material,
+                        const Vector3f& base_point,
+                        const Vector3f& normal )
 {
     objects_.push_back( std::make_unique<Plane>( material, base_point, normal ) );
 }
 
 void
-SceneManager::addAABB( const Material&            material,
-                       const gfx::core::Vector3f& center,
-                       const gfx::core::Vector3f& bounds )
+SceneManager::addAABB( const Material& material, const Vector3f& center, const Vector3f& bounds )
 {
     objects_.push_back( std::make_unique<AABB>( material, center, bounds ) );
 }
 
 void
-SceneManager::addHexPrism( const Material&            material,
-                           const gfx::core::Vector3f& center,
-                           float                      radius,
-                           float                      height )
+SceneManager::addHexPrism( const Material& material,
+                           const Vector3f& center,
+                           float           radius,
+                           float           height )
 {
     objects_.push_back( std::make_unique<HexPrism>( material, center, radius, height ) );
 }
 
 void
-SceneManager::addTorus( const Material&            material,
-                        const gfx::core::Vector3f& center,
-                        float                      minor_radius,
-                        float                      major_radius )
+SceneManager::addTorus( const Material& material,
+                        const Vector3f& center,
+                        float           minor_radius,
+                        float           major_radius )
 {
     objects_.push_back( std::make_unique<Torus>( material, center, minor_radius, major_radius ) );
 }
 
 void
-SceneManager::moveLights( const gfx::core::Vector3f& delta )
+SceneManager::moveLights( const Vector3f& delta )
 {
     for ( auto& light : lights_ )
     {
@@ -104,7 +100,7 @@ SceneManager::findClosestIntersection( IntersectionContext& ctx )
             continue;
         }
 
-        const gfx::core::Vector3f point = ro + info->close_distance * rd;
+        const Vector3f point = ro + info->close_distance * rd;
 
         float distance = ( point - ctx.view_ray.getBasePoint() ).getLen();
         if ( distance > 0 && distance < min_distance )
@@ -122,10 +118,10 @@ SceneManager::findClosestIntersection( IntersectionContext& ctx )
     return hit;
 }
 
-gfx::core::Color
+Color
 SceneManager::calcLightsColor( IntersectionContext& ctx )
 {
-    gfx::core::Color sum_light;
+    Color sum_light;
 
     for ( const auto& light : lights_ )
     {
@@ -140,11 +136,11 @@ SceneManager::calcLightsColor( IntersectionContext& ctx )
     return sum_light;
 }
 
-gfx::core::Color
+Color
 SceneManager::calcRefractedColor( IntersectionContext& ctx )
 {
-    gfx::core::Vector3f i = ctx.view_ray.getDir().normalize();
-    gfx::core::Vector3f n = ctx.normal.normalize();
+    Vector3f i = ctx.view_ray.getDir().normalize();
+    Vector3f n = ctx.normal.normalize();
 
     float cosi = scalarMul( i, n );
 
@@ -165,8 +161,8 @@ SceneManager::calcRefractedColor( IntersectionContext& ctx )
         return calcReflectedColor( ctx );
     }
 
-    gfx::core::Vector3f refract_dir = ( eta * i ) + ( eta * cosi - std::sqrt( k ) ) * n;
-    refract_dir                     = refract_dir.normalize();
+    Vector3f refract_dir = ( eta * i ) + ( eta * cosi - std::sqrt( k ) ) * n;
+    refract_dir          = refract_dir.normalize();
 
     Ray refracted_ray( refract_dir, ctx.intersection_point + refract_dir * 1e-4f );
 
@@ -174,17 +170,17 @@ SceneManager::calcRefractedColor( IntersectionContext& ctx )
 
     ctx.view_ray = refracted_ray;
     ctx.depth++;
-    gfx::core::Color color = calcRayColor( ctx );
+    Color color = calcRayColor( ctx );
 
     ctx = old_ctx;
 
     return color;
 }
 
-gfx::core::Color
+Color
 SceneManager::calcReflectedColor( IntersectionContext& ctx )
 {
-    gfx::core::Vector3f reflect_dir = ctx.view_ray.getDir().calcReflected( ctx.normal );
+    Vector3f reflect_dir = ctx.view_ray.getDir().calcReflected( ctx.normal );
 
     Ray reflected_ray( reflect_dir, ctx.intersection_point + 1e-4f * ctx.normal );
 
@@ -192,19 +188,19 @@ SceneManager::calcReflectedColor( IntersectionContext& ctx )
 
     ctx.view_ray = reflected_ray;
     ctx.depth++;
-    gfx::core::Color color = calcRayColor( ctx );
+    Color color = calcRayColor( ctx );
 
     ctx = old_ctx;
 
     return color;
 }
 
-gfx::core::Color
+Color
 SceneManager::calcColor( IntersectionContext& ctx )
 {
-    gfx::core::Color light_color     = calcLightsColor( ctx );
-    gfx::core::Color reflected_color = { 0, 0, 0 };
-    gfx::core::Color refracted_color = { 0, 0, 0 };
+    Color light_color     = calcLightsColor( ctx );
+    Color reflected_color = { 0, 0, 0 };
+    Color refracted_color = { 0, 0, 0 };
 
     if ( ctx.closest_object->getMaterial().refraction_factor > 0.0f )
     {
@@ -221,7 +217,7 @@ SceneManager::calcColor( IntersectionContext& ctx )
            reflection_factor * reflected_color + refraction_factor * refracted_color;
 }
 
-gfx::core::Color
+Color
 SceneManager::calcRayColor( IntersectionContext& ctx )
 {
     if ( ctx.depth >= IntersectionContext::MaxDepth )
@@ -237,14 +233,14 @@ SceneManager::calcRayColor( IntersectionContext& ctx )
     return ctx.background_color;
 }
 
-gfx::core::Color
-SceneManager::calcPixelColor( uint row, uint col, const gfx::core::Color& background_color )
+Color
+SceneManager::calcPixelColor( uint row, uint col, const Color& background_color )
 {
     const Ray view_ray = camera_.emitRay( col, row );
 
     IntersectionContext ctx( view_ray, background_color );
 
-    gfx::core::Color ray_color = calcRayColor( ctx );
+    Color ray_color = calcRayColor( ctx );
 
     return calcRayColor( ctx );
 }

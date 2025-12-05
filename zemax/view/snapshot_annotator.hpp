@@ -56,7 +56,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         theme_ = { { 0, 0, 0, 0 },
                    { 0, 118, 185, 255 },
-                   { 0, 118, 185, 255 },
+                   { 118, 0, 0, 255 },
                    { 255, 255, 255, 255 },
                    18,
                    { 128, 128, 128, 255 } };

@@ -5,7 +5,7 @@ Spizheno s https://iquilezles.org/articles/intersectors/
 */
 
 #include "zemax/model/primitives/impls/torus.hpp"
-#include "gfx/core/vector3.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -13,10 +13,10 @@ Spizheno s https://iquilezles.org/articles/intersectors/
 namespace zemax {
 namespace model {
 
-Torus::Torus( const Material&            material,
-              const gfx::core::Vector3f& center,
-              float                      major_radius,
-              float                      minor_radius )
+Torus::Torus( const Material& material,
+              const Vector3f& center,
+              float           major_radius,
+              float           minor_radius )
     : Primitive( material, center ), major_radius_( major_radius ), minor_radius_( minor_radius )
 {
 }
@@ -47,7 +47,7 @@ solveQuadratic( float a, float b, float c )
 }
 
 float
-torIntersect( const gfx::core::Vector3f& ro, const gfx::core::Vector3f& rd, float Ra, float ra )
+torIntersect( const Vector3f& ro, const Vector3f& rd, float Ra, float ra )
 {
     const float Ra2 = Ra * Ra;
     const float ra2 = ra * ra;
@@ -164,8 +164,8 @@ torIntersect( const gfx::core::Vector3f& ro, const gfx::core::Vector3f& rd, floa
 std::optional<Primitive::IntersectionInfo>
 Torus::calcRayIntersection( const Ray& ray ) const
 {
-    gfx::core::Vector3f ro = ray.getBasePoint() - getOrigin();
-    gfx::core::Vector3f rd = ray.getDir();
+    Vector3f ro = ray.getBasePoint() - getOrigin();
+    Vector3f rd = ray.getDir();
 
     float t = torIntersect( ro, rd, major_radius_, minor_radius_ );
 
@@ -182,19 +182,18 @@ Torus::calcRayIntersection( const Ray& ray ) const
     return info;
 }
 
-gfx::core::Vector3f
-Torus::calcNormal( const gfx::core::Vector3f& point, bool /*inside_object*/ ) const
+Vector3f
+Torus::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 {
-    gfx::core::Vector3f p    = point - getOrigin();
-    float               Ra2  = major_radius_ * major_radius_;
-    float               ra2  = minor_radius_ * minor_radius_;
-    float               len2 = scalarMul( p, p );
-    gfx::core::Vector3f grad =
-        p * ( len2 - ra2 - Ra2 ) + gfx::core::Vector3f( -Ra2 * p.x, -Ra2 * p.y, Ra2 * p.z );
+    Vector3f p    = point - getOrigin();
+    float    Ra2  = major_radius_ * major_radius_;
+    float    ra2  = minor_radius_ * minor_radius_;
+    float    len2 = scalarMul( p, p );
+    Vector3f grad = p * ( len2 - ra2 - Ra2 ) + Vector3f( -Ra2 * p.x, -Ra2 * p.y, Ra2 * p.z );
     return grad.normalize();
 }
 
-std::array<gfx::core::Vector3f, 8>
+std::array<Vector3f, 8>
 Torus::getCircumscribedAABB() const
 {
     auto c = getOrigin();

@@ -1,23 +1,21 @@
 #pragma once
 
-#include "gfx/core/vector3.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/ray.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 
 namespace zemax {
 namespace model {
 
 class Plane : public Primitive {
   public:
-    Plane( const Material&            material,
-           const gfx::core::Vector3f& base_point,
-           const gfx::core::Vector3f& normal );
+    Plane( const Material& material, const Vector3f& base_point, const Vector3f& normal );
 
     virtual std::optional<Primitive::IntersectionInfo>
     calcRayIntersection( const Ray& ray ) const override final;
 
-    virtual gfx::core::Vector3f
-    calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const override final;
+    virtual Vector3f
+    calcNormal( const Vector3f& point, bool inside_object ) const override final;
 
     std::unique_ptr<Primitive>
     clone() const override
@@ -31,11 +29,11 @@ class Plane : public Primitive {
         return "Plane";
     }
 
-    std::array<gfx::core::Vector3f, 8>
+    std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
 
   private:
-    gfx::core::Vector3f normal_;
+    Vector3f normal_;
 };
 
 } // namespace model

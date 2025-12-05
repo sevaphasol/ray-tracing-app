@@ -1,9 +1,9 @@
 #pragma once
 
-#include "gfx/core/vector2.hpp"
-#include "gfx/core/vector3.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/rendering/ray.hpp"
+#include "zemax/model/rendering/vector2.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <array>
 #include <memory>
 #include <optional>
@@ -15,7 +15,7 @@ namespace model {
 class Primitive {
   public:
     virtual ~Primitive() = default;
-    Primitive( const Material& material, const gfx::core::Vector3f& origin )
+    Primitive( const Material& material, const Vector3f& origin )
         : material_( material ), origin_( origin )
     {
     }
@@ -39,7 +39,7 @@ class Primitive {
     }
 
     void
-    setColor( gfx::core::Color color )
+    setColor( Color color )
     {
         material_.color = color;
     }
@@ -56,46 +56,46 @@ class Primitive {
         return material_;
     }
 
-    gfx::core::Vector3f
+    Vector3f
     getOrigin() const
     {
         return origin_;
     }
 
     void
-    setOrigin( const gfx::core::Vector3f& new_origin )
+    setOrigin( const Vector3f& new_origin )
     {
         origin_ = new_origin;
     }
 
     virtual void
-    move( const gfx::core::Vector3f& delta )
+    move( const Vector3f& delta )
     {
         origin_ += delta;
     }
 
     struct IntersectionInfo
     {
-        float                              close_distance;
-        float                              far_distance;
-        bool                               inside_object;
-        std::optional<gfx::core::Vector3f> normal;
+        float                   close_distance;
+        float                   far_distance;
+        bool                    inside_object;
+        std::optional<Vector3f> normal;
     };
 
     virtual std::optional<Primitive::IntersectionInfo>
     calcRayIntersection( const Ray& ray ) const = 0;
 
-    virtual gfx::core::Vector3f
-    calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const = 0;
+    virtual Vector3f
+    calcNormal( const Vector3f& point, bool inside_object ) const = 0;
 
-    virtual std::array<gfx::core::Vector3f, 8>
+    virtual std::array<Vector3f, 8>
     getCircumscribedAABB() const = 0;
 
   private:
     bool painted_;
 
-    gfx::core::Vector3f origin_;
-    Material            material_;
+    Vector3f origin_;
+    Material material_;
 };
 
 } // namespace model

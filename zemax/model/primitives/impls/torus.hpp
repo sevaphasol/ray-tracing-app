@@ -10,16 +10,16 @@ namespace model {
 
 class Torus : public Primitive {
   public:
-    Torus( const Material&            material,
-           const gfx::core::Vector3f& center,
-           float                      major_radius,
-           float                      minor_radius );
+    Torus( const Material& material,
+           const Vector3f& center,
+           float           major_radius,
+           float           minor_radius );
 
     std::optional<Primitive::IntersectionInfo>
     calcRayIntersection( const Ray& ray ) const override final;
 
-    gfx::core::Vector3f
-    calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const override final;
+    Vector3f
+    calcNormal( const Vector3f& point, bool inside_object ) const override final;
 
     std::unique_ptr<Primitive>
     clone() const override
@@ -33,7 +33,7 @@ class Torus : public Primitive {
         return "Torus";
     }
 
-    virtual std::array<gfx::core::Vector3f, 8>
+    virtual std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
 
   private:

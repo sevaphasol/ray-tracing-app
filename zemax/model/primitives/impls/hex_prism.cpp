@@ -5,7 +5,7 @@ Spizheno s https://iquilezles.org/articles/intersectors/
 */
 
 #include "zemax/model/primitives/impls/hex_prism.hpp"
-#include "gfx/core/vector3.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -13,10 +13,7 @@ Spizheno s https://iquilezles.org/articles/intersectors/
 namespace zemax {
 namespace model {
 
-HexPrism::HexPrism( const Material&            material,
-                    const gfx::core::Vector3f& center,
-                    float                      radius,
-                    float                      height )
+HexPrism::HexPrism( const Material& material, const Vector3f& center, float radius, float height )
     : Primitive( material, center ), radius_( radius ), height_( height )
 {
 }
@@ -26,18 +23,18 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
 {
     const float ks3 = 0.8660254037844386f; // sqrt(3)/2
 
-    gfx::core::Vector3f n1( 1.0f, 0.0f, 0.0f );
-    gfx::core::Vector3f n2( 0.5f, 0.0f, ks3 );
-    gfx::core::Vector3f n3( -0.5f, 0.0f, ks3 );
-    gfx::core::Vector3f n4( 0.0f, 1.0f, 0.0f );
+    Vector3f n1( 1.0f, 0.0f, 0.0f );
+    Vector3f n2( 0.5f, 0.0f, ks3 );
+    Vector3f n3( -0.5f, 0.0f, ks3 );
+    Vector3f n4( 0.0f, 1.0f, 0.0f );
 
-    gfx::core::Vector3f ro = ray.getBasePoint() - getOrigin();
-    gfx::core::Vector3f rd = ray.getDir();
+    Vector3f ro = ray.getBasePoint() - getOrigin();
+    Vector3f rd = ray.getDir();
 
-    auto slabIntersect = []( float                      d,
-                             const gfx::core::Vector3f& n,
-                             const gfx::core::Vector3f& ro,
-                             const gfx::core::Vector3f& rd ) -> std::pair<float, float> {
+    auto slabIntersect = []( float           d,
+                             const Vector3f& n,
+                             const Vector3f& ro,
+                             const Vector3f& rd ) -> std::pair<float, float> {
         float denom = scalarMul( rd, n );
         if ( std::abs( denom ) < 1e-6f )
         {
@@ -64,8 +61,8 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
     }
 
     // Определяем, какая грань пересечена первой
-    gfx::core::Vector3f normal;
-    float               t = tNear;
+    Vector3f normal;
+    float    t = tNear;
 
     if ( t == t1x )
         normal = n1;
@@ -97,31 +94,31 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
     return info;
 }
 
-gfx::core::Vector3f
-HexPrism::calcNormal( const gfx::core::Vector3f& point, bool /*inside_object*/ ) const
+Vector3f
+HexPrism::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 {
     // Для простоты используем нормаль из пересечения
     // (в реальности можно пересчитать, но в вашем движке normal берётся из IntersectionInfo)
     // Поэтому этот метод редко вызывается — оставим заглушку
-    gfx::core::Vector3f local = point - getOrigin();
-    const float         ks3   = 0.8660254037844386f;
+    Vector3f    local = point - getOrigin();
+    const float ks3   = 0.8660254037844386f;
 
     // Нормали граней
     struct
     {
-        gfx::core::Vector3f n;
-        float               d;
-    } planes[] = { { gfx::core::Vector3f( 1.0f, 0.0f, 0.0f ), radius_ },
-                   { gfx::core::Vector3f( 0.5f, 0.0f, ks3 ), radius_ },
-                   { gfx::core::Vector3f( -0.5f, 0.0f, ks3 ), radius_ },
-                   { gfx::core::Vector3f( -1.0f, 0.0f, 0.0f ), radius_ },
-                   { gfx::core::Vector3f( -0.5f, 0.0f, -ks3 ), radius_ },
-                   { gfx::core::Vector3f( 0.5f, 0.0f, -ks3 ), radius_ },
-                   { gfx::core::Vector3f( 0.0f, 1.0f, 0.0f ), height_ },
-                   { gfx::core::Vector3f( 0.0f, -1.0f, 0.0f ), height_ } };
+        Vector3f n;
+        float    d;
+    } planes[] = { { Vector3f( 1.0f, 0.0f, 0.0f ), radius_ },
+                   { Vector3f( 0.5f, 0.0f, ks3 ), radius_ },
+                   { Vector3f( -0.5f, 0.0f, ks3 ), radius_ },
+                   { Vector3f( -1.0f, 0.0f, 0.0f ), radius_ },
+                   { Vector3f( -0.5f, 0.0f, -ks3 ), radius_ },
+                   { Vector3f( 0.5f, 0.0f, -ks3 ), radius_ },
+                   { Vector3f( 0.0f, 1.0f, 0.0f ), height_ },
+                   { Vector3f( 0.0f, -1.0f, 0.0f ), height_ } };
 
-    float               maxDist = -std::numeric_limits<float>::max();
-    gfx::core::Vector3f bestNormal;
+    float    maxDist = -std::numeric_limits<float>::max();
+    Vector3f bestNormal;
 
     for ( const auto& p : planes )
     {
@@ -136,7 +133,7 @@ HexPrism::calcNormal( const gfx::core::Vector3f& point, bool /*inside_object*/ )
     return bestNormal;
 }
 
-std::array<gfx::core::Vector3f, 8>
+std::array<Vector3f, 8>
 HexPrism::getCircumscribedAABB() const
 {
     auto  c  = getOrigin();

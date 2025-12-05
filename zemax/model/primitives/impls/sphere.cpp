@@ -1,12 +1,12 @@
 #include "zemax/model/primitives/impls/sphere.hpp"
-#include "gfx/core/vector2.hpp"
-#include "gfx/core/vector3.hpp"
+#include "zemax/model/rendering/vector2.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <optional>
 
 namespace zemax {
 namespace model {
 
-Sphere::Sphere( const Material& material, const gfx::core::Vector3f& center, float radius )
+Sphere::Sphere( const Material& material, const Vector3f& center, float radius )
     : Primitive( material, center ), radius_( radius ), radius_sq_( radius * radius )
 {
 }
@@ -14,10 +14,10 @@ Sphere::Sphere( const Material& material, const gfx::core::Vector3f& center, flo
 std::optional<Primitive::IntersectionInfo>
 Sphere::calcRayIntersection( const Ray& ray ) const
 {
-    gfx::core::Vector3f ro = ray.getBasePoint();
-    gfx::core::Vector3f rd = ray.getDir();
-    gfx::core::Vector3f ce = getOrigin();
-    gfx::core::Vector3f oc = ro - ce;
+    Vector3f ro = ray.getBasePoint();
+    Vector3f rd = ray.getDir();
+    Vector3f ce = getOrigin();
+    Vector3f oc = ro - ce;
 
     float b = scalarMul( oc, rd );
     float c = scalarMul( oc, oc ) - radius_sq_;
@@ -43,10 +43,10 @@ Sphere::calcRayIntersection( const Ray& ray ) const
     return info;
 }
 
-gfx::core::Vector3f
-Sphere::calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const
+Vector3f
+Sphere::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    gfx::core::Vector3f normal = ( point - getOrigin() ).normalize();
+    Vector3f normal = ( point - getOrigin() ).normalize();
 
     if ( inside_object )
     {
@@ -56,10 +56,10 @@ Sphere::calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const
     return normal;
 }
 
-std::array<gfx::core::Vector3f, 8>
+std::array<Vector3f, 8>
 Sphere::getCircumscribedAABB() const
 {
-    gfx::core::Vector3f c = getOrigin();
+    Vector3f c = getOrigin();
 
     float r = radius_;
 

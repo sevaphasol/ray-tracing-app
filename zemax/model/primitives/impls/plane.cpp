@@ -1,12 +1,10 @@
 #include "zemax/model/primitives/impls/plane.hpp"
-#include "gfx/core/vector3.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 
 namespace zemax {
 namespace model {
 
-Plane::Plane( const Material&            material,
-              const gfx::core::Vector3f& base_point,
-              const gfx::core::Vector3f& normal )
+Plane::Plane( const Material& material, const Vector3f& base_point, const Vector3f& normal )
     : Primitive( material, base_point ), normal_( normal )
 {
     normal_.normalize();
@@ -44,16 +42,16 @@ Plane::calcRayIntersection( const Ray& ray ) const
     return info;
 }
 
-gfx::core::Vector3f
-Plane::calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const
+Vector3f
+Plane::calcNormal( const Vector3f& point, bool inside_object ) const
 {
     return normal_;
 }
 
-std::array<gfx::core::Vector3f, 8>
+std::array<Vector3f, 8>
 Plane::getCircumscribedAABB() const
 {
-    gfx::core::Vector3f c = getOrigin();
+    Vector3f c = getOrigin();
 
     float h = 1.0f;
 

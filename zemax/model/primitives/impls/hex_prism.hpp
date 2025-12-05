@@ -9,16 +9,16 @@ namespace model {
 
 class HexPrism : public Primitive {
   public:
-    HexPrism( const Material&            material,
-              const gfx::core::Vector3f& center,
-              float                      radius, // ra — радиус описанной окружности шестиугольника
-              float                      height );                    // he — половина высоты (от центра вверх/вниз)
+    HexPrism( const Material& material,
+              const Vector3f& center,
+              float           radius, // ra — радиус описанной окружности шестиугольника
+              float           height );         // he — половина высоты (от центра вверх/вниз)
 
     std::optional<Primitive::IntersectionInfo>
     calcRayIntersection( const Ray& ray ) const override final;
 
-    gfx::core::Vector3f
-    calcNormal( const gfx::core::Vector3f& point, bool inside_object ) const override final;
+    Vector3f
+    calcNormal( const Vector3f& point, bool inside_object ) const override final;
 
     std::unique_ptr<Primitive>
     clone() const override
@@ -32,7 +32,7 @@ class HexPrism : public Primitive {
         return "HexPrism";
     }
 
-    std::array<gfx::core::Vector3f, 8>
+    std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
 
   private:

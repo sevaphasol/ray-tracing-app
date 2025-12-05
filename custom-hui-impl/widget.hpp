@@ -8,7 +8,7 @@
 
 // #include "gfx/core/drawable.hpp"
 // #include "gfx/core/transformable.hpp"
-// #include "gfx/core/vector2.hpp"
+// #include "zemax/model/rendering/vector2.hpp"
 
 #include <memory>
 #include <vector>

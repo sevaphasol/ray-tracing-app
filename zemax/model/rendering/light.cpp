@@ -1,52 +1,51 @@
 #include "zemax/model/rendering/light.hpp"
-#include "gfx/core/color.hpp"
-#include "gfx/core/vector3.hpp"
 #include "zemax/model/primitives/material.hpp"
+#include "zemax/model/rendering/color.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 
 #include <iostream>
 
 namespace zemax {
 namespace model {
 
-Light::Light( const gfx::core::Vector3f& pos,
-              float                      embedded_intensity,
-              float                      diffuse_intensity,
-              float                      glare_intensity )
+Light::Light( const Vector3f& pos,
+              float           embedded_intensity,
+              float           diffuse_intensity,
+              float           glare_intensity )
     : pos_( pos ),
       embedded_intensity_( embedded_intensity ),
       diffuse_intensity_( diffuse_intensity ),
       glare_intensity_( glare_intensity ) {};
 
 void
-Light::move( const gfx::core::Vector3f& delta )
+Light::move( const Vector3f& delta )
 {
     pos_ += delta;
 }
 
-gfx::core::Color
-Light::calcColor( const gfx::core::Vector3f& ray,
-                  const gfx::core::Vector3f& point,
-                  const gfx::core::Vector3f& normal,
-                  const Material&            mat ) const
+Color
+Light::calcColor( const Vector3f& ray,
+                  const Vector3f& point,
+                  const Vector3f& normal,
+                  const Material& mat ) const
 {
-    gfx::core::Vector3f light_ray = pos_ - point;
+    Vector3f light_ray = pos_ - point;
 
-    gfx::core::Color embedded_light = calcEmbeddedLight( mat );
-    gfx::core::Color diffuse_light  = calcDiffuseLight( light_ray, normal );
-    gfx::core::Color glare_light    = calcGlareLight( light_ray, normal, ray );
+    Color embedded_light = calcEmbeddedLight( mat );
+    Color diffuse_light  = calcDiffuseLight( light_ray, normal );
+    Color glare_light    = calcGlareLight( light_ray, normal, ray );
 
     return embedded_light + diffuse_light + glare_light;
 }
 
-gfx::core::Color
+Color
 Light::calcEmbeddedLight( const Material& mat ) const
 {
-    return ( mat.painted ) ? gfx::core::Color( 32, 32, 32 ) : mat.color * embedded_intensity_;
+    return ( mat.painted ) ? Color( 32, 32, 32 ) : mat.color * embedded_intensity_;
 }
 
 float
-Light::calcDiffuseLight( const gfx::core::Vector3f& light_ray,
-                         const gfx::core::Vector3f& normal ) const
+Light::calcDiffuseLight( const Vector3f& light_ray, const Vector3f& normal ) const
 {
     float intensity = diffuse_intensity_ * calcCos( light_ray, normal );
 
@@ -54,11 +53,11 @@ Light::calcDiffuseLight( const gfx::core::Vector3f& light_ray,
 }
 
 float
-Light::calcGlareLight( const gfx::core::Vector3f& light_ray,
-                       const gfx::core::Vector3f& normal,
-                       const gfx::core::Vector3f& view_ray ) const
+Light::calcGlareLight( const Vector3f& light_ray,
+                       const Vector3f& normal,
+                       const Vector3f& view_ray ) const
 {
-    gfx::core::Vector3f reflected_ray = light_ray.calcReflected( normal );
+    Vector3f reflected_ray = light_ray.calcReflected( normal );
 
     float cos = calcCos( view_ray, reflected_ray );
 

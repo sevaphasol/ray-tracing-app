@@ -1,15 +1,15 @@
 #pragma once
 
-#include "gfx/core/color.hpp"
-#include "gfx/core/vector3.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/plane.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
+#include "zemax/model/rendering/color.hpp"
 #include "zemax/model/rendering/light.hpp"
 #include "zemax/model/rendering/ray.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include <assert.h>
 #include <iostream>
 #include <memory>
@@ -22,7 +22,7 @@ namespace model {
 
 class SceneManager {
   public:
-    SceneManager( const gfx::core::Vector3f& camera_pos, float screen_width, float screen_height );
+    SceneManager( const Vector3f& camera_pos, float screen_width, float screen_height );
 
     size_t
     getObjectsCount()
@@ -32,9 +32,9 @@ class SceneManager {
 
     struct ObjectInfo
     {
-        gfx::core::Vector3f pos;
-        std::string         type_name;
-        size_t              objects_idx;
+        Vector3f    pos;
+        std::string type_name;
+        size_t      objects_idx;
     };
 
     void
@@ -77,7 +77,7 @@ class SceneManager {
 
         auto new_obj = target_obj_->clone();
 
-        gfx::core::Vector3f new_pos{ new_obj_x, new_obj_y, new_obj_z };
+        Vector3f new_pos{ new_obj_x, new_obj_y, new_obj_z };
         new_obj->setOrigin( new_pos );
 
         target_obj_->revert_paint();
@@ -140,10 +140,10 @@ class SceneManager {
     }
 
     void
-    addLight( gfx::core::Vector3f pos,
-              float               embedded_intensity,
-              float               diffuse_intensity,
-              float               glare_intensity );
+    addLight( Vector3f pos,
+              float    embedded_intensity,
+              float    diffuse_intensity,
+              float    glare_intensity );
 
     void
     deleteTargetObj()
@@ -160,35 +160,28 @@ class SceneManager {
     }
 
     void
-    addSphere( const Material& material, const gfx::core::Vector3f& center, float radius );
+    addSphere( const Material& material, const Vector3f& center, float radius );
 
     void
-    addPlane( const Material&            material,
-              const gfx::core::Vector3f& base_point,
-              const gfx::core::Vector3f& normal );
+    addPlane( const Material& material, const Vector3f& base_point, const Vector3f& normal );
 
     void
-    addAABB( const Material&            material,
-             const gfx::core::Vector3f& center,
-             const gfx::core::Vector3f& bounds );
+    addAABB( const Material& material, const Vector3f& center, const Vector3f& bounds );
 
     void
-    addHexPrism( const Material&            material,
-                 const gfx::core::Vector3f& center,
-                 float                      radius,
-                 float                      height );
+    addHexPrism( const Material& material, const Vector3f& center, float radius, float height );
 
     void
-    addTorus( const Material&            material,
-              const gfx::core::Vector3f& center,
-              float                      minor_radius,
-              float                      major_radius );
+    addTorus( const Material& material,
+              const Vector3f& center,
+              float           minor_radius,
+              float           major_radius );
 
     void
-    addCube( const Material& material, const gfx::core::Vector3f& center, float side );
+    addCube( const Material& material, const Vector3f& center, float side );
 
-    gfx::core::Color
-    calcPixelColor( uint row, uint col, const gfx::core::Color& background_color );
+    Color
+    calcPixelColor( uint row, uint col, const Color& background_color );
 
     Camera&
     getCamera()
@@ -223,7 +216,7 @@ class SceneManager {
   private:
     struct IntersectionContext
     {
-        IntersectionContext( const Ray& view_ray, const gfx::core::Color& background_color )
+        IntersectionContext( const Ray& view_ray, const Color& background_color )
             : view_ray( view_ray ), background_color( background_color )
         {
         }
@@ -254,31 +247,31 @@ class SceneManager {
         }
 
         Ray                     view_ray;
-        gfx::core::Vector3f     intersection_point;
-        gfx::core::Vector3f     normal;
-        gfx::core::Color        background_color;
+        Vector3f                intersection_point;
+        Vector3f                normal;
+        Color                   background_color;
         Primitive*              closest_object = nullptr;
         size_t                  depth          = 0;
         static constexpr size_t MaxDepth       = 4;
     };
 
   private:
-    gfx::core::Color
+    Color
     calcRayColor( IntersectionContext& ctx );
 
     void
-    moveLights( const gfx::core::Vector3f& delta );
+    moveLights( const Vector3f& delta );
 
-    gfx::core::Color
+    Color
     calcRefractedColor( IntersectionContext& ctx );
 
-    gfx::core::Color
+    Color
     calcReflectedColor( IntersectionContext& ctx );
 
-    gfx::core::Color
+    Color
     calcColor( IntersectionContext& ctx );
 
-    gfx::core::Color
+    Color
     calcLightsColor( IntersectionContext& ctx );
 
     bool

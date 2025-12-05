@@ -3,20 +3,11 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/container_widget.hpp"
 #include "custom-hui-impl/text_field.hpp"
-#include "gfx/core/color.hpp"
-#include "gfx/core/event.hpp"
-#include "gfx/core/font.hpp"
-#include "gfx/core/rectangle_shape.hpp"
-#include "gfx/core/vector2.hpp"
-#include "gfx/core/vector3.hpp"
-#include "gfx/core/window.hpp"
-#include "gfx/ui/button.hpp"
-#include "gfx/ui/container_widget.hpp"
-#include "gfx/ui/scrollbar.hpp"
-#include "gfx/ui/text_field.hpp"
-#include "gfx/ui/widget.hpp"
+#include "dr4/math/color.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
+#include "zemax/model/rendering/vector2.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include "zemax/view/scrollable_buttons_widget.hpp"
 #include <algorithm>
 #include <cmath>
@@ -268,7 +259,7 @@ class ControlPanel : public hui::ContainerWidget {
             if ( scene_manager_.getTargetObj() != nullptr )
             {
                 scene_manager_.getTargetObj()->move(
-                    gfx::core::Vector3f( -Config::Camera::ObjMoveFactor, 0, 0 ) );
+                    zemax::model::Vector3f( -Config::Camera::ObjMoveFactor, 0, 0 ) );
                 scene_manager_.needUpdate() = true;
             }
         }
@@ -277,7 +268,7 @@ class ControlPanel : public hui::ContainerWidget {
             if ( scene_manager_.getTargetObj() != nullptr )
             {
                 scene_manager_.getTargetObj()->move(
-                    gfx::core::Vector3f( Config::Camera::ObjMoveFactor, 0, 0 ) );
+                    zemax::model::Vector3f( Config::Camera::ObjMoveFactor, 0, 0 ) );
                 scene_manager_.needUpdate() = true;
             }
         }
@@ -286,7 +277,7 @@ class ControlPanel : public hui::ContainerWidget {
             if ( scene_manager_.getTargetObj() != nullptr )
             {
                 scene_manager_.getTargetObj()->move(
-                    gfx::core::Vector3f( 0, Config::Camera::ObjMoveFactor, 0 ) );
+                    zemax::model::Vector3f( 0, Config::Camera::ObjMoveFactor, 0 ) );
                 scene_manager_.needUpdate() = true;
             }
         }
@@ -295,7 +286,7 @@ class ControlPanel : public hui::ContainerWidget {
             if ( scene_manager_.getTargetObj() != nullptr )
             {
                 scene_manager_.getTargetObj()->move(
-                    gfx::core::Vector3f( 0, -Config::Camera::ObjMoveFactor, 0 ) );
+                    zemax::model::Vector3f( 0, -Config::Camera::ObjMoveFactor, 0 ) );
                 scene_manager_.needUpdate() = true;
             }
         }
@@ -304,7 +295,7 @@ class ControlPanel : public hui::ContainerWidget {
             if ( scene_manager_.getTargetObj() != nullptr )
             {
                 scene_manager_.getTargetObj()->move(
-                    gfx::core::Vector3f( 0, 0, -Config::Camera::ObjMoveFactor ) );
+                    zemax::model::Vector3f( 0, 0, -Config::Camera::ObjMoveFactor ) );
                 scene_manager_.needUpdate() = true;
             }
         }
@@ -313,7 +304,7 @@ class ControlPanel : public hui::ContainerWidget {
             if ( scene_manager_.getTargetObj() != nullptr )
             {
                 scene_manager_.getTargetObj()->move(
-                    gfx::core::Vector3f( 0, 0, Config::Camera::ObjMoveFactor ) );
+                    zemax::model::Vector3f( 0, 0, Config::Camera::ObjMoveFactor ) );
                 scene_manager_.needUpdate() = true;
             }
         }
@@ -334,11 +325,12 @@ class ControlPanel : public hui::ContainerWidget {
                  new_obj_s.has_value() && new_obj_r.has_value() && new_obj_g.has_value() &&
                  new_obj_b.has_value() && new_obj_f.has_value() )
             {
-                auto origin =
-                    gfx::core::Vector3f( new_obj_x.value(), new_obj_y.value(), new_obj_z.value() );
+                auto origin = zemax::model::Vector3f( new_obj_x.value(),
+                                                      new_obj_y.value(),
+                                                      new_obj_z.value() );
 
                 auto color =
-                    gfx::core::Color( new_obj_r.value(), new_obj_g.value(), new_obj_b.value() );
+                    zemax::model::Color( new_obj_r.value(), new_obj_g.value(), new_obj_b.value() );
 
                 auto reflection_factor = new_obj_f.value();
 
@@ -352,9 +344,9 @@ class ControlPanel : public hui::ContainerWidget {
                     case ScrollBarButtonCode::AABB:
                         scene_manager_.addAABB( material,
                                                 origin,
-                                                gfx::core::Vector3f( new_obj_s.value(),
-                                                                     new_obj_s.value(),
-                                                                     new_obj_s.value() ) );
+                                                zemax::model::Vector3f( new_obj_s.value(),
+                                                                        new_obj_s.value(),
+                                                                        new_obj_s.value() ) );
                         break;
                     case ScrollBarButtonCode::Plane:
                         scene_manager_.addPlane( material, origin, { 0.0f, 1.0f, 0.0f } );

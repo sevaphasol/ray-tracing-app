@@ -1,19 +1,11 @@
 #pragma once
 
 #include "custom-hui-impl/widget.hpp"
+#include "dr4/math/color.hpp"
 #include "dr4/texture.hpp"
-#include "gfx/core/color.hpp"
-#include "gfx/core/font.hpp"
-#include "gfx/core/primitive_type.hpp"
-#include "gfx/core/rect.hpp"
-#include "gfx/core/rectangle_shape.hpp"
-#include "gfx/core/text.hpp"
-#include "gfx/core/vector2.hpp"
-#include "gfx/core/vector3.hpp"
-#include "gfx/core/vertex.hpp"
-#include "gfx/core/window.hpp"
+#include "zemax/model/rendering/vector2.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 
-#include "gfx/ui/event.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
@@ -35,13 +27,13 @@ class Scene : public hui::Widget {
   public:
     ~Scene() = default;
 
-    explicit Scene( cum::Manager*              pm,
-                    dr4::Window*               win,
-                    const dr4::Font*           font,
-                    const dr4::Vec2f&          pos,
-                    const dr4::Vec2f&          size,
-                    const dr4::Color&          background_color,
-                    const gfx::core::Vector3f& camera_pos )
+    explicit Scene( cum::Manager*                 pm,
+                    dr4::Window*                  win,
+                    const dr4::Font*              font,
+                    const dr4::Vec2f&             pos,
+                    const dr4::Vec2f&             size,
+                    const dr4::Color&             background_color,
+                    const zemax::model::Vector3f& camera_pos )
         : hui::Widget( pm, win, pos, size ),
           model_( zemax::Config::Camera::Position, size.x, size.y ),
           background_color_( background_color ),
@@ -72,79 +64,80 @@ class Scene : public hui::Widget {
         border_->SetBorderColor( { 118, 185, 0, 255 } );
         border_->SetBorderThickness( -2.0f );
 
-        model_.addLight( gfx::core::Vector3f( 3, 3, -3 ), 1.0, 0.3, 0.9 );
-        model_.addLight( gfx::core::Vector3f( 0, 0, -11 ), 0.2, 0.3, 0.9 );
+        model_.addLight( zemax::model::Vector3f( 3, 3, -3 ), 1.0, 0.3, 0.9 );
+        model_.addLight( zemax::model::Vector3f( 0, 0, -11 ), 0.2, 0.3, 0.9 );
 
-        // model_.addTorus( model::Material( gfx::core::Color( 118, 185, 0 ) ), { 0, 0, -5 }, 1, 2
+        // model_.addTorus( model::Material( zemax::model::Color( 118, 185, 0 ) ), { 0, 0, -5 }, 1,
+        // 2
         // );
 
-        model_.addAABB( model::Material( gfx::core::Color( 255, 8, 8 ), 0.8f ),
-                        gfx::core::Vector3f( -2, 1, -8 ),
-                        gfx::core::Vector3f( 0.75, 0.75, -6.75 ) );
+        model_.addAABB( model::Material( zemax::model::Color( 255, 8, 8 ), 0.8f ),
+                        zemax::model::Vector3f( -2, 1, -8 ),
+                        zemax::model::Vector3f( 0.75, 0.75, -6.75 ) );
 
-        // model_.addAABB( model::Material( gfx::core::Color( 8, 8, 8 ), 0.5f ),
-        //                 gfx::core::Vector3f( -1, 0.5, -5 ),
-        //                 gfx::core::Vector3f( 0.25, 0.25, 0.25 ) );
+        // model_.addAABB( model::Material( zemax::model::Color( 8, 8, 8 ), 0.5f ),
+        //                 zemax::model::Vector3f( -1, 0.5, -5 ),
+        //                 zemax::model::Vector3f( 0.25, 0.25, 0.25 ) );
 
-        model_.addSphere( model::Material( gfx::core::Color( 8, 32, 8 ), 1.0f ),
-                          gfx::core::Vector3f( 0, 0, -13 ),
+        model_.addSphere( model::Material( zemax::model::Color( 8, 32, 8 ), 1.0f ),
+                          zemax::model::Vector3f( 0, 0, -13 ),
                           0.3 );
 
-        model_.addSphere( model::Material( gfx::core::Color( 8, 32, 8 ), 0.3f ),
-                          gfx::core::Vector3f( 2, 2, -13 ),
+        model_.addSphere( model::Material( zemax::model::Color( 8, 32, 8 ), 0.3f ),
+                          zemax::model::Vector3f( 2, 2, -13 ),
                           1.5 );
 
-        model_.addSphere( model::Material( gfx::core::Color( 118, 185, 0 ), 0.9f ),
-                          gfx::core::Vector3f( 0, 3, -16 ),
+        model_.addSphere( model::Material( zemax::model::Color( 118, 185, 0 ), 0.9f ),
+                          zemax::model::Vector3f( 0, 3, -16 ),
                           1.5 );
 
-        model_.addSphere( model::Material( gfx::core::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
-                          gfx::core::Vector3f( -1.5, -0.5, -13.6 ),
+        model_.addSphere( model::Material( zemax::model::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
+                          zemax::model::Vector3f( -1.5, -0.5, -13.6 ),
                           1.5 );
 
-        model_.addSphere( model::Material( gfx::core::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
-                          gfx::core::Vector3f( 1.2, -1.4, -14.1 ),
+        model_.addSphere( model::Material( zemax::model::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
+                          zemax::model::Vector3f( 1.2, -1.4, -14.1 ),
                           1.0 );
 
-        // model_.addAABB( model::Material( gfx::core::Color( 118, 185, 0 ), 0.9f
+        // model_.addAABB( model::Material( zemax::model::Color( 118, 185, 0 ), 0.9f
         // ),
-        //                 gfx::core::Vector3f( 0, -1, -8 ),
+        //                 zemax::model::Vector3f( 0, -1, -8 ),
         //                 { 1.5, 0.5, 1.5 } );
 
-        model_.addAABB( model::Material( gfx::core::Color( 118, 185, 0 ), 0.95f ),
-                        gfx::core::Vector3f( -4, 0, -12 ),
+        model_.addAABB( model::Material( zemax::model::Color( 118, 185, 0 ), 0.95f ),
+                        zemax::model::Vector3f( -4, 0, -12 ),
                         { 0.1, 3, 3 } );
 
-        model_.addAABB( model::Material( gfx::core::Color( 118, 185, 0 ), 0.95f ),
-                        gfx::core::Vector3f( 4, 0, -12 ),
+        model_.addAABB( model::Material( zemax::model::Color( 118, 185, 0 ), 0.95f ),
+                        zemax::model::Vector3f( 4, 0, -12 ),
                         { 0.1, 3, 3 } );
 
-        model_.addAABB( model::Material( gfx::core::Color( 118, 185, 0 ), 0.95f ),
-                        gfx::core::Vector3f( 0, 0, -18 ),
+        model_.addAABB( model::Material( zemax::model::Color( 118, 185, 0 ), 0.95f ),
+                        zemax::model::Vector3f( 0, 0, -18 ),
                         { 3, 3, 0.1 } );
 
-        // model_.addSphere( model::Material( gfx::core::Color( 8, 32, 8 ), 0.3f
+        // model_.addSphere( model::Material( zemax::model::Color( 8, 32, 8 ), 0.3f
         // ),
-        //   gfx::core::Vector3f( -2, 1, -1 ),
+        //   zemax::model::Vector3f( -2, 1, -1 ),
         //   1.5 );
 
-        model_.addAABB( model::Material( gfx::core::Color( 58, 90, 0 ) ),
-                        gfx::core::Vector3f( 0, -3.5f, -12 ),
-                        gfx::core::Vector3f( 5.0f, 0.1, 5.0f ) );
-        model_.addAABB( model::Material( gfx::core::Color( 58, 90, 0 ) ),
-                        gfx::core::Vector3f( 0, 5.0f, -12 ),
-                        gfx::core::Vector3f( 5.0f, 0.1, 5.0f ) );
+        model_.addAABB( model::Material( zemax::model::Color( 58, 90, 0 ) ),
+                        zemax::model::Vector3f( 0, -3.5f, -12 ),
+                        zemax::model::Vector3f( 5.0f, 0.1, 5.0f ) );
+        model_.addAABB( model::Material( zemax::model::Color( 58, 90, 0 ) ),
+                        zemax::model::Vector3f( 0, 5.0f, -12 ),
+                        zemax::model::Vector3f( 5.0f, 0.1, 5.0f ) );
 
-        // model_.addHexPrism( model::Material( gfx::core::Color( 32, 255, 32 ), 0.3f ),
-        // gfx::core::Vector3f( -3, 0, -6 ),
+        // model_.addHexPrism( model::Material( zemax::model::ColorColor( 32, 255, 32 ), 0.3f ),
+        // zemax::model::Vector3f( -3, 0, -6 ),
         // 1.0f, // R
         // 2.0f  // r
         // );
 
-        // model_.addPlane( model::Material( gfx::core::Color( 1, 8, 127 ), 0.5f
+        // model_.addPlane( model::Material( zemax::model::ColorColor( 1, 8, 127 ), 0.5f
         // ),
-        //  gfx::core::Vector3f( -5, -5, -5 ),
-        //  gfx::core::Vector3f( 1, 1, 1 ) );
+        //  zemax::model::Vector3f( -5, -5, -5 ),
+        //  zemax::model::Vector3f( 1, 1, 1 ) );
     }
 
     void
@@ -235,12 +228,13 @@ class Scene : public hui::Widget {
                 {
                     for ( size_t col = 0; col < w; ++col )
                     {
-                        gfx::core::Color color = model_.calcPixelColor( row,
-                                                                        col,
-                                                                        { background_color_.r,
-                                                                          background_color_.g,
-                                                                          background_color_.b,
-                                                                          background_color_.a } );
+                        zemax::model::Color color =
+                            model_.calcPixelColor( row,
+                                                   col,
+                                                   { background_color_.r,
+                                                     background_color_.g,
+                                                     background_color_.b,
+                                                     background_color_.a } );
                         pixels_->SetPixel( col, row, { color.r, color.g, color.b, color.a } );
                     }
                 }
@@ -313,11 +307,11 @@ class Scene : public hui::Widget {
             }
 
             // std::vector<gfx::core::Vertex> outline = {
-            // { { min_x, min_y }, gfx::core::Color::Red },
-            // { { max_x, min_y }, gfx::core::Color::Red },
-            // { { max_x, max_y }, gfx::core::Color::Red },
-            // { { min_x, max_y }, gfx::core::Color::Red },
-            // { { min_x, min_y }, gfx::core::Color::Red } };
+            // { { min_x, min_y }, dr4::Color::Red },
+            // { { max_x, min_y }, dr4::Color::Red },
+            // { { max_x, max_y }, dr4::Color::Red },
+            // { { min_x, max_y }, dr4::Color::Red },
+            // { { min_x, min_y }, dr4::Color::Red } };
 
             select_rect_->SetPos( { min_x, min_y } );
             select_rect_->SetSize( { max_x - min_x, max_y - min_y } );
