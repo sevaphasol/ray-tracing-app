@@ -17,8 +17,11 @@ namespace hui {
 
 class Widget {
   public:
-    explicit Widget( cum::PluginManager* pm, float x, float y, float w, float h );
-    explicit Widget( cum::PluginManager* pm, const dr4::Vec2f& pos, const dr4::Vec2f& size );
+    explicit Widget( cum::Manager* pm, dr4::Window* win, float x, float y, float w, float h );
+    explicit Widget( cum::Manager*     pm,
+                     dr4::Window*      win,
+                     const dr4::Vec2f& pos,
+                     const dr4::Vec2f& size );
     virtual ~Widget() = default;
 
     virtual bool
@@ -86,7 +89,7 @@ class Widget {
     Redraw() const;
 
   protected:
-    cum::PluginManager* pm_;
+    cum::Manager* pm_;
 
     dr4::Window* window_;
 

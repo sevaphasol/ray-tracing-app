@@ -3,28 +3,25 @@
 #include "dr4/math/rect.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/mouse_buttons.hpp"
+#include "dr4/window.hpp"
 #include "event.hpp"
 #include "plugin_manager.hpp"
 #include <cassert>
 
 namespace hui {
 
-Widget::Widget( cum::PluginManager* pm, float x, float y, float w, float h ) : size_( w, h )
+Widget::Widget( cum::Manager* pm, dr4::Window* win, float x, float y, float w, float h )
+    : size_( w, h ), pm_( pm ), window_( win )
 {
-    pm_ = pm;
-
-    window_ = pm->getWindow();
-
     texture_ = window_->CreateTexture();
-
     texture_->SetSize( { w, h } );
 
     setRelPos( x, y );
     setSize( size_ );
 }
 
-Widget::Widget( cum::PluginManager* pm, const dr4::Vec2f& pos, const dr4::Vec2f& size )
-    : Widget( pm, pos.x, pos.y, size.x, size.y )
+Widget::Widget( cum::Manager* pm, dr4::Window* win, const dr4::Vec2f& pos, const dr4::Vec2f& size )
+    : Widget( pm, win, pos.x, pos.y, size.x, size.y )
 {
 }
 
@@ -150,6 +147,7 @@ void
 Widget::setSize( const dr4::Vec2f& size )
 {
     size_ = size;
+    texture_->SetSize( size );
 }
 
 dr4::Vec2f

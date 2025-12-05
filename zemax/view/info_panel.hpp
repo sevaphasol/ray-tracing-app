@@ -13,11 +13,11 @@ namespace view {
 
 class ObjInfoPanel : public hui::Widget {
   public:
-    ObjInfoPanel( cum::PluginManager* pm, const dr4::Font* font, float w, float h )
-        : hui::Widget( pm, 0.0f, 0.0f, w, h )
+    ObjInfoPanel( cum::Manager* pm, dr4::Window* win, const dr4::Font* font, float w, float h )
+        : hui::Widget( pm, win, 0.0f, 0.0f, w, h )
     {
-        text_.reset( pm->getWindow()->CreateText() );
-        rect_.reset( pm->getWindow()->CreateRectangle() );
+        text_.reset( win->CreateText() );
+        rect_.reset( win->CreateRectangle() );
 
         text_->SetFont( font );
         text_->SetColor( Config::Scene::ObjInfoPanel::FontColor );
@@ -29,8 +29,11 @@ class ObjInfoPanel : public hui::Widget {
         rect_->SetBorderThickness( -Config::Scene::ObjInfoPanel::OutlineThickness );
     }
 
-    ObjInfoPanel( cum::PluginManager* pm, const dr4::Font* font, const dr4::Vec2f& size )
-        : ObjInfoPanel( pm, font, size.x, size.y )
+    ObjInfoPanel( cum::Manager*     pm,
+                  dr4::Window*      win,
+                  const dr4::Font*  font,
+                  const dr4::Vec2f& size )
+        : ObjInfoPanel( pm, win, font, size.x, size.y )
     {
     }
 

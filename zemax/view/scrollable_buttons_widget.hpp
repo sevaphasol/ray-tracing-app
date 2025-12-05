@@ -10,15 +10,16 @@ namespace view {
 
 class ScrollableButtonsWidget : public hui::ContainerWidget {
   public:
-    explicit ScrollableButtonsWidget( cum::PluginManager* pm,
-                                      const dr4::Vec2f&   pos  = { 0.0f, 0.0f },
-                                      const dr4::Vec2f&   size = { 0.0f, 0.0f } )
-        : ContainerWidget( pm, pos, size ), scroll_bar_( pm, 0, 0 )
+    explicit ScrollableButtonsWidget( cum::Manager*     pm,
+                                      dr4::Window*      win,
+                                      const dr4::Vec2f& pos  = { 0.0f, 0.0f },
+                                      const dr4::Vec2f& size = { 0.0f, 0.0f } )
+        : ContainerWidget( pm, win, pos, size ), scroll_bar_( pm, win, 0, 0 )
     {
         // setPosition( Config::ControlPanel::Size );
         // setSize( Config::ControlPanel::Size );
 
-        border_.reset( pm->getWindow()->CreateRectangle() );
+        border_.reset( win->CreateRectangle() );
 
         border_->SetSize( size );
         border_->SetFillColor( { 0, 0, 0, 0 } );
@@ -28,8 +29,13 @@ class ScrollableButtonsWidget : public hui::ContainerWidget {
         scroll_bar_.setParent( this );
     };
 
-    explicit ScrollableButtonsWidget( cum::PluginManager* pm, float x, float y, float w, float h )
-        : ScrollableButtonsWidget( pm, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ) )
+    explicit ScrollableButtonsWidget( cum::Manager* pm,
+                                      dr4::Window*  win,
+                                      float         x,
+                                      float         y,
+                                      float         w,
+                                      float         h )
+        : ScrollableButtonsWidget( pm, win, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ) )
     {
     }
 

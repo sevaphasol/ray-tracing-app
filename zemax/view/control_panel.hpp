@@ -31,18 +31,23 @@ namespace view {
 
 class ControlPanel : public hui::ContainerWidget {
   public:
-    explicit ControlPanel( cum::PluginManager*         pm,
+    explicit ControlPanel( cum::Manager*               pm,
+                           dr4::Window*                win,
                            const dr4::Font*            font,
                            zemax::model::SceneManager& scene_manager )
-        : hui::ContainerWidget( pm, Config::ControlPanel::Position, Config::ControlPanel::Size ),
+        : hui::ContainerWidget( pm,
+                                win,
+                                Config::ControlPanel::Position,
+                                Config::ControlPanel::Size ),
           scene_manager_( scene_manager ),
           font_( font ),
           camera_( scene_manager.getCamera() ),
           scrollbar_( pm,
+                      win,
                       Config::ControlPanel::ScrollBar::Position,
                       Config::ControlPanel::ScrollBar::Size )
     {
-        border_.reset( pm->getWindow()->CreateRectangle() );
+        border_.reset( win->CreateRectangle() );
 
         setDraggable( true );
 
@@ -457,12 +462,12 @@ class ControlPanel : public hui::ContainerWidget {
     {
         buttons_[code] =
             std::move( std::make_unique<hui::Button>( pm_,
+                                                      window_,
                                                       pos,
                                                       Config::ControlPanel::Button::Size,
                                                       Config::ControlPanel::Button::DefaultColor,
                                                       Config::ControlPanel::Button::HoveredColor,
                                                       Config::ControlPanel::Button::PressedColor,
-                                                      font_,
                                                       title,
                                                       Config::ControlPanel::Button::FontColor,
                                                       Config::ControlPanel::Button::FontSize ) );
@@ -474,6 +479,7 @@ class ControlPanel : public hui::ContainerWidget {
     {
         text_fields_[code] =
             std::move( std::make_unique<hui::TextField>( pm_,
+                                                         window_,
                                                          title,
                                                          font_,
                                                          pos,
@@ -486,12 +492,12 @@ class ControlPanel : public hui::ContainerWidget {
     {
         scrollbar_.addButton(
             std::make_unique<hui::Button>( pm_,
+                                           window_,
                                            Config::ControlPanel::ScrollBar::Button::Position,
                                            Config::ControlPanel::ScrollBar::Button::Size,
                                            Config::ControlPanel::Button::DefaultColor,
                                            Config::ControlPanel::Button::HoveredColor,
                                            Config::ControlPanel::Button::PressedColor,
-                                           font_,
                                            label,
                                            Config::ControlPanel::Button::FontColor,
                                            Config::ControlPanel::Button::FontSize ) );

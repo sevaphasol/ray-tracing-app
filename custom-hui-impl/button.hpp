@@ -10,16 +10,16 @@ namespace hui {
 
 class Button : public hui::Widget {
   public:
-    explicit Button( cum::PluginManager* pm,
-                     const dr4::Vec2f&   pos,
-                     const dr4::Vec2f&   size,
-                     const dr4::Color&   default_color,
-                     const dr4::Color&   hovered_color,
-                     const dr4::Color&   pressed_color,
-                     const dr4::Font*    font,
-                     const std::string&  title,
-                     const dr4::Color&   font_color,
-                     size_t              font_size );
+    explicit Button( cum::Manager*      pm,
+                     dr4::Window*       win,
+                     const dr4::Vec2f&  pos,
+                     const dr4::Vec2f&  size,
+                     const dr4::Color&  default_color,
+                     const dr4::Color&  hovered_color,
+                     const dr4::Color&  pressed_color,
+                     const std::string& title,
+                     const dr4::Color&  font_color,
+                     size_t             font_size );
 
     void
     setRelPos( const dr4::Vec2f& pos ) override;

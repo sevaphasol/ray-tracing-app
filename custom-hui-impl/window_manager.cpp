@@ -1,15 +1,12 @@
 #include "window_manager.hpp"
 #include "dr4/event.hpp"
+#include "dr4/window.hpp"
 #include "event.hpp"
-#include "plugin_manager.hpp"
-#include <iostream>
 
 namespace hui {
 
-WindowManager::WindowManager( cum::PluginManager* pm, const dr4::Color& color )
-    : window_( pm->getWindow() ),
-      background_color_( color ),
-      desktop_( pm, { 0, 0 }, pm->getWindow()->GetSize() )
+WindowManager::WindowManager( cum::Manager* pm, dr4::Window* win, const dr4::Color& color )
+    : window_( win ), background_color_( color ), desktop_( pm, win, { 0, 0 }, win->GetSize() )
 {
 }
 

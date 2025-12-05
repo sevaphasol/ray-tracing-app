@@ -8,28 +8,28 @@
 
 namespace hui {
 
-Button::Button( cum::PluginManager* pm,
-                const dr4::Vec2f&   pos,
-                const dr4::Vec2f&   size,
-                const dr4::Color&   default_color,
-                const dr4::Color&   hovered_color,
-                const dr4::Color&   pressed_color,
-                const dr4::Font*    font,
-                const std::string&  title,
-                const dr4::Color&   font_color,
-                size_t              font_size )
-    : Widget( pm, pos, size ),
+Button::Button( cum::Manager*      pm,
+                dr4::Window*       win,
+                const dr4::Vec2f&  pos,
+                const dr4::Vec2f&  size,
+                const dr4::Color&  default_color,
+                const dr4::Color&  hovered_color,
+                const dr4::Color&  pressed_color,
+                const std::string& title,
+                const dr4::Color&  font_color,
+                size_t             font_size )
+    : Widget( pm, win, pos, size ),
       default_color_( default_color ),
       hovered_color_( hovered_color ),
       pressed_color_( pressed_color )
 {
-    background_.reset( pm->getWindow()->CreateRectangle() );
-    label_.reset( pm->getWindow()->CreateText() );
+    background_.reset( win->CreateRectangle() );
+    label_.reset( win->CreateText() );
 
     background_->SetSize( size );
 
     background_->SetFillColor( default_color );
-    label_->SetFont( font );
+    label_->SetFont( win->GetDefaultFont() );
     label_->SetText( title );
     label_->SetFontSize( font_size );
     label_->SetColor( font_color );

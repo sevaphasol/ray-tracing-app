@@ -35,16 +35,17 @@ class Scene : public hui::Widget {
   public:
     ~Scene() = default;
 
-    explicit Scene( cum::PluginManager*        pm,
+    explicit Scene( cum::Manager*              pm,
+                    dr4::Window*               win,
                     const dr4::Font*           font,
                     const dr4::Vec2f&          pos,
                     const dr4::Vec2f&          size,
                     const dr4::Color&          background_color,
                     const gfx::core::Vector3f& camera_pos )
-        : hui::Widget( pm, pos, size ),
+        : hui::Widget( pm, win, pos, size ),
           model_( zemax::Config::Camera::Position, size.x, size.y ),
           background_color_( background_color ),
-          info_panel_( pm, font, Config::Scene::ObjInfoPanel::Size )
+          info_panel_( pm, win, font, Config::Scene::ObjInfoPanel::Size )
     {
         // texture_ = window->CreateTexture();
         //
@@ -52,10 +53,10 @@ class Scene : public hui::Widget {
 
         // std::cerr << pixels_ << std::endl;
 
-        pixels_.reset( pm->getWindow()->CreateImage() );
-        camera_pos_text_.reset( pm->getWindow()->CreateText() );
-        border_.reset( pm->getWindow()->CreateRectangle() );
-        select_rect_.reset( pm->getWindow()->CreateRectangle() );
+        pixels_.reset( win->CreateImage() );
+        camera_pos_text_.reset( win->CreateText() );
+        border_.reset( win->CreateRectangle() );
+        select_rect_.reset( win->CreateRectangle() );
 
         pixels_->SetSize( size );
 

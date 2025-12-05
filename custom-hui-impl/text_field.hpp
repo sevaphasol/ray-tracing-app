@@ -1,6 +1,7 @@
 #pragma once
 
 #include "container_widget.hpp"
+#include "dr4/window.hpp"
 #include "widget.hpp"
 
 #include <cmath>
@@ -12,10 +13,10 @@ namespace hui {
 
 class Cursor : public hui::Widget {
   public:
-    Cursor( cum::PluginManager* pm, float w, float h )
-        : hui::Widget( pm, 0.0f, 0.0f, w, h ), color_( { 255, 255, 255, 255 } )
+    Cursor( cum::Manager* pm, dr4::Window* win, float w, float h )
+        : hui::Widget( pm, win, 0.0f, 0.0f, w, h ), color_( { 255, 255, 255, 255 } )
     {
-        rect_.reset( pm->getWindow()->CreateRectangle() );
+        rect_.reset( win->CreateRectangle() );
 
         rect_->SetFillColor( color_ );
         rect_->SetSize( { w, h } );
@@ -53,20 +54,21 @@ class Cursor : public hui::Widget {
 
 class TextField : public hui::ContainerWidget {
   public:
-    TextField( cum::PluginManager* pm,
-               const std::string&  label,
-               const dr4::Font*    font,
-               float               x,
-               float               y,
-               float               w,
-               float               h )
-        : ContainerWidget( pm, x, y, w, h ), cursor_( pm, 1.0f, h * 0.8 )
+    TextField( cum::Manager*      pm,
+               dr4::Window*       win,
+               const std::string& label,
+               const dr4::Font*   font,
+               float              x,
+               float              y,
+               float              w,
+               float              h )
+        : ContainerWidget( pm, win, x, y, w, h ), cursor_( pm, win, 1.0f, h * 0.8 )
     {
         cursor_.setParent( this );
 
-        border_.reset( pm->getWindow()->CreateRectangle() );
-        label_.reset( pm->getWindow()->CreateText() );
-        text_.reset( pm->getWindow()->CreateText() );
+        border_.reset( win->CreateRectangle() );
+        label_.reset( win->CreateText() );
+        text_.reset( win->CreateText() );
 
         label_->SetFontSize( 12 );
         label_->SetColor( { 255, 255, 255, 255 } );
@@ -87,12 +89,13 @@ class TextField : public hui::ContainerWidget {
         cursor_.setRelPos( 1.9f * label_->GetText().length() * 7.0f, h * 0.1f );
     }
 
-    TextField( cum::PluginManager* pm,
-               const std::string&  label,
-               const dr4::Font*    font,
-               const dr4::Vec2f&   pos,
-               const dr4::Vec2f&   size )
-        : TextField( pm, label, font, pos.x, pos.y, size.x, size.y )
+    TextField( cum::Manager*      pm,
+               dr4::Window*       win,
+               const std::string& label,
+               const dr4::Font*   font,
+               const dr4::Vec2f&  pos,
+               const dr4::Vec2f&  size )
+        : TextField( pm, win, label, font, pos.x, pos.y, size.x, size.y )
     {
     }
 

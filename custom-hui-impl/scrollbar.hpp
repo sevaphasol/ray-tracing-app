@@ -1,6 +1,7 @@
 #pragma once
 
 #include "container_widget.hpp"
+#include "dr4/window.hpp"
 #include "widget.hpp"
 #include <memory>
 
@@ -10,10 +11,11 @@ class ScrollBar;
 
 class Thumb : public hui::Widget {
   public:
-    Thumb( cum::PluginManager* pm,
-           ScrollBar*          owner,
-           const dr4::Vec2f&   pos,
-           const dr4::Vec2f&   size );
+    Thumb( cum::Manager*     pm,
+           dr4::Window*      win,
+           ScrollBar*        owner,
+           const dr4::Vec2f& pos,
+           const dr4::Vec2f& size );
 
     bool
     onIdle( const Event& event ) override;
@@ -39,11 +41,12 @@ class Thumb : public hui::Widget {
 
 class Arrow : public hui::Widget {
   public:
-    Arrow( cum::PluginManager* pm,
-           ScrollBar*          owner,
-           const dr4::Vec2f&   pos,
-           const dr4::Vec2f&   size,
-           bool                is_up );
+    Arrow( cum::Manager*     pm,
+           dr4::Window*      win,
+           ScrollBar*        owner,
+           const dr4::Vec2f& pos,
+           const dr4::Vec2f& size,
+           bool              is_up );
 
     bool
     onIdle( const Event& event ) override;
@@ -79,8 +82,8 @@ class Arrow : public hui::Widget {
 
 class ScrollBar : public hui::ContainerWidget {
   public:
-    ScrollBar( cum::PluginManager* pm, const dr4::Vec2f& pos );
-    ScrollBar( cum::PluginManager* pm, float x, float y );
+    ScrollBar( cum::Manager* pm, dr4::Window* win, const dr4::Vec2f& pos );
+    ScrollBar( cum::Manager* pm, dr4::Window* win, float x, float y );
 
     void
     bringToFront( Widget* child ) override;

@@ -1,3 +1,4 @@
+#include "cum/ifc/dr4.hpp"
 #include "cum/manager.hpp"
 #include "custom-hui-impl/plugin_manager.hpp"
 #include "custom-hui-impl/window_manager.hpp"
@@ -13,25 +14,23 @@ main()
 {
     cum::Manager manager;
 
-    // auto* pp_plugin  = manager.LoadFromFile( "plugins/libpiska.so" );
-    // auto* pp_plugin  = manager.LoadFromFile( "plugins/libgeomprim.so" );
-    auto* pp_plugin  = manager.LoadFromFile( "plugins/libplugin_pp.so" );
-    auto* dr4_plugin = manager.LoadFromFile( "plugins/libplugin_dr4.so" );
+    manager.LoadFromFile( "plugins/libplugin_pp.so" );
+    manager.LoadFromFile( "plugins/libpiska.so" );
+    // manager.LoadFromFile( "plugins/libgeomprim.so" );
+    manager.LoadFromFile( "plugins/libplugin_dr4.so" );
 
-    cum::PluginManager pm;
+    cum::DR4BackendPlugin* dr4_plugin = manager.GetAnyOfType<cum::DR4BackendPlugin>();
+    dr4::Window*           window     = dr4_plugin->CreateWindow();
 
-    pm.setupDR4( dr4_plugin );
-    pm.setupPP( pp_plugin );
+    window->SetSize( { zemax::Config::Window::Width, zemax::Config::Window::Height } );
+    window->SetTitle( "Test" );
+    hui::WindowManager wm( &manager, window, zemax::Config::Window::BackgroundColor );
 
-    pm.getWindow()->SetSize( { zemax::Config::Window::Width, zemax::Config::Window::Height } );
-    pm.getWindow()->SetTitle( "Test" );
-    hui::WindowManager wm( &pm, zemax::Config::Window::BackgroundColor );
-
-    auto* font = pm.getWindow()->CreateFont();
+    auto* font = window->CreateFont();
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
-    pm.getWindow()->SetDefaultFont( font );
+    window->SetDefaultFont( font );
 
-    wm.addWidget( std::make_unique<zemax::view::Zemax>( &pm, font ) );
+    wm.addWidget( std::make_unique<zemax::view::Zemax>( &manager, window, font ) );
 
     wm.run();
 

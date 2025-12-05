@@ -2,6 +2,7 @@
 #include "dr4/math/color.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/mouse_buttons.hpp"
+#include "dr4/window.hpp"
 #include "plugin_manager.hpp"
 
 #include <algorithm>
@@ -86,15 +87,16 @@ struct ScrollBar
 
 } // namespace detail
 
-Thumb::Thumb( cum::PluginManager* pm,
-              ScrollBar*          owner,
-              const dr4::Vec2f&   pos,
-              const dr4::Vec2f&   size )
-    : hui::Widget( pm, pos, size ), owner_( owner )
+Thumb::Thumb( cum::Manager*     pm,
+              dr4::Window*      win,
+              ScrollBar*        owner,
+              const dr4::Vec2f& pos,
+              const dr4::Vec2f& size )
+    : hui::Widget( pm, win, pos, size ), owner_( owner )
 {
     parent_ = owner;
 
-    rect_.reset( pm->getWindow()->CreateRectangle() );
+    rect_.reset( win->CreateRectangle() );
 
     setDraggable( true );
 
@@ -177,16 +179,17 @@ Thumb::RedrawMyTexture() const
     // window.draw( rect_, widet_transform );
 }
 
-Arrow::Arrow( cum::PluginManager* pm,
-              ScrollBar*          owner,
-              const dr4::Vec2f&   pos,
-              const dr4::Vec2f&   size,
-              bool                is_up )
-    : hui::Widget( pm, pos, size ), is_up_( is_up ), owner_( owner )
+Arrow::Arrow( cum::Manager*     pm,
+              dr4::Window*      win,
+              ScrollBar*        owner,
+              const dr4::Vec2f& pos,
+              const dr4::Vec2f& size,
+              bool              is_up )
+    : hui::Widget( pm, win, pos, size ), is_up_( is_up ), owner_( owner )
 {
     parent_ = owner;
 
-    rect_.reset( pm->getWindow()->CreateRectangle() );
+    rect_.reset( win->CreateRectangle() );
 
     rect_->SetSize( size );
     rect_->SetFillColor( detail::ScrollBar::ArrowField::Color::Default );
@@ -309,19 +312,21 @@ Arrow::RedrawMyTexture() const
 // window.draw( triangle_, 3, dr4::PrimitiveType::Triangles, widget_transform );
 // }
 
-ScrollBar::ScrollBar( cum::PluginManager* pm, float x, float y )
-    : ScrollBar( pm, dr4::Vec2f( x, y ) )
+ScrollBar::ScrollBar( cum::Manager* pm, dr4::Window* win, float x, float y )
+    : ScrollBar( pm, win, dr4::Vec2f( x, y ) )
 {
 }
 
-ScrollBar::ScrollBar( cum::PluginManager* pm, const dr4::Vec2f& pos )
-    : hui::ContainerWidget( pm, pos, detail::ScrollBar::Size ),
+ScrollBar::ScrollBar( cum::Manager* pm, dr4::Window* win, const dr4::Vec2f& pos )
+    : hui::ContainerWidget( pm, win, pos, detail::ScrollBar::Size ),
       thumb_( pm,
+              win,
               this,
               detail::ScrollBar::Thumb::StartPos,
               dr4::Vec2f( detail::ScrollBar::Size.x,
                           detail::ScrollBar::Size.y * detail::ScrollBar::Thumb::SizeCoef ) ),
       up_arrow_( pm,
+                 win,
                  this,
                  dr4::Vec2f( 0.0f, 0.0f ),
                  dr4::Vec2f( detail::ScrollBar::Size.x,
@@ -329,6 +334,7 @@ ScrollBar::ScrollBar( cum::PluginManager* pm, const dr4::Vec2f& pos )
                  true ),
       down_arrow_(
           pm,
+          win,
           this,
           dr4::Vec2f( 0.0f,
                       detail::ScrollBar::Size.y * ( 1 - detail::ScrollBar::ArrowField::SizeCoef ) ),
@@ -336,7 +342,7 @@ ScrollBar::ScrollBar( cum::PluginManager* pm, const dr4::Vec2f& pos )
                       detail::ScrollBar::Size.y * detail::ScrollBar::ArrowField::SizeCoef ),
           false )
 {
-    border_.reset( pm->getWindow()->CreateRectangle() );
+    border_.reset( win->CreateRectangle() );
 
     border_->SetSize( getSize() );
     border_->SetFillColor( { 64, 64, 64, 128 } );

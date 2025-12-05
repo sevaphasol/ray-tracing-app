@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dr4/math/vec2.hpp"
+#include "dr4/window.hpp"
 #include "event.hpp"
 #include "widget.hpp"
 #include <memory>
@@ -9,14 +10,20 @@ namespace hui {
 
 class ContainerWidget : public hui::Widget {
   public:
-    explicit ContainerWidget( cum::PluginManager* pm, float x, float y, float w, float h )
-        : Widget( pm, x, y, w, h )
+    explicit ContainerWidget( cum::Manager* pm,
+                              dr4::Window*  win,
+                              float         x,
+                              float         y,
+                              float         w,
+                              float         h )
+        : Widget( pm, win, x, y, w, h )
     {
     }
-    explicit ContainerWidget( cum::PluginManager* pm,
-                              const dr4::Vec2f&   pos  = { 0.0f, 0.0f },
-                              const dr4::Vec2f&   size = { 0.0f, 0.0f } )
-        : Widget( pm, pos, size ) {};
+    explicit ContainerWidget( cum::Manager*     pm,
+                              dr4::Window*      win,
+                              const dr4::Vec2f& pos  = { 0.0f, 0.0f },
+                              const dr4::Vec2f& size = { 0.0f, 0.0f } )
+        : Widget( pm, win, pos, size ) {};
     virtual ~ContainerWidget() = default;
 
     virtual void
@@ -107,14 +114,20 @@ class ContainerWidget : public hui::Widget {
 
 class VectorContainerWidget : public ContainerWidget {
   public:
-    explicit VectorContainerWidget( cum::PluginManager* pm, float x, float y, float w, float h )
-        : ContainerWidget( pm, x, y, w, h )
+    explicit VectorContainerWidget( cum::Manager* pm,
+                                    dr4::Window*  win,
+                                    float         x,
+                                    float         y,
+                                    float         w,
+                                    float         h )
+        : ContainerWidget( pm, win, x, y, w, h )
     {
     }
-    explicit VectorContainerWidget( cum::PluginManager* pm,
-                                    const dr4::Vec2f&   pos  = { 0.0f, 0.0f },
-                                    const dr4::Vec2f&   size = { 0.0f, 0.0f } )
-        : ContainerWidget( pm, pos, size ) {};
+    explicit VectorContainerWidget( cum::Manager*     pm,
+                                    dr4::Window*      win,
+                                    const dr4::Vec2f& pos  = { 0.0f, 0.0f },
+                                    const dr4::Vec2f& size = { 0.0f, 0.0f } )
+        : ContainerWidget( pm, win, pos, size ) {};
     virtual ~VectorContainerWidget() = default;
 
     virtual bool

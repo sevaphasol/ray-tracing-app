@@ -93,16 +93,20 @@ namespace view {
 
 class Zemax : public hui::ContainerWidget {
   public:
-    explicit Zemax( cum::PluginManager* pm, dr4::Font* font )
-        : hui::ContainerWidget( pm, { 0, 0 }, { Config::Window::Width, Config::Window::Height } ),
+    explicit Zemax( cum::Manager* pm, dr4::Window* window, dr4::Font* font )
+        : hui::ContainerWidget( pm,
+                                window,
+                                { 0, 0 },
+                                { Config::Window::Width, Config::Window::Height } ),
           scene_( pm,
+                  window,
                   font,
                   Config::Scene::Position,
                   Config::Scene::Size,
                   Config::Scene::BackgroundColor,
                   Config::Camera::Position ),
-          panel_( pm, font, scene_.getModel() ),
-          snp_annotator_( pm, Config::Scene::Position, Config::Scene::Size, font )
+          panel_( pm, window, font, scene_.getModel() ),
+          snp_annotator_( pm, window, Config::Scene::Position, Config::Scene::Size, font )
     {
         // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
         scene_.setParent( this );
