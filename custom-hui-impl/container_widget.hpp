@@ -33,6 +33,10 @@ class ContainerWidget : public hui::Widget {
 
     virtual bool
     propagateEventToChildren( const Event& event ) = 0;
+    virtual void
+    addChild( std::unique_ptr<Widget> child )
+    {
+    }
 
     virtual bool
     onIdle( const Event& event ) override
@@ -167,7 +171,7 @@ class VectorContainerWidget : public ContainerWidget {
     }
 
     void
-    addChild( std::unique_ptr<Widget> child )
+    addChild( std::unique_ptr<Widget> child ) override final
     {
         child->setParent( this );
         children_.emplace_back( std::move( child ) );

@@ -32,7 +32,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         : hui::Widget( pm, win, x, y, w, h ),
           pp::Canvas(),
           active_( false ),
-          tool_panel_( pm, win, 10, 100, font )
+          tool_panel_( pm, win, 10, 100, 200, font )
     {
         for ( auto* plg : pm->GetAllOfType<cum::PPToolPlugin>() )
         {
@@ -202,7 +202,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         // std::cerr << "Giving to tool_panel" << std::endl;
 
-        if ( evt.apply( &tool_panel_ ) )
+        if ( event.apply( &tool_panel_ ) )
         {
             // if ( tool_panel_.getActiveToolIdx().has_value() )
             // {
@@ -406,7 +406,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
     pp::ControlsTheme theme_;
 
-    pp::Shape* selected_shape_;
+    pp::Shape* selected_shape_ = nullptr;
 };
 
 } // namespace view

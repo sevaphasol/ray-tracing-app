@@ -63,11 +63,15 @@ class ScrollableButtonsWidget : public hui::ContainerWidget {
     bool
     onIdle( const hui::Event& event ) override
     {
+        // std::cerr << "prev_active_button_ " << prev_active_button_ << std::endl;
+        // std::cerr << "cur_active_button_  " << cur_active_button_ << std::endl;
+
         if ( scroll_bar_.isScrolled() )
         {
             float scroll_factor = scroll_bar_.getScrollFactor();
 
             int tmp_idx = ( buttons_.size() - 1 ) * scroll_factor;
+            std::cerr << tmp_idx << std::endl;
 
             if ( tmp_idx != cur_active_button_ )
             {

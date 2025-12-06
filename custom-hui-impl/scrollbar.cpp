@@ -10,83 +10,6 @@
 
 namespace hui {
 
-namespace detail {
-
-struct ScrollBar
-{
-    static inline const dr4::Vec2f Size = { 15.0f, 110.0f };
-
-    struct ArrowField
-    {
-        static constexpr float SizeCoef = 0.1;
-
-        static inline const dr4::Vec2f Size = { ScrollBar::Size.x, ScrollBar::Size.y* SizeCoef };
-
-        struct Color
-        {
-            static const inline dr4::Color Default = { 96 + 32, 96 + 32, 96 + 32, 255 };
-            static const inline dr4::Color Hover   = { 64 + 32, 64 + 32, 64 + 32, 255 };
-            static const inline dr4::Color Pressed = { 32 + 32, 32 + 32, 32 + 32, 255 };
-        };
-
-        struct Triangle
-        {
-            struct Color
-            {
-                static const inline dr4::Color Default = { 96, 96, 96, 255 };
-                static const inline dr4::Color Hover   = { 64, 64, 64, 255 };
-                static const inline dr4::Color Pressed = { 32, 32, 32, 255 };
-            };
-
-            struct Up
-            {
-                static inline const dr4::Vec2f Pos = { 0.0f, 0.0f };
-
-                static inline const dr4::Vec2f Triangle[] = {
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 2,
-                                ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 3,
-                                2 * ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( 2 * ScrollBar::ArrowField::Size.x / 3,
-                                2 * ScrollBar::ArrowField::Size.y / 3 ) };
-            };
-
-            struct Down
-            {
-                static inline const dr4::Vec2f Pos = { 0.0f, ScrollBar::Size.y * ( 1 - SizeCoef ) };
-
-                static inline const dr4::Vec2f Triangle[] = {
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 2,
-                                2 * ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 3,
-                                ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( 2 * ScrollBar::ArrowField::Size.x / 3,
-                                ScrollBar::ArrowField::Size.y / 3 ) };
-            };
-        };
-    };
-
-    struct Thumb
-    {
-        static constexpr float SizeCoef = 0.3;
-
-        struct Color
-        {
-            static const inline dr4::Color Default = { 96 + 32, 96 + 32, 96 + 32, 100 };
-            static const inline dr4::Color Hover   = { 64 + 32, 64 + 32, 64 + 32, 200 };
-            static const inline dr4::Color Pressed = { 32 + 32, 32 + 32, 32 + 32, 255 };
-        };
-
-        static inline const dr4::Vec2f Size = { ScrollBar::Size.x, ScrollBar::Size.y* SizeCoef };
-
-        static inline const dr4::Vec2f StartPos = { 0.0f,
-                                                    ScrollBar::Size.y * ( 1 - SizeCoef ) -
-                                                        ArrowField::Size.y };
-    };
-};
-
-} // namespace detail
-
 Thumb::Thumb( cum::Manager*     pm,
               dr4::Window*      win,
               ScrollBar*        owner,
@@ -157,7 +80,7 @@ Thumb::onMouseRelease( const Event& event )
 void
 Thumb::updateVisuals()
 {
-    if ( is_pressed_ )
+    if ( is_pressed_ || is_dragging_ )
     {
         rect_->SetFillColor( detail::ScrollBar::Thumb::Color::Pressed );
     } else if ( is_hovered_ )
@@ -312,42 +235,37 @@ Arrow::RedrawMyTexture() const
 // window.draw( triangle_, 3, dr4::PrimitiveType::Triangles, widget_transform );
 // }
 
-ScrollBar::ScrollBar( cum::Manager* pm, dr4::Window* win, float x, float y )
-    : ScrollBar( pm, win, dr4::Vec2f( x, y ) )
+ScrollBar::ScrollBar( cum::Manager* pm, dr4::Window* win, float x, float y, float w, float h )
+    : ScrollBar( pm, win, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ) )
 {
 }
 
-ScrollBar::ScrollBar( cum::Manager* pm, dr4::Window* win, const dr4::Vec2f& pos )
-    : hui::ContainerWidget( pm, win, pos, detail::ScrollBar::Size ),
+ScrollBar::ScrollBar( cum::Manager* pm, dr4::Window* win, const dr4::Vec2f& pos, dr4::Vec2f size )
+    : hui::ContainerWidget( pm, win, pos, size ),
       thumb_( pm,
               win,
               this,
-              detail::ScrollBar::Thumb::StartPos,
-              dr4::Vec2f( detail::ScrollBar::Size.x,
-                          detail::ScrollBar::Size.y * detail::ScrollBar::Thumb::SizeCoef ) ),
+              dr4::Vec2f( 0.0f, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
+              dr4::Vec2f( size.x, size.y * detail::ScrollBar::Thumb::SizeCoef ) ),
       up_arrow_( pm,
                  win,
                  this,
                  dr4::Vec2f( 0.0f, 0.0f ),
-                 dr4::Vec2f( detail::ScrollBar::Size.x,
-                             detail::ScrollBar::Size.y * detail::ScrollBar::ArrowField::SizeCoef ),
+                 dr4::Vec2f( size.x, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
                  true ),
-      down_arrow_(
-          pm,
-          win,
-          this,
-          dr4::Vec2f( 0.0f,
-                      detail::ScrollBar::Size.y * ( 1 - detail::ScrollBar::ArrowField::SizeCoef ) ),
-          dr4::Vec2f( detail::ScrollBar::Size.x,
-                      detail::ScrollBar::Size.y * detail::ScrollBar::ArrowField::SizeCoef ),
-          false )
+      down_arrow_( pm,
+                   win,
+                   this,
+                   dr4::Vec2f( 0.0f, size.y * ( 1 - detail::ScrollBar::ArrowField::SizeCoef ) ),
+                   dr4::Vec2f( size.x, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
+                   false )
 {
     border_.reset( win->CreateRectangle() );
 
     border_->SetSize( getSize() );
-    border_->SetFillColor( { 64, 64, 64, 128 } );
+    border_->SetFillColor( { 48, 48, 48, 223 } );
     border_->SetBorderColor( { 32, 32, 32, 255 } );
-    border_->SetBorderThickness( -4.0f );
+    // border_->SetBorderThickness( -4.0f );
 }
 
 void
@@ -409,7 +327,7 @@ ScrollBar::onThumbMove( float vertical_delta )
     float norm_delta =
         vertical_delta / ( size_.y - thumb_.getSize().y - 2 * up_arrow_.getSize().y );
 
-    scroll_factor_ = std::clamp( scroll_factor_ - norm_delta, 0.0, 1.0 );
+    scroll_factor_ = std::clamp( scroll_factor_ + norm_delta, 0.0, 1.0 );
 
     is_scrolled_ = true;
 
@@ -419,7 +337,7 @@ ScrollBar::onThumbMove( float vertical_delta )
 void
 ScrollBar::onArrowClick( bool is_up )
 {
-    scroll_factor_ = std::clamp( scroll_factor_ + ( is_up ? 0.1 : -0.1 ), 0.0, 1.0 );
+    scroll_factor_ = std::clamp( scroll_factor_ + ( is_up ? -0.1 : 0.1 ), 0.0, 1.0 );
 
     is_scrolled_ = true;
 
@@ -429,9 +347,8 @@ ScrollBar::onArrowClick( bool is_up )
 void
 ScrollBar::updateThumbPosition()
 {
-    float thumb_y =
-        up_arrow_.getSize().y +
-        ( 1 - scroll_factor_ ) * ( size_.y - thumb_.getSize().y - 2 * up_arrow_.getSize().y );
+    float thumb_y = up_arrow_.getSize().y +
+                    scroll_factor_ * ( size_.y - thumb_.getSize().y - 2 * up_arrow_.getSize().y );
 
     thumb_.setRelPos( dr4::Vec2f( 0.0, thumb_y ) );
 }

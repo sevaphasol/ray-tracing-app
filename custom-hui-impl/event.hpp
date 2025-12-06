@@ -14,7 +14,10 @@ struct Event
     dr4::Event info;
 
     virtual bool
-    apply( Widget* widget ) const = 0;
+    apply( Widget* widget ) const
+    {
+        return false;
+    }
 };
 
 struct IdleEvent : public Event

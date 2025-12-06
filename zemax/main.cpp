@@ -14,10 +14,15 @@ main()
 {
     cum::Manager manager;
 
-    manager.LoadFromFile( "plugins/libplugin_pp.so" );
-    manager.LoadFromFile( "plugins/libpiska.so" );
-    // manager.LoadFromFile( "plugins/libgeomprim.so" );
+    // manager.LoadFromFile( "plugins/libplugin_dr4_Vova.so" );
     manager.LoadFromFile( "plugins/libplugin_dr4.so" );
+
+    manager.LoadFromFile( "plugins/libplugin_pp.so" );
+    manager.LoadFromFile( "plugins/libplugin_pp_Vova.so" );
+    // manager.LoadFromFile( "plugins/libplugin_pp_Artem_Text.so" );
+    // manager.LoadFromFile( "plugins/libplugin_pp_Artem_Line.so" );
+    // manager.LoadFromFile( "plugins/libplugin_pp_Artem.so" );
+    // manager.LoadFromFile( "plugins/libplugin_pp_Denchick.so" );
 
     cum::DR4BackendPlugin* dr4_plugin = manager.GetAnyOfType<cum::DR4BackendPlugin>();
     dr4::Window*           window     = dr4_plugin->CreateWindow();
