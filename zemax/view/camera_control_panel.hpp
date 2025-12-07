@@ -197,8 +197,8 @@ class CameraControlPanel : public hui::ContainerWidget {
     }
 
   private:
-    zemax::model::SceneManager&      scene_manager_;
-    std::unique_ptr<dr4::Rectangle>  border_;
+    zemax::model::SceneManager&     scene_manager_;
+    std::unique_ptr<dr4::Rectangle> border_;
 };
 
 } // namespace view

@@ -183,15 +183,15 @@ class ControlPanel : public hui::ContainerWidget {
                 [this]() { wm_->popModal(); } ) );
         } else if ( info.type_name == "AABB" )
         {
-            wm_->pushModal( std::make_unique<zemax::view::AABBParamsDialog>(
-                wm_,
-                800,
-                250,
-                550,
-                450,
-                scene_manager_,
-                idx,
-                [this]() { wm_->popModal(); } ) );
+            wm_->pushModal(
+                std::make_unique<zemax::view::AABBParamsDialog>( wm_,
+                                                                 800,
+                                                                 250,
+                                                                 550,
+                                                                 450,
+                                                                 scene_manager_,
+                                                                 idx,
+                                                                 [this]() { wm_->popModal(); } ) );
         }
     }
 
@@ -208,8 +208,8 @@ class ControlPanel : public hui::ContainerWidget {
     }
 
   private:
-    zemax::model::SceneManager&      scene_manager_;
-    std::unique_ptr<dr4::Rectangle>  border_;
+    zemax::model::SceneManager&     scene_manager_;
+    std::unique_ptr<dr4::Rectangle> border_;
 };
 
 } // namespace view
