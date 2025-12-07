@@ -5,6 +5,8 @@
 #include "zemax/config.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 
+#include "custom-hui-impl/window_manager.hpp"
+
 #include <cassert>
 #include <iomanip>
 
@@ -13,13 +15,12 @@ namespace view {
 
 class ObjInfoPanel : public hui::Widget {
   public:
-    ObjInfoPanel( cum::Manager* pm, dr4::Window* win, const dr4::Font* font, float w, float h )
-        : hui::Widget( pm, win, 0.0f, 0.0f, w, h )
+    ObjInfoPanel( hui::WindowManager* wm, float w, float h ) : hui::Widget( wm, 0.0f, 0.0f, w, h )
     {
-        text_.reset( win->CreateText() );
-        rect_.reset( win->CreateRectangle() );
+        text_.reset( wm->getWindow()->CreateText() );
+        rect_.reset( wm->getWindow()->CreateRectangle() );
 
-        text_->SetFont( font );
+        text_->SetFont( wm->getWindow()->GetDefaultFont() );
         text_->SetColor( Config::Scene::ObjInfoPanel::FontColor );
         text_->SetFontSize( Config::Scene::ObjInfoPanel::FontSize );
 
@@ -29,11 +30,8 @@ class ObjInfoPanel : public hui::Widget {
         rect_->SetBorderThickness( -Config::Scene::ObjInfoPanel::OutlineThickness );
     }
 
-    ObjInfoPanel( cum::Manager*     pm,
-                  dr4::Window*      win,
-                  const dr4::Font*  font,
-                  const dr4::Vec2f& size )
-        : ObjInfoPanel( pm, win, font, size.x, size.y )
+    ObjInfoPanel( hui::WindowManager* wm, const dr4::Vec2f& size )
+        : ObjInfoPanel( wm, size.x, size.y )
     {
     }
 

@@ -87,11 +87,10 @@ class ScrollBar;
 
 class Thumb : public hui::Widget {
   public:
-    Thumb( cum::Manager*     pm,
-           dr4::Window*      win,
-           ScrollBar*        owner,
-           const dr4::Vec2f& pos,
-           const dr4::Vec2f& size );
+    Thumb( hui::WindowManager* wm,
+           ScrollBar*          owner,
+           const dr4::Vec2f&   pos,
+           const dr4::Vec2f&   size );
 
     bool
     onIdle( const Event& event ) override;
@@ -117,12 +116,11 @@ class Thumb : public hui::Widget {
 
 class Arrow : public hui::Widget {
   public:
-    Arrow( cum::Manager*     pm,
-           dr4::Window*      win,
-           ScrollBar*        owner,
-           const dr4::Vec2f& pos,
-           const dr4::Vec2f& size,
-           bool              is_up );
+    Arrow( hui::WindowManager* wm,
+           ScrollBar*          owner,
+           const dr4::Vec2f&   pos,
+           const dr4::Vec2f&   size,
+           bool                is_up );
 
     bool
     onIdle( const Event& event ) override;
@@ -158,16 +156,14 @@ class Arrow : public hui::Widget {
 
 class ScrollBar : public hui::ContainerWidget {
   public:
-    ScrollBar( cum::Manager*     pm,
-               dr4::Window*      win,
-               const dr4::Vec2f& pos,
-               dr4::Vec2f        size = detail::ScrollBar::Size );
-    ScrollBar( cum::Manager* pm,
-               dr4::Window*  win,
-               float         x,
-               float         y,
-               float         w = detail::ScrollBar::Size.x,
-               float         h = detail::ScrollBar::Size.y );
+    ScrollBar( hui::WindowManager* wm,
+               const dr4::Vec2f&   pos,
+               dr4::Vec2f          size = detail::ScrollBar::Size );
+    ScrollBar( hui::WindowManager* wm,
+               float               x,
+               float               y,
+               float               w = detail::ScrollBar::Size.x,
+               float               h = detail::ScrollBar::Size.y );
 
     void
     bringToFront( Widget* child ) override;

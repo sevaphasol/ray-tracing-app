@@ -32,6 +32,7 @@ class SceneManager {
 
     struct ObjectInfo
     {
+        Material    material;
         Vector3f    pos;
         std::string type_name;
         size_t      objects_idx;
@@ -88,6 +89,12 @@ class SceneManager {
         need_update_ = true;
     }
 
+    std::vector<std::unique_ptr<model::Primitive>>&
+    getObjects()
+    {
+        return objects_;
+    }
+
     ObjectInfo
     getObjectInfo( size_t idx )
     {
@@ -109,7 +116,10 @@ class SceneManager {
             assert( false );
         }
 
-        return { .pos = obj->getOrigin(), .type_name = obj_name, .objects_idx = idx };
+        return { .material    = obj->getMaterial(),
+                 .pos         = obj->getOrigin(),
+                 .type_name   = obj_name,
+                 .objects_idx = idx };
     }
 
     Primitive*

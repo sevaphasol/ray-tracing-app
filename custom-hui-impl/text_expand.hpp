@@ -3,7 +3,6 @@
 #include "dr4/math/rect.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
-#include "plugin_manager.hpp"
 
 void
 moveInCenterOfRect( dr4::Text&        text,

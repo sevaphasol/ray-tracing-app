@@ -72,7 +72,7 @@
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
 #include "widget.hpp"
-#include <functional> // <-- добавлено
+#include <functional>
 #include <memory>
 
 namespace hui {
@@ -81,16 +81,15 @@ class Button : public hui::Widget {
   public:
     using ClickCallback = std::function<void()>;
 
-    explicit Button( cum::Manager*      pm,
-                     dr4::Window*       win,
-                     const dr4::Vec2f&  pos,
-                     const dr4::Vec2f&  size,
-                     const dr4::Color&  default_color,
-                     const dr4::Color&  hovered_color,
-                     const dr4::Color&  pressed_color,
-                     const std::string& title,
-                     const dr4::Color&  font_color,
-                     size_t             font_size );
+    explicit Button( hui::WindowManager* wm,
+                     const dr4::Vec2f&   pos,
+                     const dr4::Vec2f&   size,
+                     const dr4::Color&   default_color,
+                     const dr4::Color&   hovered_color,
+                     const dr4::Color&   pressed_color,
+                     const std::string&  title,
+                     const dr4::Color&   font_color,
+                     size_t              font_size );
 
     void
     setRelPos( const dr4::Vec2f& pos ) override;
@@ -104,17 +103,14 @@ class Button : public hui::Widget {
     void
     setBackgroundColor( const dr4::Color& color );
 
-    // Обратная совместимость
     bool
     isPressed() const;
     bool
     isPressedJustNow() const;
 
-    // Новое: callback
     void
     setOnClick( ClickCallback callback );
 
-    // Переопределяем обработчики
     bool
     onMousePress( const Event& event ) override;
     bool
@@ -138,7 +134,7 @@ class Button : public hui::Widget {
     dr4::Color hovered_color_;
     dr4::Color pressed_color_;
 
-    ClickCallback on_click_; // <-- новое
+    ClickCallback on_click_;
 };
 
 } // namespace hui

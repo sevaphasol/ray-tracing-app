@@ -21,16 +21,16 @@ struct Config
 
     struct Window
     {
-        static inline const size_t      Width           = 1750.0f;
+        static inline const size_t      Width           = 2150.0f;
         static inline const size_t      Height          = 900.0f;
         static inline const char* const Title           = "Zemax";
         static inline const dr4::Color  BackgroundColor = { 0, 0, 0, 255 };
     };
 
-    struct ControlPanel
+    struct CameraPanel
     {
         static inline const dr4::Vec2f Position        = { 50.0f, 50.0f };
-        static inline const dr4::Vec2f Size            = { 380.0f, 798.0f };
+        static inline const dr4::Vec2f Size            = { 380.0f, 320.0f };
         static inline const dr4::Color BackgroundColor = { 18, 18, 18, 255 };
         static inline const dr4::Color BorderColor     = { 118, 185, 0, 255 };
         static inline const float      BorderThickness = 2.0f;
@@ -118,124 +118,51 @@ struct Config
                 static inline const dr4::Vec2f  Position = { 250.0f, 260.0f };
                 static inline const char* const Title    = "Scale down";
             };
+        };
+    };
 
-            struct MoveObjLeft
-            {
-                static inline const dr4::Vec2f  Position = { 30.0f, 350.0f };
-                static inline const char* const Title    = "Move obj left";
-            };
+    struct ControlPanel
+    {
+        static inline const dr4::Vec2f Position        = { 50.0f, 400.0f };
+        static inline const dr4::Vec2f Size            = { 380.0f, 220.0f };
+        static inline const dr4::Color BackgroundColor = { 18, 18, 18, 255 };
+        static inline const dr4::Color BorderColor     = { 118, 185, 0, 255 };
+        static inline const float      BorderThickness = 2.0f;
 
-            struct MoveObjRight
-            {
-                static inline const dr4::Vec2f  Position = { 30.0f, 410.0f };
-                static inline const char* const Title    = "Move obj right";
-            };
+        struct Button
+        {
+            static inline const dr4::Vec2f Size = { 100.0f, 50.0f };
 
-            struct MoveObjUp
-            {
-                static inline const dr4::Vec2f  Position = { 140.0f, 350.0f };
-                static inline const char* const Title    = "Move obj up";
-            };
+            static inline const dr4::Color DefaultColor = { 30, 30, 30, 255 };
+            static inline const dr4::Color HoveredColor = { 50, 70, 30, 255 };
+            static inline const dr4::Color PressedColor = { 100, 150, 0, 255 };
 
-            struct MoveObjDown
-            {
-                static inline const dr4::Vec2f  Position = { 140.0f, 410.0f };
-                static inline const char* const Title    = "Move obj down";
-            };
-
-            struct MoveObjForwrd
-            {
-                static inline const dr4::Vec2f  Position = { 250.0f, 350.0f };
-                static inline const char* const Title    = "Move obj fwd";
-            };
-
-            struct MoveObjBackward
-            {
-                static inline const dr4::Vec2f  Position = { 250.0f, 410.0f };
-                static inline const char* const Title    = "Move obj bwd";
-            };
+            static inline const char* const FontName  = "assets/JetBrainsMono-Regular.ttf";
+            static inline const dr4::Color  FontColor = { 220, 220, 220, 255 };
+            static inline const size_t      FontSize  = 12;
 
             struct AddObj
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 500.0f };
+                static inline const dr4::Vec2f  Position = { 30.0f, 30.0f };
                 static inline const char* const Title    = "Add obj";
             };
 
             struct CopyObj
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 500.0f };
+                static inline const dr4::Vec2f  Position = { 140.0f, 30.0f };
                 static inline const char* const Title    = "Copy obj";
+            };
+
+            struct EditObj
+            {
+                static inline const dr4::Vec2f  Position = { 250.0f, 30.0f };
+                static inline const char* const Title    = "Edit obj";
             };
 
             struct DeleteObj
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 500.0f };
+                static inline const dr4::Vec2f  Position = { 30.0f, 100.0f };
                 static inline const char* const Title    = "Delete obj";
-            };
-        };
-
-        struct TextField
-        {
-            static inline const dr4::Vec2f Size = { 80.0f, 20.0f };
-
-            struct X
-            {
-                static inline const dr4::Vec2f  Position = { 135.0f, 570.0f };
-                static inline const char* const Title    = "X";
-            };
-
-            struct Y
-            {
-                static inline const dr4::Vec2f  Position = { 135.0f, 600.0f };
-                static inline const char* const Title    = "Y";
-            };
-
-            struct Z
-            {
-                static inline const dr4::Vec2f  Position = { 135.0f, 630.0f };
-                static inline const char* const Title    = "Z";
-            };
-
-            struct Size
-            {
-                static inline const dr4::Vec2f  Position = { 135.0f, 660.0f };
-                static inline const char* const Title    = "S";
-            };
-
-            struct R
-            {
-                static inline const dr4::Vec2f  Position = { 235.0f, 570.0f };
-                static inline const char* const Title    = "R";
-            };
-
-            struct G
-            {
-                static inline const dr4::Vec2f  Position = { 235.0f, 600.0f };
-                static inline const char* const Title    = "G";
-            };
-
-            struct B
-            {
-                static inline const dr4::Vec2f  Position = { 235.0f, 630.0f };
-                static inline const char* const Title    = "B";
-            };
-
-            struct RefFactor
-            {
-                static inline const dr4::Vec2f  Position = { 235.0f, 660.0f };
-                static inline const char* const Title    = "F";
-            };
-        };
-
-        struct ScrollBar
-        {
-            static inline const dr4::Vec2f Position = { 30.0f, 570.0f };
-            static inline const dr4::Vec2f Size     = { 90.0f, 110.0f };
-
-            struct Button
-            {
-                static inline const dr4::Vec2f Position = { 15.0f, 0.0f };
-                static inline const dr4::Vec2f Size     = { 75.0f, 110.0f };
             };
         };
     };

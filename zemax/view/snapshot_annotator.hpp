@@ -22,19 +22,13 @@ namespace view {
 
 class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
   public:
-    SnapshotAnnotator( cum::Manager*    pm,
-                       dr4::Window*     win,
-                       float            x,
-                       float            y,
-                       float            w,
-                       float            h,
-                       const dr4::Font* font )
-        : hui::Widget( pm, win, x, y, w, h ),
+    SnapshotAnnotator( hui::WindowManager* wm, float x, float y, float w, float h )
+        : hui::Widget( wm, x, y, w, h ),
           pp::Canvas(),
           active_( false ),
-          tool_panel_( pm, win, 10, 100, 200, font )
+          tool_panel_( wm, 10, 100, 200 )
     {
-        for ( auto* plg : pm->GetAllOfType<cum::PPToolPlugin>() )
+        for ( auto* plg : wm->getPluginManager()->GetAllOfType<cum::PPToolPlugin>() )
         {
             auto new_tools = plg->CreateTools( this );
             for ( auto& tool : new_tools )
@@ -47,7 +41,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         tool_panel_.setParent( this );
 
-        border_.reset( win->CreateRectangle() );
+        border_.reset( wm->getWindow()->CreateRectangle() );
 
         border_->SetBorderColor( { 0, 118, 185, 255 } );
         border_->SetBorderThickness( -2 );
@@ -62,12 +56,8 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
                    { 128, 128, 128, 255 } };
     }
 
-    SnapshotAnnotator( cum::Manager*     pm,
-                       dr4::Window*      win,
-                       const dr4::Vec2f& pos,
-                       const dr4::Vec2f& size,
-                       const dr4::Font*  font )
-        : SnapshotAnnotator( pm, win, pos.x, pos.y, size.x, size.y, font )
+    SnapshotAnnotator( hui::WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size )
+        : SnapshotAnnotator( wm, pos.x, pos.y, size.x, size.y )
     {
     }
 
@@ -109,7 +99,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     virtual dr4::Window*
     GetWindow() override final
     {
-        return window_;
+        return wm_->getWindow();
     }
 
     bool
@@ -200,23 +190,23 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return true;
         }
 
-        // std::cerr << "Giving to tool_panel" << std::endl;
+        // // std::cerr << "Giving to tool_panel" << std::endl;
 
         if ( event.apply( &tool_panel_ ) )
         {
             // if ( tool_panel_.getActiveToolIdx().has_value() )
             // {
-            // std::cerr << "ActiveToolIdx = " << tool_panel_.getActiveToolIdx().value()
+            // // std::cerr << "ActiveToolIdx = " << tool_panel_.getActiveToolIdx().value()
             //   << std::endl;
             // } else
             // {
-            // std::cerr << "ActiveToolIdx = " << "None" << std::endl;
+            // // std::cerr << "ActiveToolIdx = " << "None" << std::endl;
             // }
 
             return true;
         }
 
-        // std::cerr << "ToolPanel didn't took" << std::endl;
+        // // std::cerr << "ToolPanel didn't took" << std::endl;
 
         if ( selected_shape_ != nullptr )
         {
@@ -241,14 +231,14 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         //         for ( auto& tool : tools_ )
         //         {
-        //             // std::cerr << tool->IsCurrentlyDrawing() << std::endl;
+        //             // // std::cerr << tool->IsCurrentlyDrawing() << std::endl;
         //
         //             if ( !tool->IsCurrentlyDrawing() )
         //             {
         //                 continue;
         //             }
         //
-        //             // std::cerr << "tool->OnMouseDown" << std::endl;
+        //             // // std::cerr << "tool->OnMouseDown" << std::endl;
         //
         //             if ( tool->OnMouseDown( evt.info.mouseButton ) )
         //             {
@@ -266,7 +256,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        // std::cerr << "Shapes didn't took" << std::endl;
+        // // std::cerr << "Shapes didn't took" << std::endl;
 
         if ( tool_panel_.getActiveToolIdx().has_value() )
         {
@@ -370,7 +360,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     void
     RedrawMyTexture() const override final
     {
-        // // std::cerr << active_ << std::endl;
+        // // // std::cerr << active_ << std::endl;
 
         if ( !active_ )
         {
@@ -388,7 +378,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         tool_panel_.Redraw();
 
-        // // std::cerr << "Drawing border.." << std::endl;
+        // // // std::cerr << "Drawing border.." << std::endl;
     }
 
   private:

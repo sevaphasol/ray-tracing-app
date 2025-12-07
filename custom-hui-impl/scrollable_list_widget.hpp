@@ -2,6 +2,7 @@
 
 #include "container_widget.hpp"
 #include "scrollbar.hpp"
+#include "window_manager.hpp"
 #include <memory>
 #include <vector>
 
@@ -9,11 +10,10 @@ namespace hui {
 
 class ScrollableListWidget : public ContainerWidget {
   public:
-    ScrollableListWidget( cum::Manager*     pm,
-                          dr4::Window*      win,
-                          const dr4::Vec2f& pos,
-                          const dr4::Vec2f& content_size,
-                          float             scrollbar_width );
+    ScrollableListWidget( hui::WindowManager* wm,
+                          const dr4::Vec2f&   pos,
+                          const dr4::Vec2f&   content_size,
+                          float               scrollbar_width );
 
     void
     addItem( std::unique_ptr<Widget> item );

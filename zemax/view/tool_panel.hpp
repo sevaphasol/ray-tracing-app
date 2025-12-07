@@ -2,6 +2,7 @@
 
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
+#include "custom-hui-impl/window_manager.hpp"
 #include "pp/tool.hpp"
 #include "zemax/config.hpp"
 #include <optional>
@@ -14,12 +15,7 @@ class ToolPanel : public hui::ScrollableListWidget {
     using Tools = std::vector<std::unique_ptr<pp::Tool>>*;
 
   public:
-    ToolPanel( cum::Manager*    pm,
-               dr4::Window*     win,
-               float            x,
-               float            y,
-               float            visible_height,
-               const dr4::Font* font );
+    ToolPanel( hui::WindowManager* wm, float x, float y, float visible_height );
 
     void
     addTools( Tools tools );
@@ -37,20 +33,14 @@ class ToolPanel : public hui::ScrollableListWidget {
     float                  padding_;
 };
 
-ToolPanel::ToolPanel( cum::Manager*    pm,
-                      dr4::Window*     win,
-                      float            x,
-                      float            y,
-                      float            visible_height,
-                      const dr4::Font* font )
+ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float visible_height )
     : hui::ScrollableListWidget(
-          pm,
-          win,
+          wm,
           { x, y },
           { 50.0f + 2.0f * 10.0f, visible_height }, // content_size: width = button + 2*padding
           10                                        // scrollbar width
           ),
-      font_( font ),
+      font_( wm->getWindow()->GetDefaultFont() ),
       button_size_( 50.0f ),
       padding_( 10.0f )
 {
@@ -65,8 +55,7 @@ ToolPanel::addTools( Tools tools )
 
     for ( size_t i = 0; i < tools->size(); ++i )
     {
-        auto btn = std::make_unique<hui::Button>( pm_,
-                                                  window_,
+        auto btn = std::make_unique<hui::Button>( wm_,
                                                   dr4::Vec2f( padding_, 0.0f ),
                                                   dr4::Vec2f( button_size_, button_size_ ),
                                                   zemax::Config::ControlPanel::Button::DefaultColor,

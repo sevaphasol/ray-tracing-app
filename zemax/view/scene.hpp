@@ -6,6 +6,8 @@
 #include "zemax/model/rendering/vector2.hpp"
 #include "zemax/model/rendering/vector3.hpp"
 
+#include "custom-hui-impl/window_manager.hpp"
+
 #include "zemax/config.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
@@ -27,34 +29,32 @@ class Scene : public hui::Widget {
   public:
     ~Scene() = default;
 
-    explicit Scene( cum::Manager*                 pm,
-                    dr4::Window*                  win,
-                    const dr4::Font*              font,
+    explicit Scene( hui::WindowManager*           wm,
                     const dr4::Vec2f&             pos,
                     const dr4::Vec2f&             size,
                     const dr4::Color&             background_color,
                     const zemax::model::Vector3f& camera_pos )
-        : hui::Widget( pm, win, pos, size ),
+        : hui::Widget( wm, pos, size ),
           model_( zemax::Config::Camera::Position, size.x, size.y ),
           background_color_( background_color ),
-          info_panel_( pm, win, font, Config::Scene::ObjInfoPanel::Size )
+          info_panel_( wm, Config::Scene::ObjInfoPanel::Size )
     {
         // texture_ = window->CreateTexture();
         //
         // texture_->SetSize( zemax::Config::Scene::Size );
 
-        // std::cerr << pixels_ << std::endl;
+        // // std::cerr << pixels_ << std::endl;
 
-        pixels_.reset( win->CreateImage() );
-        camera_pos_text_.reset( win->CreateText() );
-        border_.reset( win->CreateRectangle() );
-        select_rect_.reset( win->CreateRectangle() );
+        pixels_.reset( wm->getWindow()->CreateImage() );
+        camera_pos_text_.reset( wm->getWindow()->CreateText() );
+        border_.reset( wm->getWindow()->CreateRectangle() );
+        select_rect_.reset( wm->getWindow()->CreateRectangle() );
 
         pixels_->SetSize( size );
 
         info_panel_.setParent( this );
 
-        camera_pos_text_->SetFont( font );
+        camera_pos_text_->SetFont( wm->getWindow()->GetDefaultFont() );
         camera_pos_text_->SetColor( { 255, 255, 255, 255 } );
         camera_pos_text_->SetFontSize( 16 );
         camera_pos_text_->SetPos( { 5.0f, 5.0f } );

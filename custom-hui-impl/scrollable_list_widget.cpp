@@ -1,16 +1,16 @@
 #include "scrollable_list_widget.hpp"
+#include "window_manager.hpp"
 #include <algorithm>
 #include <cassert>
 
 namespace hui {
 
-ScrollableListWidget::ScrollableListWidget( cum::Manager*     pm,
-                                            dr4::Window*      win,
-                                            const dr4::Vec2f& pos,
-                                            const dr4::Vec2f& content_size,
-                                            float             scrollbar_width )
-    : ContainerWidget( pm, win, pos, { content_size.x + scrollbar_width, content_size.y } ),
-      scroll_bar_( pm, win, 0.0f, 0.0f, scrollbar_width, content_size.y )
+ScrollableListWidget::ScrollableListWidget( hui::WindowManager* wm,
+                                            const dr4::Vec2f&   pos,
+                                            const dr4::Vec2f&   content_size,
+                                            float               scrollbar_width )
+    : ContainerWidget( wm, pos, { content_size.x + scrollbar_width, content_size.y } ),
+      scroll_bar_( wm, 0.0f, 0.0f, scrollbar_width, content_size.y )
 {
     scroll_bar_.setParent( this );
 }
@@ -80,6 +80,8 @@ void
 ScrollableListWidget::RedrawMyTexture() const
 {
     texture_->Clear( { 0, 0, 0, 0 } );
+
+    // std::cerr << "items_.size() = " << items_.size() << std::endl;
 
     for ( const auto& item : items_ )
     {

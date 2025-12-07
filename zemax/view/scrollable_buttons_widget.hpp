@@ -3,6 +3,7 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/container_widget.hpp"
 #include "custom-hui-impl/scrollbar.hpp"
+#include "custom-hui-impl/window_manager.hpp"
 #include <memory>
 
 namespace zemax {
@@ -10,16 +11,15 @@ namespace view {
 
 class ScrollableButtonsWidget : public hui::ContainerWidget {
   public:
-    explicit ScrollableButtonsWidget( cum::Manager*     pm,
-                                      dr4::Window*      win,
-                                      const dr4::Vec2f& pos  = { 0.0f, 0.0f },
-                                      const dr4::Vec2f& size = { 0.0f, 0.0f } )
-        : ContainerWidget( pm, win, pos, size ), scroll_bar_( pm, win, 0, 0 )
+    explicit ScrollableButtonsWidget( hui::WindowManager* wm,
+                                      const dr4::Vec2f&   pos  = { 0.0f, 0.0f },
+                                      const dr4::Vec2f&   size = { 0.0f, 0.0f } )
+        : ContainerWidget( wm, pos, size ), scroll_bar_( wm, 0, 0 )
     {
         // setPosition( Config::ControlPanel::Size );
         // setSize( Config::ControlPanel::Size );
 
-        border_.reset( win->CreateRectangle() );
+        border_.reset( wm->getWindow()->CreateRectangle() );
 
         border_->SetSize( size );
         border_->SetFillColor( { 0, 0, 0, 0 } );
@@ -29,13 +29,8 @@ class ScrollableButtonsWidget : public hui::ContainerWidget {
         scroll_bar_.setParent( this );
     };
 
-    explicit ScrollableButtonsWidget( cum::Manager* pm,
-                                      dr4::Window*  win,
-                                      float         x,
-                                      float         y,
-                                      float         w,
-                                      float         h )
-        : ScrollableButtonsWidget( pm, win, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ) )
+    explicit ScrollableButtonsWidget( hui::WindowManager* wm, float x, float y, float w, float h )
+        : ScrollableButtonsWidget( wm, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ) )
     {
     }
 
@@ -63,15 +58,14 @@ class ScrollableButtonsWidget : public hui::ContainerWidget {
     bool
     onIdle( const hui::Event& event ) override
     {
-        // std::cerr << "prev_active_button_ " << prev_active_button_ << std::endl;
-        // std::cerr << "cur_active_button_  " << cur_active_button_ << std::endl;
+        // // std::cerr << "prev_active_button_ " << prev_active_button_ << std::endl;
+        // // std::cerr << "cur_active_button_  " << cur_active_button_ << std::endl;
 
         if ( scroll_bar_.isScrolled() )
         {
             float scroll_factor = scroll_bar_.getScrollFactor();
 
             int tmp_idx = ( buttons_.size() - 1 ) * scroll_factor;
-            std::cerr << tmp_idx << std::endl;
 
             if ( tmp_idx != cur_active_button_ )
             {

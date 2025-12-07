@@ -33,6 +33,18 @@ class Sphere : public Primitive {
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
 
+    float
+    getRadius() const
+    {
+        return radius_;
+    }
+    void
+    setRadius( float radius )
+    {
+        radius_    = radius;
+        radius_sq_ = radius * radius;
+    }
+
   private:
     float radius_;
     float radius_sq_;

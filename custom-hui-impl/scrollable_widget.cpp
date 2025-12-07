@@ -1,16 +1,16 @@
 #include "scrollable_widget.hpp"
 #include "scrollbar.hpp"
+#include "window_manager.hpp"
 #include <algorithm>
 
 namespace hui {
 
-ScrollableWidget::ScrollableWidget( cum::Manager*     pm,
-                                    dr4::Window*      win,
-                                    const dr4::Vec2f& pos,
-                                    const dr4::Vec2f& content_size,
-                                    float             scrollbar_width )
-    : ContainerWidget( pm, win, pos, { content_size.x + scrollbar_width, content_size.y } ),
-      scroll_bar_( pm, win, 0.0f, 0.0f, scrollbar_width, content_size.y )
+ScrollableWidget::ScrollableWidget( hui::WindowManager* wm,
+                                    const dr4::Vec2f&   pos,
+                                    const dr4::Vec2f&   content_size,
+                                    float               scrollbar_width )
+    : ContainerWidget( wm, pos, { content_size.x + scrollbar_width, content_size.y } ),
+      scroll_bar_( wm, 0.0f, 0.0f, scrollbar_width, content_size.y )
 {
 }
 

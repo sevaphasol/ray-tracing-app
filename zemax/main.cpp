@@ -1,6 +1,6 @@
 #include "cum/ifc/dr4.hpp"
 #include "cum/manager.hpp"
-#include "custom-hui-impl/plugin_manager.hpp"
+#include "custom-hui-impl/tool_bar.hpp"
 #include "custom-hui-impl/window_manager.hpp"
 #include "dr4/math/vec2.hpp"
 #include "zemax/config.hpp"
@@ -29,13 +29,31 @@ main()
 
     window->SetSize( { zemax::Config::Window::Width, zemax::Config::Window::Height } );
     window->SetTitle( "Test" );
-    hui::WindowManager wm( &manager, window, zemax::Config::Window::BackgroundColor );
+    hui::WindowManager wm( &manager, window );
 
     auto* font = window->CreateFont();
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
     window->SetDefaultFont( font );
 
-    wm.addWidget( std::make_unique<zemax::view::Zemax>( &manager, window, font ) );
+    auto zemax = std::make_unique<zemax::view::Zemax>( &wm, window, 28.0f );
+
+    auto toolbar = std::make_unique<hui::ToolBar>( &wm, 28.0f );
+
+    toolbar->addMenu( "File",
+                      {
+                          { "New", []() { fprintf( stderr, "New\n" ); } },
+                          { "Open", []() { fprintf( stderr, "Open\n" ); } },
+                          { "Exit", [&]() { wm.getWindow()->Close(); } },
+                      } );
+
+    toolbar->addMenu( "Edit",
+                      {
+                          { "Undo", []() { fprintf( stderr, "Undo\n" ); } },
+                          { "Redo", []() { fprintf( stderr, "Redo\n" ); } },
+                      } );
+
+    wm.addWidget( std::move( zemax ) );
+    wm.addWidget( std::move( toolbar ) );
 
     wm.run();
 

@@ -1,27 +1,19 @@
 #pragma once
 
+#include "cum/manager.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
 #include "dr4/window.hpp"
 #include "event.hpp"
-#include "plugin_manager.hpp"
-
-// #include "gfx/core/drawable.hpp"
-// #include "gfx/core/transformable.hpp"
-// #include "zemax/model/rendering/vector2.hpp"
-
-#include <memory>
-#include <vector>
 
 namespace hui {
 
+class WindowManager;
+
 class Widget {
   public:
-    explicit Widget( cum::Manager* pm, dr4::Window* win, float x, float y, float w, float h );
-    explicit Widget( cum::Manager*     pm,
-                     dr4::Window*      win,
-                     const dr4::Vec2f& pos,
-                     const dr4::Vec2f& size );
+    explicit Widget( hui::WindowManager* wm, float x, float y, float w, float h );
+    explicit Widget( hui::WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size );
     virtual ~Widget() = default;
 
     virtual bool
@@ -89,9 +81,7 @@ class Widget {
     Redraw() const;
 
   protected:
-    cum::Manager* pm_;
-
-    dr4::Window* window_;
+    hui::WindowManager* wm_;
 
     dr4::Texture* texture_;
 

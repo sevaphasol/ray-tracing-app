@@ -5,23 +5,23 @@
 #include "dr4/mouse_buttons.hpp"
 #include "dr4/window.hpp"
 #include "event.hpp"
-#include "plugin_manager.hpp"
+#include "window_manager.hpp"
 #include <cassert>
 
 namespace hui {
 
-Widget::Widget( cum::Manager* pm, dr4::Window* win, float x, float y, float w, float h )
-    : size_( w, h ), pm_( pm ), window_( win )
+Widget::Widget( hui::WindowManager* wm, float x, float y, float w, float h )
+    : size_( w, h ), wm_( wm )
 {
-    texture_ = window_->CreateTexture();
+    texture_ = wm_->getWindow()->CreateTexture();
     texture_->SetSize( { w, h } );
 
     setRelPos( x, y );
     setSize( size_ );
 }
 
-Widget::Widget( cum::Manager* pm, dr4::Window* win, const dr4::Vec2f& pos, const dr4::Vec2f& size )
-    : Widget( pm, win, pos.x, pos.y, size.x, size.y )
+Widget::Widget( hui::WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size )
+    : Widget( wm, pos.x, pos.y, size.x, size.y )
 {
 }
 
@@ -134,7 +134,7 @@ Widget::onMouseMove( const Event& event )
 bool
 Widget::onMe( dr4::Vec2f rel ) const
 {
-    return dr4::Rect2f( pos_, size_ ).Contains( rel );
+    return dr4::Rect2f( getRelPos(), size_ ).Contains( rel );
 }
 
 dr4::Vec2f
@@ -166,7 +166,7 @@ Widget::setRelPos( const dr4::Vec2f& pos )
 void
 Widget::setRelPos( float x, float y )
 {
-    texture_->SetPos( dr4::Vec2f{ x, y } );
+    // texture_->SetPos( dr4::Vec2f{ x, y } );
 
     setRelPos( dr4::Vec2f{ x, y } );
 }
@@ -191,6 +191,10 @@ Widget::pointInside( const dr4::Vec2f& point ) const
 {
     dr4::Vec2f abs_pos = getAbsPos();
     dr4::Vec2f sz      = getSize();
+
+    // std::cerr << "px, py = " << point.x << " " << point.y << std::endl;
+    // std::cerr << "ax, ay = " << abs_pos.x << " " << abs_pos.y << std::endl;
+    // std::cerr << "sx, sy = " << sz.x << " " << sz.y << std::endl;
 
     return ( ( point.x >= abs_pos.x && point.x <= abs_pos.x + sz.x ) &&
              ( point.y >= abs_pos.y && point.y <= abs_pos.y + sz.y ) );

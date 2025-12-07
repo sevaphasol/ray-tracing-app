@@ -4,26 +4,21 @@
 #include "dr4/window.hpp"
 #include "event.hpp"
 #include "widget.hpp"
+#include <iostream>
 #include <memory>
 
 namespace hui {
 
 class ContainerWidget : public hui::Widget {
   public:
-    explicit ContainerWidget( cum::Manager* pm,
-                              dr4::Window*  win,
-                              float         x,
-                              float         y,
-                              float         w,
-                              float         h )
-        : Widget( pm, win, x, y, w, h )
+    explicit ContainerWidget( hui::WindowManager* wm, float x, float y, float w, float h )
+        : Widget( wm, x, y, w, h )
     {
     }
-    explicit ContainerWidget( cum::Manager*     pm,
-                              dr4::Window*      win,
-                              const dr4::Vec2f& pos  = { 0.0f, 0.0f },
-                              const dr4::Vec2f& size = { 0.0f, 0.0f } )
-        : Widget( pm, win, pos, size ) {};
+    explicit ContainerWidget( hui::WindowManager* wm,
+                              const dr4::Vec2f&   pos  = { 0.0f, 0.0f },
+                              const dr4::Vec2f&   size = { 0.0f, 0.0f } )
+        : Widget( wm, pos, size ) {};
     virtual ~ContainerWidget() = default;
 
     virtual void
@@ -118,20 +113,14 @@ class ContainerWidget : public hui::Widget {
 
 class VectorContainerWidget : public ContainerWidget {
   public:
-    explicit VectorContainerWidget( cum::Manager* pm,
-                                    dr4::Window*  win,
-                                    float         x,
-                                    float         y,
-                                    float         w,
-                                    float         h )
-        : ContainerWidget( pm, win, x, y, w, h )
+    explicit VectorContainerWidget( hui::WindowManager* wm, float x, float y, float w, float h )
+        : ContainerWidget( wm, x, y, w, h )
     {
     }
-    explicit VectorContainerWidget( cum::Manager*     pm,
-                                    dr4::Window*      win,
-                                    const dr4::Vec2f& pos  = { 0.0f, 0.0f },
-                                    const dr4::Vec2f& size = { 0.0f, 0.0f } )
-        : ContainerWidget( pm, win, pos, size ) {};
+    explicit VectorContainerWidget( hui::WindowManager* wm,
+                                    const dr4::Vec2f&   pos  = { 0.0f, 0.0f },
+                                    const dr4::Vec2f&   size = { 0.0f, 0.0f } )
+        : ContainerWidget( wm, pos, size ) {};
     virtual ~VectorContainerWidget() = default;
 
     virtual bool
@@ -180,6 +169,7 @@ class VectorContainerWidget : public ContainerWidget {
     virtual bool
     propagateEventToChildren( const Event& event ) override
     {
+        int i = 0;
         for ( auto& child : children_ )
         {
             if ( event.apply( child.get() ) )
@@ -209,6 +199,8 @@ class VectorContainerWidget : public ContainerWidget {
     void
     RedrawChildren() const
     {
+        int i = 0;
+
         for ( const auto& child : children_ )
         {
             child->Redraw();

@@ -32,6 +32,17 @@ class AABB : public Primitive {
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
 
+    const Vector3f&
+    getHalfSize() const
+    {
+        return half_size_;
+    }
+    void
+    setHalfSize( const Vector3f& half_size )
+    {
+        half_size_ = half_size;
+    }
+
   private:
     Vector3f half_size_;
 };

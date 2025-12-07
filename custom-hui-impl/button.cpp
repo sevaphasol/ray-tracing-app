@@ -133,33 +133,32 @@
 #include "dr4/math/color.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
-#include "plugin_manager.hpp"
 #include "text_expand.hpp"
+#include "window_manager.hpp"
 
 namespace hui {
 
-Button::Button( cum::Manager*      pm,
-                dr4::Window*       win,
-                const dr4::Vec2f&  pos,
-                const dr4::Vec2f&  size,
-                const dr4::Color&  default_color,
-                const dr4::Color&  hovered_color,
-                const dr4::Color&  pressed_color,
-                const std::string& title,
-                const dr4::Color&  font_color,
-                size_t             font_size )
-    : Widget( pm, win, pos, size ),
+Button::Button( hui::WindowManager* wm,
+                const dr4::Vec2f&   pos,
+                const dr4::Vec2f&   size,
+                const dr4::Color&   default_color,
+                const dr4::Color&   hovered_color,
+                const dr4::Color&   pressed_color,
+                const std::string&  title,
+                const dr4::Color&   font_color,
+                size_t              font_size )
+    : Widget( wm, pos, size ),
       default_color_( default_color ),
       hovered_color_( hovered_color ),
       pressed_color_( pressed_color )
 {
-    background_.reset( win->CreateRectangle() );
-    label_.reset( win->CreateText() );
+    background_.reset( wm->getWindow()->CreateRectangle() );
+    label_.reset( wm->getWindow()->CreateText() );
 
     background_->SetSize( size );
     background_->SetFillColor( default_color_ );
 
-    font_ = win->GetDefaultFont();
+    font_ = wm->getWindow()->GetDefaultFont();
     label_->SetFont( font_ );
     label_->SetText( title );
     label_->SetFontSize( font_size );
@@ -231,7 +230,9 @@ Button::onMousePress( const Event& event )
 
         ContainerWidget* parent_container = dynamic_cast<ContainerWidget*>( parent_ );
         if ( parent_container != nullptr )
+        {
             parent_container->bringToFront( this );
+        }
 
         updateVisuals();
         return true;
@@ -248,14 +249,16 @@ Button::onMouseRelease( const Event& event )
         is_pressed_          = false;
         is_pressed_just_now_ = false;
 
-        // Вызываем callback ТОЛЬКО если кнопка была нажата И отпущена над ней
+        updateVisuals();
+
         if ( was_pressed && is_hovered_ )
         {
             if ( on_click_ )
+            {
                 on_click_();
+            }
         }
 
-        updateVisuals();
         return was_pressed;
     }
     return false;
@@ -273,11 +276,15 @@ void
 Button::updateVisuals()
 {
     if ( is_pressed_ )
+    {
         background_->SetFillColor( pressed_color_ );
-    else if ( is_hovered_ )
+    } else if ( is_hovered_ )
+    {
         background_->SetFillColor( hovered_color_ );
-    else
+    } else
+    {
         background_->SetFillColor( default_color_ );
+    }
 }
 
 void
