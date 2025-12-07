@@ -61,12 +61,12 @@ class Zemax : public hui::ContainerWidget {
             return true;
         }
 
-        if ( event.apply( &camera_panel_ ) )
+        if ( camera_panel_.isVisible() && event.apply( &camera_panel_ ) )
         {
             return true;
         }
 
-        if ( event.apply( &panel_ ) )
+        if ( panel_.isVisible() && event.apply( &panel_ ) )
         {
             return true;
         }
@@ -76,7 +76,7 @@ class Zemax : public hui::ContainerWidget {
             return true;
         }
 
-        if ( event.apply( &obj_list_ ) )
+        if ( obj_list_.isVisible() && event.apply( &obj_list_ ) )
         {
             return true;
         }
@@ -90,10 +90,43 @@ class Zemax : public hui::ContainerWidget {
         texture_->Clear( { 0, 0, 0 } );
 
         scene_.Redraw();
-        camera_panel_.Redraw();
-        panel_.Redraw();
+        if ( camera_panel_.isVisible() )
+        {
+            camera_panel_.Redraw();
+        }
+        if ( panel_.isVisible() )
+        {
+            panel_.Redraw();
+        }
         snp_annotator_.Redraw();
-        obj_list_.Redraw();
+        if ( obj_list_.isVisible() )
+        {
+            obj_list_.Redraw();
+        }
+    }
+
+    Scene&
+    scene()
+    {
+        return scene_;
+    }
+
+    CameraControlPanel&
+    cameraPanel()
+    {
+        return camera_panel_;
+    }
+
+    ControlPanel&
+    objectPanel()
+    {
+        return panel_;
+    }
+
+    SceneObjectsListModal&
+    objectsList()
+    {
+        return obj_list_;
     }
 
   private:

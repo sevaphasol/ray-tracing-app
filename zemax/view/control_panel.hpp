@@ -1,37 +1,47 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
-#include "custom-hui-impl/container_widget.hpp"
 #include "custom-hui-impl/window_manager.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
+#include "zemax/model/rendering/vector3.hpp"
 #include "zemax/view/aabb_params_dialog.hpp"
+#include "zemax/view/closable_panel.hpp"
 #include "zemax/view/scene_objects_list.hpp"
 #include "zemax/view/sphere_params_dialog.hpp"
 #include <memory>
 #include <optional>
-#include <sstream>
-#include <string>
 
 namespace zemax {
 namespace view {
 
-class ControlPanel : public hui::ContainerWidget {
+class ControlPanel : public ClosablePanel {
   public:
     explicit ControlPanel( hui::WindowManager*         wm,
                            zemax::model::SceneManager& scene_manager,
                            const dr4::Vec2f&           pos  = Config::ControlPanel::Position,
                            const dr4::Vec2f&           size = Config::ControlPanel::Size )
-        : hui::ContainerWidget( wm, pos, size ), scene_manager_( scene_manager )
+        : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Controls" ),
+          scene_manager_( scene_manager )
     {
-        border_.reset( wm->getWindow()->CreateRectangle() );
-
-        setDraggable( true );
-
-        border_->SetSize( getSize() );
-        border_->SetFillColor( Config::ControlPanel::BackgroundColor );
-        border_->SetBorderColor( Config::ControlPanel::BorderColor );
-        border_->SetBorderThickness( -Config::ControlPanel::BorderThickness );
+        setupButton( ButtonCode::MoveObjLeft,
+                     Config::ControlPanel::Button::MoveObjLeft::Position,
+                     Config::ControlPanel::Button::MoveObjLeft::Title );
+        setupButton( ButtonCode::MoveObjRight,
+                     Config::ControlPanel::Button::MoveObjRight::Position,
+                     Config::ControlPanel::Button::MoveObjRight::Title );
+        setupButton( ButtonCode::MoveObjUp,
+                     Config::ControlPanel::Button::MoveObjUp::Position,
+                     Config::ControlPanel::Button::MoveObjUp::Title );
+        setupButton( ButtonCode::MoveObjDown,
+                     Config::ControlPanel::Button::MoveObjDown::Position,
+                     Config::ControlPanel::Button::MoveObjDown::Title );
+        setupButton( ButtonCode::MoveObjForward,
+                     Config::ControlPanel::Button::MoveObjForward::Position,
+                     Config::ControlPanel::Button::MoveObjForward::Title );
+        setupButton( ButtonCode::MoveObjBackward,
+                     Config::ControlPanel::Button::MoveObjBackward::Position,
+                     Config::ControlPanel::Button::MoveObjBackward::Title );
 
         setupButton( ButtonCode::AddObj,
                      Config::ControlPanel::Button::AddObj::Position,
@@ -50,6 +60,11 @@ class ControlPanel : public hui::ContainerWidget {
     bool
     propagateEventToChildren( const hui::Event& event ) override
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
+
         for ( const auto& button : buttons_ )
         {
             if ( event.apply( button.get() ) )
@@ -58,12 +73,53 @@ class ControlPanel : public hui::ContainerWidget {
             }
         }
 
-        return false;
+        return ObjInfoBox::propagateEventToChildren( event );
     }
 
     bool
     onIdle( const hui::Event& event ) override final
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
+
+        auto* target = scene_manager_.getTargetObj();
+
+        if ( target != nullptr )
+        {
+            if ( isPressed( MoveObjLeft ) )
+            {
+                target->move( { -Config::Camera::ObjMoveFactor, 0.0f, 0.0f } );
+                scene_manager_.needUpdate() = true;
+            }
+            if ( isPressed( MoveObjRight ) )
+            {
+                target->move( { Config::Camera::ObjMoveFactor, 0.0f, 0.0f } );
+                scene_manager_.needUpdate() = true;
+            }
+            if ( isPressed( MoveObjUp ) )
+            {
+                target->move( { 0.0f, Config::Camera::ObjMoveFactor, 0.0f } );
+                scene_manager_.needUpdate() = true;
+            }
+            if ( isPressed( MoveObjDown ) )
+            {
+                target->move( { 0.0f, -Config::Camera::ObjMoveFactor, 0.0f } );
+                scene_manager_.needUpdate() = true;
+            }
+            if ( isPressed( MoveObjForward ) )
+            {
+                target->move( { 0.0f, 0.0f, -Config::Camera::ObjMoveFactor } );
+                scene_manager_.needUpdate() = true;
+            }
+            if ( isPressed( MoveObjBackward ) )
+            {
+                target->move( { 0.0f, 0.0f, Config::Camera::ObjMoveFactor } );
+                scene_manager_.needUpdate() = true;
+            }
+        }
+
         if ( isPressedJustNow( AddObj ) )
         {
             wm_->pushModal( std::make_unique<zemax::view::SphereParamsDialog>(
@@ -77,14 +133,7 @@ class ControlPanel : public hui::ContainerWidget {
         }
         if ( isPressedJustNow( CopyObj ) )
         {
-            wm_->pushModal( std::make_unique<zemax::view::SceneObjectsListModal>(
-                wm_,
-                600.0f,
-                200.0f,
-                400.0f,
-                360.0f,
-                scene_manager_,
-                [this]() { wm_->popModal(); } ) );
+            copyTarget();
         }
         if ( isPressedJustNow( EditObj ) )
         {
@@ -100,8 +149,30 @@ class ControlPanel : public hui::ContainerWidget {
         return false;
     }
 
+    void
+    RedrawMyTexture() const override final
+    {
+        if ( !visible_ )
+        {
+            return;
+        }
+
+        ObjInfoBox::RedrawMyTexture();
+
+        for ( const auto& button : buttons_ )
+        {
+            button->Redraw();
+        }
+    }
+
   private:
     enum ButtonCode {
+        MoveObjLeft,
+        MoveObjRight,
+        MoveObjUp,
+        MoveObjDown,
+        MoveObjForward,
+        MoveObjBackward,
         AddObj,
         CopyObj,
         EditObj,
@@ -115,6 +186,12 @@ class ControlPanel : public hui::ContainerWidget {
     isPressedJustNow( ButtonCode code )
     {
         return dynamic_cast<hui::Button*>( buttons_[code].get() )->isPressedJustNow();
+    }
+
+    bool
+    isPressed( ButtonCode code )
+    {
+        return dynamic_cast<hui::Button*>( buttons_[code].get() )->isPressed();
     }
 
     void
@@ -131,17 +208,6 @@ class ControlPanel : public hui::ContainerWidget {
                                                       Config::ControlPanel::Button::FontColor,
                                                       Config::ControlPanel::Button::FontSize ) );
         buttons_[code]->setParent( this );
-    }
-
-    void
-    RedrawMyTexture() const override final
-    {
-        texture_->Draw( *border_ );
-
-        for ( const auto& button : buttons_ )
-        {
-            button->Redraw();
-        }
     }
 
     std::optional<size_t>
@@ -183,15 +249,15 @@ class ControlPanel : public hui::ContainerWidget {
                 [this]() { wm_->popModal(); } ) );
         } else if ( info.type_name == "AABB" )
         {
-            wm_->pushModal(
-                std::make_unique<zemax::view::AABBParamsDialog>( wm_,
-                                                                 800,
-                                                                 250,
-                                                                 550,
-                                                                 450,
-                                                                 scene_manager_,
-                                                                 idx,
-                                                                 [this]() { wm_->popModal(); } ) );
+            wm_->pushModal( std::make_unique<zemax::view::AABBParamsDialog>(
+                wm_,
+                800,
+                250,
+                550,
+                450,
+                scene_manager_,
+                idx,
+                [this]() { wm_->popModal(); } ) );
         }
     }
 
@@ -207,9 +273,22 @@ class ControlPanel : public hui::ContainerWidget {
         openEditDialogForIndex( idx.value() );
     }
 
+    void
+    copyTarget()
+    {
+        auto* target = scene_manager_.getTargetObj();
+        if ( target == nullptr )
+        {
+            return;
+        }
+
+        auto origin = target->getOrigin();
+        float dx    = Config::Camera::ObjMoveFactor * 2.0f;
+        scene_manager_.copyTargetObj( origin.x + dx, origin.y, origin.z );
+    }
+
   private:
-    zemax::model::SceneManager&     scene_manager_;
-    std::unique_ptr<dr4::Rectangle> border_;
+    zemax::model::SceneManager& scene_manager_;
 };
 
 } // namespace view

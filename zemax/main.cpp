@@ -35,7 +35,8 @@ main()
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
     window->SetDefaultFont( font );
 
-    auto zemax = std::make_unique<zemax::view::Zemax>( &wm, window, 28.0f );
+    auto zemax      = std::make_unique<zemax::view::Zemax>( &wm, window, 28.0f );
+    auto* zemax_ptr = zemax.get();
 
     auto toolbar = std::make_unique<hui::ToolBar>( &wm, 28.0f );
 
@@ -51,6 +52,14 @@ main()
                           { "Undo", []() { fprintf( stderr, "Undo\n" ); } },
                           { "Redo", []() { fprintf( stderr, "Redo\n" ); } },
                       } );
+    toolbar->addMenu(
+        "View",
+        {
+            { "Scene", []() { /* scene is always visible */ } },
+            { "Camera Controls", [zemax_ptr]() { zemax_ptr->cameraPanel().show(); } },
+            { "Object Controls", [zemax_ptr]() { zemax_ptr->objectPanel().show(); } },
+            { "Objects List", [zemax_ptr]() { zemax_ptr->objectsList().show(); } },
+        } );
 
     wm.addWidget( std::move( zemax ) );
     wm.addWidget( std::move( toolbar ) );

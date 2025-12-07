@@ -124,7 +124,7 @@ struct Config
     struct ControlPanel
     {
         static inline const dr4::Vec2f Position        = { 50.0f, 400.0f };
-        static inline const dr4::Vec2f Size            = { 380.0f, 220.0f };
+        static inline const dr4::Vec2f Size            = { 380.0f, 340.0f };
         static inline const dr4::Color BackgroundColor = { 18, 18, 18, 255 };
         static inline const dr4::Color BorderColor     = { 118, 185, 0, 255 };
         static inline const float      BorderThickness = 2.0f;
@@ -141,27 +141,63 @@ struct Config
             static inline const dr4::Color  FontColor = { 220, 220, 220, 255 };
             static inline const size_t      FontSize  = 12;
 
+            struct MoveObjLeft
+            {
+                static inline const dr4::Vec2f  Position = { 30.0f, 80.0f };
+                static inline const char* const Title    = "Move obj left";
+            };
+
+            struct MoveObjRight
+            {
+                static inline const dr4::Vec2f  Position = { 30.0f, 140.0f };
+                static inline const char* const Title    = "Move obj right";
+            };
+
+            struct MoveObjUp
+            {
+                static inline const dr4::Vec2f  Position = { 140.0f, 80.0f };
+                static inline const char* const Title    = "Move obj up";
+            };
+
+            struct MoveObjDown
+            {
+                static inline const dr4::Vec2f  Position = { 140.0f, 140.0f };
+                static inline const char* const Title    = "Move obj down";
+            };
+
+            struct MoveObjForward
+            {
+                static inline const dr4::Vec2f  Position = { 250.0f, 80.0f };
+                static inline const char* const Title    = "Move obj fwd";
+            };
+
+            struct MoveObjBackward
+            {
+                static inline const dr4::Vec2f  Position = { 250.0f, 140.0f };
+                static inline const char* const Title    = "Move obj bwd";
+            };
+
             struct AddObj
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 30.0f };
+                static inline const dr4::Vec2f  Position = { 30.0f, 210.0f };
                 static inline const char* const Title    = "Add obj";
             };
 
             struct CopyObj
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 30.0f };
+                static inline const dr4::Vec2f  Position = { 140.0f, 210.0f };
                 static inline const char* const Title    = "Copy obj";
             };
 
             struct EditObj
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 30.0f };
+                static inline const dr4::Vec2f  Position = { 250.0f, 210.0f };
                 static inline const char* const Title    = "Edit obj";
             };
 
             struct DeleteObj
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 100.0f };
+                static inline const dr4::Vec2f  Position = { 30.0f, 270.0f };
                 static inline const char* const Title    = "Delete obj";
             };
         };

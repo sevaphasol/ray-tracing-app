@@ -1,29 +1,24 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
-#include "custom-hui-impl/container_widget.hpp"
 #include "custom-hui-impl/window_manager.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
+#include "zemax/view/closable_panel.hpp"
 #include <memory>
 
 namespace zemax {
 namespace view {
 
-class CameraControlPanel : public hui::ContainerWidget {
+class CameraControlPanel : public ClosablePanel {
   public:
     explicit CameraControlPanel( hui::WindowManager*         wm,
                                  zemax::model::SceneManager& scene_manager,
                                  const dr4::Vec2f&           pos  = Config::CameraPanel::Position,
                                  const dr4::Vec2f&           size = Config::CameraPanel::Size )
-        : hui::ContainerWidget( wm, pos, size ), scene_manager_( scene_manager )
+        : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Camera Controls" ),
+          scene_manager_( scene_manager )
     {
-        border_.reset( wm->getWindow()->CreateRectangle() );
-        border_->SetSize( getSize() );
-        border_->SetFillColor( Config::CameraPanel::BackgroundColor );
-        border_->SetBorderColor( Config::CameraPanel::BorderColor );
-        border_->SetBorderThickness( -Config::CameraPanel::BorderThickness );
-
         setupButton( MoveLeft,
                      Config::CameraPanel::Button::MvL::Position,
                      Config::CameraPanel::Button::MvL::Title );
@@ -65,6 +60,11 @@ class CameraControlPanel : public hui::ContainerWidget {
     bool
     propagateEventToChildren( const hui::Event& event ) override
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
+
         for ( const auto& button : buttons_ )
         {
             if ( event.apply( button.get() ) )
@@ -73,12 +73,17 @@ class CameraControlPanel : public hui::ContainerWidget {
             }
         }
 
-        return false;
+        return ObjInfoBox::propagateEventToChildren( event );
     }
 
     bool
     onIdle( const hui::Event& event ) override final
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
+
         if ( isPressed( MoveLeft ) )
         {
             scene_manager_.getCamera().move( { -Config::Camera::MoveFactor, 0.0f, 0.0f } );
@@ -148,7 +153,12 @@ class CameraControlPanel : public hui::ContainerWidget {
     void
     RedrawMyTexture() const override final
     {
-        texture_->Draw( *border_ );
+        if ( !visible_ )
+        {
+            return;
+        }
+
+        ObjInfoBox::RedrawMyTexture();
         for ( const auto& button : buttons_ )
         {
             button->Redraw();
@@ -197,8 +207,7 @@ class CameraControlPanel : public hui::ContainerWidget {
     }
 
   private:
-    zemax::model::SceneManager&     scene_manager_;
-    std::unique_ptr<dr4::Rectangle> border_;
+    zemax::model::SceneManager& scene_manager_;
 };
 
 } // namespace view

@@ -164,7 +164,19 @@ class SceneObjectsListModal : public ObjInfoBox {
                            float                h,
                            model::SceneManager& scene_manager,
                            CloseCb              close_cb )
-        : ObjInfoBox( wm, x, y, w, h, close_cb, "Objects list" ),
+        : ObjInfoBox( wm,
+                      x,
+                      y,
+                      w,
+                      h,
+                      [this, close_cb]() {
+                          this->hide();
+                          if ( close_cb )
+                          {
+                              close_cb();
+                          }
+                      },
+                      "Objects list" ),
           scene_manager_( scene_manager ),
           close_cb_( std::move( close_cb ) )
     {
@@ -187,12 +199,21 @@ class SceneObjectsListModal : public ObjInfoBox {
     void
     refresh()
     {
+        if ( !visible_ )
+        {
+            return;
+        }
         rebuildListItems();
     }
 
     bool
     propagateEventToChildren( const hui::Event& event ) override
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
+
         if ( event.apply( list_.get() ) )
         {
             return true;
@@ -203,11 +224,35 @@ class SceneObjectsListModal : public ObjInfoBox {
     void
     RedrawMyTexture() const override
     {
+        if ( !visible_ )
+        {
+            return;
+        }
+
         ObjInfoBox::RedrawMyTexture();
         if ( list_ )
         {
             list_->Redraw();
         }
+    }
+
+    void
+    show()
+    {
+        visible_ = true;
+        refresh();
+    }
+
+    void
+    hide()
+    {
+        visible_ = false;
+    }
+
+    bool
+    isVisible() const
+    {
+        return visible_;
     }
 
   private:
@@ -315,6 +360,7 @@ class SceneObjectsListModal : public ObjInfoBox {
     model::SceneManager&                       scene_manager_;
     CloseCb                                    close_cb_;
     std::unique_ptr<hui::ScrollableListWidget> list_;
+    bool                                       visible_ = true;
 };
 
 } // namespace view
