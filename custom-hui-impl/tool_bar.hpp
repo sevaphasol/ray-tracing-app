@@ -1177,8 +1177,11 @@ class ToolBar : public Widget {
   public:
     ToolBar( WindowManager* wm, float height = 28.0f );
 
-    void
+    size_t
     addMenu( const std::string& name, std::vector<MenuItem> items );
+
+    void
+    setMenuItemLabel( const std::string& menu_name, size_t item_idx, const std::string& label );
     void
     RedrawMyTexture() const override;
 

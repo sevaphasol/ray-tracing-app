@@ -27,13 +27,34 @@ class HexPrism : public Primitive {
     }
 
     const char*
-    getName() override final
+    getName() const override final
     {
         return "HexPrism";
     }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
+
+    float
+    getRadius() const
+    {
+        return radius_;
+    }
+    float
+    getHeight() const
+    {
+        return height_;
+    }
+    void
+    setRadius( float r )
+    {
+        radius_ = r;
+    }
+    void
+    setHeight( float h )
+    {
+        height_ = h;
+    }
 
   private:
     float radius_; // ra

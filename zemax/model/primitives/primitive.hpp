@@ -7,6 +7,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace zemax {
@@ -21,7 +22,23 @@ class Primitive {
     }
 
     virtual const char*
-    getName() = 0;
+    getName() const = 0;
+
+    void
+    setDisplayName( const std::string& name )
+    {
+        display_name_ = name;
+    }
+
+    std::string
+    getDisplayName() const
+    {
+        if ( display_name_.empty() )
+        {
+            return std::string( getName() );
+        }
+        return display_name_;
+    }
 
     virtual std::unique_ptr<Primitive>
     clone() const = 0;
@@ -96,6 +113,7 @@ class Primitive {
 
     Vector3f origin_;
     Material material_;
+    std::string display_name_;
 };
 
 } // namespace model

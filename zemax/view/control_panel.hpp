@@ -55,6 +55,37 @@ class ControlPanel : public ClosablePanel {
         setupButton( ButtonCode::DeleteObj,
                      Config::ControlPanel::Button::DeleteObj::Position,
                      Config::ControlPanel::Button::DeleteObj::Title );
+
+        buttons_[MoveObjLeft]->setOnHoldPress(
+            [this]() { moveTarget( { -Config::Camera::ObjMoveFactor, 0.0f, 0.0f } ); } );
+        buttons_[MoveObjRight]->setOnHoldPress(
+            [this]() { moveTarget( { Config::Camera::ObjMoveFactor, 0.0f, 0.0f } ); } );
+        buttons_[MoveObjUp]->setOnHoldPress(
+            [this]() { moveTarget( { 0.0f, Config::Camera::ObjMoveFactor, 0.0f } ); } );
+        buttons_[MoveObjDown]->setOnHoldPress(
+            [this]() { moveTarget( { 0.0f, -Config::Camera::ObjMoveFactor, 0.0f } ); } );
+        buttons_[MoveObjForward]->setOnHoldPress(
+            [this]() { moveTarget( { 0.0f, 0.0f, -Config::Camera::ObjMoveFactor } ); } );
+        buttons_[MoveObjBackward]->setOnHoldPress(
+            [this]() { moveTarget( { 0.0f, 0.0f, Config::Camera::ObjMoveFactor } ); } );
+
+        buttons_[AddObj]->setOnClick( [this]() {
+            wm_->pushModal( std::make_unique<zemax::view::SphereParamsDialog>(
+                wm_,
+                800,
+                250,
+                500,
+                400,
+                scene_manager_,
+                [this]() { wm_->popModal(); } ) );
+        } );
+        buttons_[CopyObj]->setOnClick( [this]() { copyTarget(); } );
+        // Edit now handled by persistent editor panel
+        buttons_[EditObj]->setOnClick( []() {} );
+        buttons_[DeleteObj]->setOnClick( [this]() {
+            scene_manager_.deleteTargetObj();
+            scene_manager_.needUpdate() = true;
+        } );
     }
 
     bool
@@ -82,67 +113,6 @@ class ControlPanel : public ClosablePanel {
         if ( !visible_ )
         {
             return false;
-        }
-
-        auto* target = scene_manager_.getTargetObj();
-
-        if ( target != nullptr )
-        {
-            if ( isPressed( MoveObjLeft ) )
-            {
-                target->move( { -Config::Camera::ObjMoveFactor, 0.0f, 0.0f } );
-                scene_manager_.needUpdate() = true;
-            }
-            if ( isPressed( MoveObjRight ) )
-            {
-                target->move( { Config::Camera::ObjMoveFactor, 0.0f, 0.0f } );
-                scene_manager_.needUpdate() = true;
-            }
-            if ( isPressed( MoveObjUp ) )
-            {
-                target->move( { 0.0f, Config::Camera::ObjMoveFactor, 0.0f } );
-                scene_manager_.needUpdate() = true;
-            }
-            if ( isPressed( MoveObjDown ) )
-            {
-                target->move( { 0.0f, -Config::Camera::ObjMoveFactor, 0.0f } );
-                scene_manager_.needUpdate() = true;
-            }
-            if ( isPressed( MoveObjForward ) )
-            {
-                target->move( { 0.0f, 0.0f, -Config::Camera::ObjMoveFactor } );
-                scene_manager_.needUpdate() = true;
-            }
-            if ( isPressed( MoveObjBackward ) )
-            {
-                target->move( { 0.0f, 0.0f, Config::Camera::ObjMoveFactor } );
-                scene_manager_.needUpdate() = true;
-            }
-        }
-
-        if ( isPressedJustNow( AddObj ) )
-        {
-            wm_->pushModal( std::make_unique<zemax::view::SphereParamsDialog>(
-                wm_,
-                800,
-                250,
-                500,
-                400,
-                scene_manager_,
-                [this]() { wm_->popModal(); } ) );
-        }
-        if ( isPressedJustNow( CopyObj ) )
-        {
-            copyTarget();
-        }
-        if ( isPressedJustNow( EditObj ) )
-        {
-            openEditDialogForTarget();
-        }
-        if ( isPressedJustNow( DeleteObj ) )
-        {
-            scene_manager_.deleteTargetObj();
-            scene_manager_.needUpdate() = true;
         }
 
         propagateEventToChildren( event );
@@ -182,18 +152,6 @@ class ControlPanel : public ClosablePanel {
 
     std::unique_ptr<hui::Button> buttons_[ButtonCount];
 
-    bool
-    isPressedJustNow( ButtonCode code )
-    {
-        return dynamic_cast<hui::Button*>( buttons_[code].get() )->isPressedJustNow();
-    }
-
-    bool
-    isPressed( ButtonCode code )
-    {
-        return dynamic_cast<hui::Button*>( buttons_[code].get() )->isPressed();
-    }
-
     void
     setupButton( ButtonCode code, const dr4::Vec2f& pos, const char* title )
     {
@@ -208,6 +166,19 @@ class ControlPanel : public ClosablePanel {
                                                       Config::ControlPanel::Button::FontColor,
                                                       Config::ControlPanel::Button::FontSize ) );
         buttons_[code]->setParent( this );
+    }
+
+    void
+    moveTarget( const zemax::model::Vector3f& delta )
+    {
+        auto* target = scene_manager_.getTargetObj();
+        if ( target == nullptr )
+        {
+            return;
+        }
+
+        target->move( delta );
+        scene_manager_.needUpdate() = true;
     }
 
     std::optional<size_t>
@@ -249,15 +220,15 @@ class ControlPanel : public ClosablePanel {
                 [this]() { wm_->popModal(); } ) );
         } else if ( info.type_name == "AABB" )
         {
-            wm_->pushModal( std::make_unique<zemax::view::AABBParamsDialog>(
-                wm_,
-                800,
-                250,
-                550,
-                450,
-                scene_manager_,
-                idx,
-                [this]() { wm_->popModal(); } ) );
+            wm_->pushModal(
+                std::make_unique<zemax::view::AABBParamsDialog>( wm_,
+                                                                 800,
+                                                                 250,
+                                                                 550,
+                                                                 450,
+                                                                 scene_manager_,
+                                                                 idx,
+                                                                 [this]() { wm_->popModal(); } ) );
         }
     }
 
@@ -282,8 +253,8 @@ class ControlPanel : public ClosablePanel {
             return;
         }
 
-        auto origin = target->getOrigin();
-        float dx    = Config::Camera::ObjMoveFactor * 2.0f;
+        auto  origin = target->getOrigin();
+        float dx     = Config::Camera::ObjMoveFactor * 2.0f;
         scene_manager_.copyTargetObj( origin.x + dx, origin.y, origin.z );
     }
 

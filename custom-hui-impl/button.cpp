@@ -189,14 +189,6 @@ Button::setLabelText( const std::string& text )
 }
 
 void
-Button::setLabelFont( const dr4::Font* font, size_t size )
-{
-    font_ = font;
-    label_->SetFont( font );
-    label_->SetFontSize( size );
-}
-
-void
 Button::setBackgroundColor( const dr4::Color& color )
 {
     background_->SetFillColor( color );
@@ -208,16 +200,16 @@ Button::isPressed() const
     return is_pressed_;
 }
 
-bool
-Button::isPressedJustNow() const
-{
-    return is_pressed_just_now_;
-}
-
 void
 Button::setOnClick( ClickCallback callback )
 {
     on_click_ = std::move( callback );
+}
+
+void
+Button::setOnHoldPress( HoldPressCallback callback )
+{
+    on_hold_press_ = std::move( callback );
 }
 
 bool
@@ -225,8 +217,7 @@ Button::onMousePress( const Event& event )
 {
     if ( event.info.mouseButton.button == dr4::MouseButtonType::LEFT && is_hovered_ )
     {
-        is_pressed_          = true;
-        is_pressed_just_now_ = true;
+        is_pressed_ = true;
 
         ContainerWidget* parent_container = dynamic_cast<ContainerWidget*>( parent_ );
         if ( parent_container != nullptr )
@@ -234,10 +225,24 @@ Button::onMousePress( const Event& event )
             parent_container->bringToFront( this );
         }
 
-        updateVisuals();
+        background_->SetFillColor( pressed_color_ );
+
         return true;
     }
     return false;
+}
+
+bool
+Button::onMouseMove( const Event& event )
+{
+    if ( !Widget::onMouseMove( event ) || !is_hovered_ )
+    {
+        background_->SetFillColor( default_color_ );
+        return false;
+    }
+
+    background_->SetFillColor( hovered_color_ );
+    return true;
 }
 
 bool
@@ -245,11 +250,10 @@ Button::onMouseRelease( const Event& event )
 {
     if ( event.info.mouseButton.button == dr4::MouseButtonType::LEFT )
     {
-        bool was_pressed     = is_pressed_;
-        is_pressed_          = false;
-        is_pressed_just_now_ = false;
+        bool was_pressed = is_pressed_;
+        is_pressed_      = false;
 
-        updateVisuals();
+        background_->SetFillColor( is_hovered_ ? hovered_color_ : default_color_ );
 
         if ( was_pressed && is_hovered_ )
         {
@@ -267,24 +271,15 @@ Button::onMouseRelease( const Event& event )
 bool
 Button::onIdle( const Event& event )
 {
-    is_pressed_just_now_ = false;
-    updateVisuals();
-    return false;
-}
-
-void
-Button::updateVisuals()
-{
     if ( is_pressed_ )
     {
-        background_->SetFillColor( pressed_color_ );
-    } else if ( is_hovered_ )
-    {
-        background_->SetFillColor( hovered_color_ );
-    } else
-    {
-        background_->SetFillColor( default_color_ );
+        if ( on_hold_press_ )
+        {
+            on_hold_press_();
+        }
     }
+
+    return false;
 }
 
 void

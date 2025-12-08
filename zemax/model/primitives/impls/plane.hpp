@@ -24,7 +24,7 @@ class Plane : public Primitive {
     }
 
     const char*
-    getName() override final
+    getName() const override final
     {
         return "Plane";
     }

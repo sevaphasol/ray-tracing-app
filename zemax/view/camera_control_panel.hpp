@@ -5,6 +5,7 @@
 #include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/view/closable_panel.hpp"
+#include "zemax/view/obj_info_box.hpp"
 #include <memory>
 
 namespace zemax {
@@ -55,6 +56,57 @@ class CameraControlPanel : public ClosablePanel {
         setupButton( ScaleDown,
                      Config::CameraPanel::Button::ScaleDown::Position,
                      Config::CameraPanel::Button::ScaleDown::Title );
+
+        buttons_[MoveLeft]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().move( { -Config::Camera::MoveFactor, 0.0f, 0.0f } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[MoveRight]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().move( { Config::Camera::MoveFactor, 0.0f, 0.0f } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[MoveUp]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().move( { 0.0f, Config::Camera::MoveFactor, 0.0f } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[MoveDown]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().move( { 0.0f, -Config::Camera::MoveFactor, 0.0f } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[MoveForward]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().move( { 0.0f, 0.0f, -Config::Camera::MoveFactor } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[MoveBackward]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().move( { 0.0f, 0.0f, Config::Camera::MoveFactor } );
+            scene_manager_.needUpdate() = true;
+        } );
+
+        buttons_[RotateLeft]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().rotate( { Config::Camera::RotateFactor, 0.0f } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[RotateRight]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().rotate( { -Config::Camera::RotateFactor, 0.0f } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[RotateUp]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().rotate( { 0.0f, -Config::Camera::RotateFactor } );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[RotateDown]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().rotate( { 0.0f, Config::Camera::RotateFactor } );
+            scene_manager_.needUpdate() = true;
+        } );
+
+        buttons_[ScaleUp]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().scale( -Config::Camera::ScaleFactor );
+            scene_manager_.needUpdate() = true;
+        } );
+        buttons_[ScaleDown]->setOnHoldPress( [this]() {
+            scene_manager_.getCamera().scale( Config::Camera::ScaleFactor );
+            scene_manager_.needUpdate() = true;
+        } );
     }
 
     bool
@@ -84,85 +136,8 @@ class CameraControlPanel : public ClosablePanel {
             return false;
         }
 
-        if ( isPressed( MoveLeft ) )
-        {
-            scene_manager_.getCamera().move( { -Config::Camera::MoveFactor, 0.0f, 0.0f } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( MoveRight ) )
-        {
-            scene_manager_.getCamera().move( { Config::Camera::MoveFactor, 0.0f, 0.0f } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( MoveUp ) )
-        {
-            scene_manager_.getCamera().move( { 0.0f, Config::Camera::MoveFactor, 0.0f } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( MoveDown ) )
-        {
-            scene_manager_.getCamera().move( { 0.0f, -Config::Camera::MoveFactor, 0.0f } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( MoveForward ) )
-        {
-            scene_manager_.getCamera().move( { 0.0f, 0.0f, -Config::Camera::MoveFactor } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( MoveBackward ) )
-        {
-            scene_manager_.getCamera().move( { 0.0f, 0.0f, Config::Camera::MoveFactor } );
-            scene_manager_.needUpdate() = true;
-        }
-
-        if ( isPressed( RotateLeft ) )
-        {
-            scene_manager_.getCamera().rotate( { Config::Camera::RotateFactor, 0.0f } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( RotateRight ) )
-        {
-            scene_manager_.getCamera().rotate( { -Config::Camera::RotateFactor, 0.0f } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( RotateUp ) )
-        {
-            scene_manager_.getCamera().rotate( { 0.0f, -Config::Camera::RotateFactor } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( RotateDown ) )
-        {
-            scene_manager_.getCamera().rotate( { 0.0f, Config::Camera::RotateFactor } );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( ScaleUp ) )
-        {
-            scene_manager_.getCamera().scale( -Config::Camera::ScaleFactor );
-            scene_manager_.needUpdate() = true;
-        }
-        if ( isPressed( ScaleDown ) )
-        {
-            scene_manager_.getCamera().scale( Config::Camera::ScaleFactor );
-            scene_manager_.needUpdate() = true;
-        }
-
         propagateEventToChildren( event );
         return false;
-    }
-
-    void
-    RedrawMyTexture() const override final
-    {
-        if ( !visible_ )
-        {
-            return;
-        }
-
-        ObjInfoBox::RedrawMyTexture();
-        for ( const auto& button : buttons_ )
-        {
-            button->Redraw();
-        }
     }
 
   private:
@@ -184,12 +159,6 @@ class CameraControlPanel : public ClosablePanel {
 
     std::unique_ptr<hui::Button> buttons_[ButtonCount];
 
-    bool
-    isPressed( ButtonCode code )
-    {
-        return dynamic_cast<hui::Button*>( buttons_[code].get() )->isPressed();
-    }
-
     void
     setupButton( ButtonCode code, const dr4::Vec2f& pos, const char* title )
     {
@@ -204,6 +173,17 @@ class CameraControlPanel : public ClosablePanel {
                                                       Config::CameraPanel::Button::FontColor,
                                                       Config::CameraPanel::Button::FontSize ) );
         buttons_[code]->setParent( this );
+    }
+
+    void
+    RedrawMyTexture() const override
+    {
+        ObjInfoBox::RedrawMyTexture();
+
+        for ( const auto& btn : buttons_ )
+        {
+            btn->Redraw();
+        }
     }
 
   private:

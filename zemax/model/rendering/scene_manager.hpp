@@ -1,8 +1,10 @@
 #pragma once
 
 #include "zemax/model/primitives/impls/aabb.hpp"
+#include "zemax/model/primitives/impls/hex_prism.hpp"
 #include "zemax/model/primitives/impls/plane.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
+#include "zemax/model/primitives/impls/torus.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
@@ -35,6 +37,7 @@ class SceneManager {
         Material    material;
         Vector3f    pos;
         std::string type_name;
+        std::string display_name;
         size_t      objects_idx;
     };
 
@@ -94,6 +97,11 @@ class SceneManager {
     {
         return objects_;
     }
+    const std::vector<std::unique_ptr<model::Primitive>>&
+    getObjects() const
+    {
+        return objects_;
+    }
 
     ObjectInfo
     getObjectInfo( size_t idx )
@@ -111,15 +119,22 @@ class SceneManager {
         } else if ( typeid( *obj ).hash_code() == typeid( AABB ).hash_code() )
         {
             obj_name = "AABB";
+        } else if ( typeid( *obj ).hash_code() == typeid( Torus ).hash_code() )
+        {
+            obj_name = "Torus";
+        } else if ( typeid( *obj ).hash_code() == typeid( HexPrism ).hash_code() )
+        {
+            obj_name = "HexPrism";
         } else
         {
-            assert( false );
+            obj_name = "Unknown";
         }
 
-        return { .material    = obj->getMaterial(),
-                 .pos         = obj->getOrigin(),
-                 .type_name   = obj_name,
-                 .objects_idx = idx };
+        return { .material     = obj->getMaterial(),
+                 .pos          = obj->getOrigin(),
+                 .type_name    = obj_name,
+                 .display_name = obj->getDisplayName(),
+                 .objects_idx  = idx };
     }
 
     Primitive*

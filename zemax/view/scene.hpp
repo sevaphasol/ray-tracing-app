@@ -13,6 +13,7 @@
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
+#include "zemax/view/closable_panel.hpp"
 #include "zemax/view/info_panel.hpp"
 
 #include <cstddef>
@@ -25,44 +26,46 @@
 namespace zemax {
 namespace view {
 
-class Scene : public hui::Widget {
+class Scene : public ClosablePanel {
   public:
     ~Scene() = default;
+    using SelectionChangedCb = std::function<void(std::optional<size_t>)>;
 
     explicit Scene( hui::WindowManager*           wm,
                     const dr4::Vec2f&             pos,
                     const dr4::Vec2f&             size,
                     const dr4::Color&             background_color,
                     const zemax::model::Vector3f& camera_pos )
-        : hui::Widget( wm, pos, size ),
+        : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Scene" ),
           model_( zemax::Config::Camera::Position, size.x, size.y ),
           background_color_( background_color ),
           info_panel_( wm, Config::Scene::ObjInfoPanel::Size )
     {
-        // texture_ = window->CreateTexture();
-        //
-        // texture_->SetSize( zemax::Config::Scene::Size );
+        setDraggable( true );
 
-        // // std::cerr << pixels_ << std::endl;
+        auto content_pos  = contentOffset();
+        auto content_size = contentSize();
+
+        border_.reset( wm->getWindow()->CreateRectangle() );
+        border_->SetPos( content_pos );
+        border_->SetSize( content_size );
+        border_->SetFillColor( { 0, 0, 0, 0 } );
+        border_->SetBorderColor( { 118, 185, 0, 255 } );
+        border_->SetBorderThickness( -2.0f );
 
         pixels_.reset( wm->getWindow()->CreateImage() );
-        camera_pos_text_.reset( wm->getWindow()->CreateText() );
-        border_.reset( wm->getWindow()->CreateRectangle() );
-        select_rect_.reset( wm->getWindow()->CreateRectangle() );
+        pixels_->SetSize( content_size );
+        pixels_->SetPos( content_pos );
 
-        pixels_->SetSize( size );
+        camera_pos_text_.reset( wm->getWindow()->CreateText() );
+        select_rect_.reset( wm->getWindow()->CreateRectangle() );
 
         info_panel_.setParent( this );
 
         camera_pos_text_->SetFont( wm->getWindow()->GetDefaultFont() );
         camera_pos_text_->SetColor( { 255, 255, 255, 255 } );
         camera_pos_text_->SetFontSize( 16 );
-        camera_pos_text_->SetPos( { 5.0f, 5.0f } );
-
-        border_->SetSize( size );
-        border_->SetFillColor( { 0, 0, 0, 0 } );
-        border_->SetBorderColor( { 118, 185, 0, 255 } );
-        border_->SetBorderThickness( -2.0f );
+        camera_pos_text_->SetPos( { content_pos.x + 5.0f, content_pos.y + 5.0f } );
 
         model_.addLight( zemax::model::Vector3f( 3, 3, -3 ), 1.0, 0.3, 0.9 );
         model_.addLight( zemax::model::Vector3f( 0, 0, -11 ), 0.2, 0.3, 0.9 );
@@ -146,6 +149,12 @@ class Scene : public hui::Widget {
         info_panel_.setFont( font );
     }
 
+    void
+    setOnSelectionChanged( SelectionChangedCb cb )
+    {
+        on_selection_changed_ = std::move( cb );
+    }
+
     model::SceneManager&
     getModel()
     {
@@ -157,6 +166,10 @@ class Scene : public hui::Widget {
     virtual bool
     onIdle( const hui::Event& event ) override final
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
         update();
         model_.needUpdate() = false;
 
@@ -166,13 +179,24 @@ class Scene : public hui::Widget {
     virtual bool
     onMousePress( const hui::Event& event ) override final
     {
+        if ( !visible_ )
+        {
+            return false;
+        }
+
         if ( !isHovered() )
         {
             return false;
         }
 
-        auto px = event.info.mouseButton.pos.x - getAbsPos().x;
-        auto py = event.info.mouseButton.pos.y - getAbsPos().y;
+        auto content_pos = contentOffset();
+        auto px          = event.info.mouseButton.pos.x - getAbsPos().x - content_pos.x;
+        auto py          = event.info.mouseButton.pos.y - getAbsPos().y - content_pos.y;
+
+        if ( py < 0 )
+        {
+            return false;
+        }
 
         model::Primitive* obj = model_.getIntersectedObj( px, py );
 
@@ -185,12 +209,32 @@ class Scene : public hui::Widget {
 
         if ( obj != nullptr )
         {
-            info_panel_.setRelPos( px, py );
+            auto content_pos = contentOffset();
+            info_panel_.setRelPos( px + content_pos.x, py + content_pos.y );
             info_panel_.update( obj );
             info_panel_.setVisible( true );
+            if ( on_selection_changed_ )
+            {
+                on_selection_changed_( findIndexForObj( obj ) );
+            }
         } else
         {
             info_panel_.setVisible( false );
+            if ( on_selection_changed_ )
+            {
+                on_selection_changed_( std::nullopt );
+            }
+        }
+
+        if ( ObjInfoBox::propagateEventToChildren( event ) )
+        {
+            return true;
+        }
+
+        // Let base handle dragging/topbar
+        if ( hui::Widget::onMousePress( event ) )
+        {
+            return true;
         }
 
         // if ( obj != nullptr )
@@ -210,8 +254,9 @@ class Scene : public hui::Widget {
             return;
         }
 
-        const size_t w = getSize().x;
-        const size_t h = getSize().y;
+        auto         content_size = contentSize();
+        const size_t w            = content_size.x;
+        const size_t h            = content_size.y;
 
         constexpr size_t         num_threads     = 16;
         const size_t             rows_per_thread = h / num_threads;
@@ -267,10 +312,12 @@ class Scene : public hui::Widget {
     void
     RedrawMyTexture() const override final
     {
-        // gfx::core::Transform widget_transform = transform.combine( getTransform() );
+        if ( !visible_ )
+        {
+            return;
+        }
 
-        // dr4::Rectangle cp = border_;
-        // cp.rect.pos       = { 1, 1 };
+        ObjInfoBox::RedrawMyTexture();
 
         texture_->Draw( *pixels_ );
 
@@ -290,8 +337,10 @@ class Scene : public hui::Widget {
             float max_x = -std::numeric_limits<float>::max();
             float max_y = -std::numeric_limits<float>::max();
 
-            float scr_w = getSize().x;
-            float scr_h = getSize().y;
+            auto  content_pos  = contentOffset();
+            auto  content_size = contentSize();
+            float scr_w        = content_size.x;
+            float scr_h        = content_size.y;
 
             for ( const auto& p3d : corners3d )
             {
@@ -313,7 +362,7 @@ class Scene : public hui::Widget {
             // { { min_x, max_y }, dr4::Color::Red },
             // { { min_x, min_y }, dr4::Color::Red } };
 
-            select_rect_->SetPos( { min_x, min_y } );
+            select_rect_->SetPos( { min_x + content_pos.x, min_y + content_pos.y } );
             select_rect_->SetSize( { max_x - min_x, max_y - min_y } );
             select_rect_->SetFillColor( { 0, 0, 0, 0 } );
             select_rect_->SetBorderColor( { 255, 0, 0, 255 } );
@@ -328,20 +377,51 @@ class Scene : public hui::Widget {
         }
 
         info_panel_.Redraw();
-
         texture_->Draw( *camera_pos_text_ );
-
         texture_->Draw( *border_ );
 
-        // parent_->getTexture()->Draw( *texture_, pos_ );
+        // Draw topbar/close last so it stays visible
+    }
+
+    void
+    show()
+    {
+        visible_ = true;
+    }
+
+    void
+    hide()
+    {
+        visible_ = false;
+    }
+
+    bool
+    isVisible() const
+    {
+        return visible_;
+    }
+
+    std::optional<size_t>
+    findIndexForObj( model::Primitive* obj ) const
+    {
+        const auto& objects = model_.getObjects();
+        for ( size_t i = 0; i < objects.size(); ++i )
+        {
+            if ( objects[i].get() == obj )
+            {
+                return i;
+            }
+        }
+        return std::nullopt;
     }
 
   private:
     bool need_update_ = true;
+    SelectionChangedCb on_selection_changed_;
 
     std::unique_ptr<dr4::Text>      camera_pos_text_;
-    std::unique_ptr<dr4::Rectangle> border_;
     std::unique_ptr<dr4::Rectangle> select_rect_;
+    std::unique_ptr<dr4::Rectangle> border_;
     model::SceneManager             model_;
     dr4::Color                      background_color_;
     view::ObjInfoPanel              info_panel_;

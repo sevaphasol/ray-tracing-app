@@ -28,13 +28,34 @@ class Torus : public Primitive {
     }
 
     const char*
-    getName() override final
+    getName() const override final
     {
         return "Torus";
     }
 
     virtual std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
+
+    float
+    getMajorRadius() const
+    {
+        return major_radius_;
+    }
+    float
+    getMinorRadius() const
+    {
+        return minor_radius_;
+    }
+    void
+    setMajorRadius( float r )
+    {
+        major_radius_ = r;
+    }
+    void
+    setMinorRadius( float r )
+    {
+        minor_radius_ = r;
+    }
 
   private:
     float major_radius_;

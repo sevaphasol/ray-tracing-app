@@ -79,7 +79,8 @@ namespace hui {
 
 class Button : public hui::Widget {
   public:
-    using ClickCallback = std::function<void()>;
+    using HoldPressCallback = std::function<void()>;
+    using ClickCallback     = std::function<void()>;
 
     explicit Button( hui::WindowManager* wm,
                      const dr4::Vec2f&   pos,
@@ -99,20 +100,20 @@ class Button : public hui::Widget {
     void
     setLabelText( const std::string& text );
     void
-    setLabelFont( const dr4::Font* font, size_t size );
-    void
     setBackgroundColor( const dr4::Color& color );
 
     bool
     isPressed() const;
-    bool
-    isPressedJustNow() const;
 
+    void
+    setOnHoldPress( HoldPressCallback callback );
     void
     setOnClick( ClickCallback callback );
 
     bool
     onMousePress( const Event& event ) override;
+    bool
+    onMouseMove( const Event& event ) override;
     bool
     onMouseRelease( const Event& event ) override;
     bool
@@ -121,10 +122,6 @@ class Button : public hui::Widget {
   private:
     void
     RedrawMyTexture() const override;
-    void
-    updateVisuals();
-
-    bool is_pressed_just_now_ = false;
 
     std::unique_ptr<dr4::Rectangle> background_;
     const dr4::Font*                font_;
@@ -134,7 +131,8 @@ class Button : public hui::Widget {
     dr4::Color hovered_color_;
     dr4::Color pressed_color_;
 
-    ClickCallback on_click_;
+    ClickCallback     on_click_;
+    HoldPressCallback on_hold_press_;
 };
 
 } // namespace hui

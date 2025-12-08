@@ -143,6 +143,7 @@ void
 MenuPopup::createTextElements()
 {
     const dr4::Font* font = wm_->getWindow()->GetDefaultFont();
+    text_elements_.clear();
     text_elements_.reserve( items_.size() );
 
     for ( size_t i = 0; i < items_.size(); ++i )
@@ -160,13 +161,8 @@ MenuPopup::createTextElements()
 void
 MenuPopup::RedrawMyTexture() const
 {
-    std::cerr << "MenuPopup::RedrawMyTexture" << std::endl;
-
     texture_->Clear( { 0, 0, 0, 0 } );
     texture_->Draw( *background_ );
-
-    std::cerr << "texture_->GetPos() = " << texture_->GetPos().x << " " << texture_->GetPos().y
-              << std::endl;
 
     // Рисуем все элементы меню
     for ( size_t i = 0; i < text_elements_.size(); ++i )
@@ -186,8 +182,6 @@ MenuPopup::containsPoint( const dr4::Vec2f& pt ) const
 bool
 MenuPopup::onMousePress( const Event& event )
 {
-    std::cerr << "MenuPopup::onMousePress" << std::endl;
-
     if ( event.info.mouseButton.button != dr4::MouseButtonType::LEFT )
     {
         return false;
@@ -233,7 +227,7 @@ ToolBar::ToolBar( WindowManager* wm, float height )
     item_x_ = 10.0f;
 }
 
-void
+size_t
 ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
 {
     MenuDef md;
@@ -244,6 +238,34 @@ ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
 
     menu_defs_.push_back( std::move( md ) );
     item_x_ += menu_defs_.back().size.x + 10.0f;
+    text_elements_.clear();
+    return menu_defs_.size() - 1;
+}
+
+void
+ToolBar::setMenuItemLabel( const std::string& menu_name, size_t item_idx, const std::string& label )
+{
+    if ( menu_defs_.empty() )
+    {
+        return;
+    }
+
+    auto it = std::find_if( menu_defs_.begin(), menu_defs_.end(), [&]( const MenuDef& md ) {
+        return md.name == menu_name;
+    } );
+
+    if ( it == menu_defs_.end() )
+    {
+        return;
+    }
+
+    if ( item_idx >= it->items.size() )
+    {
+        return;
+    }
+
+    it->items[item_idx].label = label;
+    text_elements_.clear();
 }
 
 void
@@ -271,11 +293,7 @@ ToolBar::RedrawMyTexture() const
     texture_->Clear( { 0, 0, 0, 0 } );
     texture_->Draw( *background_ );
 
-    // Создаем текстовые элементы при первой отрисовке
-    if ( text_elements_.empty() )
-    {
-        const_cast<ToolBar*>( this )->createTextElements();
-    }
+    const_cast<ToolBar*>( this )->createTextElements();
 
     // Рисуем пункты меню
     for ( size_t i = 0; i < text_elements_.size(); ++i )

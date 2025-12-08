@@ -12,6 +12,7 @@ ScrollableWidget::ScrollableWidget( hui::WindowManager* wm,
     : ContainerWidget( wm, pos, { content_size.x + scrollbar_width, content_size.y } ),
       scroll_bar_( wm, 0.0f, 0.0f, scrollbar_width, content_size.y )
 {
+    scroll_bar_.setParent( this );
 }
 
 void

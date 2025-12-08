@@ -9,6 +9,7 @@
 #include "zemax/view/control_panel.hpp"
 #include "zemax/view/scene.hpp"
 #include "zemax/view/scene_objects_list.hpp"
+#include "zemax/view/object_editor_panel.hpp"
 #include "zemax/view/snapshot_annotator.hpp"
 
 namespace zemax {
@@ -41,7 +42,15 @@ class Zemax : public hui::ContainerWidget {
                      Config::CameraPanel::Size.x,
                      200,
                      scene_.getModel(),
-                     []() { return; } )
+                     []() { return; },
+                     [this]( size_t idx ) {
+                         scene_.getModel().setTargetObj( scene_.getModel().getObjects()[idx].get() );
+                         editor_.setTarget( idx );
+                     } ),
+          editor_( wm,
+                   scene_.getModel(),
+                   { Config::CameraPanel::Position.x, Config::ControlPanel::Position.y + 340.0f },
+                   { Config::ControlPanel::Size.x, 320.0f } )
     {
         // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
         scene_.setParent( this );
@@ -49,6 +58,11 @@ class Zemax : public hui::ContainerWidget {
         panel_.setParent( this );
         snp_annotator_.setParent( this );
         obj_list_.setParent( this );
+        editor_.setParent( this );
+
+        scene_.setOnSelectionChanged( [this]( std::optional<size_t> idx ) {
+            editor_.setTarget( idx );
+        } );
     }
 
     ~Zemax() = default;
@@ -71,12 +85,17 @@ class Zemax : public hui::ContainerWidget {
             return true;
         }
 
-        if ( event.apply( &scene_ ) )
+        if ( scene_.isVisible() && event.apply( &scene_ ) )
         {
             return true;
         }
 
         if ( obj_list_.isVisible() && event.apply( &obj_list_ ) )
+        {
+            return true;
+        }
+
+        if ( editor_.isVisible() && event.apply( &editor_ ) )
         {
             return true;
         }
@@ -102,6 +121,10 @@ class Zemax : public hui::ContainerWidget {
         if ( obj_list_.isVisible() )
         {
             obj_list_.Redraw();
+        }
+        if ( editor_.isVisible() )
+        {
+            editor_.Redraw();
         }
     }
 
@@ -129,11 +152,18 @@ class Zemax : public hui::ContainerWidget {
         return obj_list_;
     }
 
+    ObjectEditorPanel&
+    objectEditor()
+    {
+        return editor_;
+    }
+
   private:
     Scene                 scene_;
     CameraControlPanel    camera_panel_;
     ControlPanel          panel_;
     SceneObjectsListModal obj_list_;
+    ObjectEditorPanel     editor_;
     SnapshotAnnotator     snp_annotator_;
 };
 

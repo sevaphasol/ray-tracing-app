@@ -94,7 +94,7 @@ class ObjInfoBox : public hui::ContainerWidget {
         return event.apply( &close_btn_ );
     }
 
-    void
+    virtual void
     RedrawMyTexture() const override
     {
         rect_->DrawOn( *texture_ );

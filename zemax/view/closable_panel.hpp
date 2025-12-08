@@ -38,6 +38,19 @@ class ClosablePanel : public ObjInfoBox {
         return visible_;
     }
 
+    // Helpers for derived widgets to compute client area under the top bar.
+    dr4::Vec2f
+    contentOffset() const
+    {
+        return { 0.0f, TopBarHeight };
+    }
+
+    dr4::Vec2f
+    contentSize() const
+    {
+        return { size_.x, size_.y - TopBarHeight };
+    }
+
   protected:
     bool visible_ = true;
 };

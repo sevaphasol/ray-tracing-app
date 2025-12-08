@@ -25,7 +25,7 @@ class Sphere : public Primitive {
     }
 
     const char*
-    getName() override final
+    getName() const override final
     {
         return "Sphere";
     }

@@ -157,13 +157,14 @@ namespace view {
 class SceneObjectsListModal : public ObjInfoBox {
   public:
     using CloseCb = std::function<void()>;
-    SceneObjectsListModal( hui::WindowManager*  wm,
-                           float                x,
-                           float                y,
-                           float                w,
-                           float                h,
-                           model::SceneManager& scene_manager,
-                           CloseCb              close_cb )
+    SceneObjectsListModal( hui::WindowManager*         wm,
+                           float                       x,
+                           float                       y,
+                           float                       w,
+                           float                       h,
+                           model::SceneManager&        scene_manager,
+                           CloseCb                     close_cb,
+                           std::function<void(size_t)> on_select )
         : ObjInfoBox( wm,
                       x,
                       y,
@@ -178,7 +179,8 @@ class SceneObjectsListModal : public ObjInfoBox {
                       },
                       "Objects list" ),
           scene_manager_( scene_manager ),
-          close_cb_( std::move( close_cb ) )
+          close_cb_( std::move( close_cb ) ),
+          on_select_( std::move( on_select ) )
     {
         const float inner_x         = 12.0f;
         const float inner_y         = TopBarHeight + 12.0f;
@@ -284,7 +286,8 @@ class SceneObjectsListModal : public ObjInfoBox {
         for ( size_t i = 0; i < scene_manager_.getObjectsCount(); ++i )
         {
             auto info = scene_manager_.getObjectInfo( i );
-            names.push_back( info.type_name + " (" + std::to_string( i ) + ")" );
+            std::string label = info.display_name.empty() ? info.type_name : info.display_name;
+            names.push_back( label + " (" + std::to_string( i ) + ")" );
             object_indices.push_back( info.objects_idx );
         }
 
@@ -307,10 +310,11 @@ class SceneObjectsListModal : public ObjInfoBox {
                                                13                                // Font size
                 );
 
-            // Set callback for button click
             btn->setOnClick( [this, item_idx]() {
-                scene_manager_.setTargetObj( scene_manager_.getObjects()[item_idx].get() );
-                openEditDialog( item_idx );
+                if ( on_select_ )
+                {
+                    on_select_( item_idx );
+                }
             } );
 
             list_->addItem( std::move( btn ) );
@@ -319,47 +323,11 @@ class SceneObjectsListModal : public ObjInfoBox {
         list_->rebuildLayout();
     }
 
-    void
-    openEditDialog( size_t obj_idx )
-    {
-        // Get object info
-        auto obj_info = scene_manager_.getObjectInfo( obj_idx );
-
-        // Determine the type of object and open appropriate dialog
-        if ( obj_info.type_name == "Sphere" )
-        {
-            // Open sphere parameter dialog
-            wm_->pushModal( std::make_unique<SphereParamsDialog>( wm_,
-                                                                  800,
-                                                                  250,
-                                                                  500,
-                                                                  400,
-                                                                  scene_manager_,
-                                                                  obj_idx,
-                                                                  [this]() {
-                                                                      wm_->popModal();
-                                                                      this->refresh();
-                                                                      scene_manager_.setTargetObj(
-                                                                          nullptr );
-                                                                  } ) );
-        } else if ( obj_info.type_name == "AABB" )
-        {
-            // Open AABB parameter dialog
-            wm_->pushModal(
-                std::make_unique<
-                    AABBParamsDialog>( wm_, 800, 250, 550, 450, scene_manager_, obj_idx, [this]() {
-                    wm_->popModal();
-                    this->refresh();
-                    scene_manager_.setTargetObj( nullptr );
-                } ) );
-        }
-        // Add more object types as needed
-    }
-
   private:
     model::SceneManager&                       scene_manager_;
     CloseCb                                    close_cb_;
     std::unique_ptr<hui::ScrollableListWidget> list_;
+    std::function<void(size_t)>                on_select_;
     bool                                       visible_ = true;
 };
 
