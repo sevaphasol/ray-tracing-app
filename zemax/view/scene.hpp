@@ -8,13 +8,12 @@
 
 #include "custom-hui-impl/window_manager.hpp"
 
+#include "custom-hui-impl/closable_panel.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
-#include "custom-hui-impl/closable_panel.hpp"
-#include "zemax/view/info_panel.hpp"
 
 #include <cstddef>
 #include <iomanip>
@@ -38,8 +37,7 @@ class Scene : public hui::ClosablePanel {
                     const zemax::model::Vector3f& camera_pos )
         : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Scene" ),
           model_( zemax::Config::Camera::Position, size.x, size.y ),
-          background_color_( background_color ),
-          info_panel_( wm, Config::Scene::ObjInfoPanel::Size )
+          background_color_( background_color )
     {
         setDraggable( true );
 
@@ -59,8 +57,6 @@ class Scene : public hui::ClosablePanel {
 
         camera_pos_text_.reset( wm->getWindow()->CreateText() );
         select_rect_.reset( wm->getWindow()->CreateRectangle() );
-
-        info_panel_.setParent( this );
 
         camera_pos_text_->SetFont( wm->getWindow()->GetDefaultFont() );
         camera_pos_text_->SetColor( { 255, 255, 255, 255 } );
@@ -159,12 +155,6 @@ class Scene : public hui::ClosablePanel {
     }
 
     void
-    setFont( const dr4::Font* font )
-    {
-        info_panel_.setFont( font );
-    }
-
-    void
     setOnSelectionChanged( SelectionChangedCb cb )
     {
         on_selection_changed_ = std::move( cb );
@@ -225,16 +215,12 @@ class Scene : public hui::ClosablePanel {
         if ( obj != nullptr )
         {
             auto content_pos = contentOffset();
-            info_panel_.setRelPos( px + content_pos.x, py + content_pos.y );
-            info_panel_.update( obj );
-            info_panel_.setVisible( true );
             if ( on_selection_changed_ )
             {
                 on_selection_changed_( findIndexForObj( obj ) );
             }
         } else
         {
-            info_panel_.setVisible( false );
             if ( on_selection_changed_ )
             {
                 on_selection_changed_( std::nullopt );
@@ -391,7 +377,6 @@ class Scene : public hui::ClosablePanel {
             //  widget_transform );
         }
 
-        info_panel_.Redraw();
         texture_->Draw( *camera_pos_text_ );
         texture_->Draw( *border_ );
 
@@ -414,7 +399,6 @@ class Scene : public hui::ClosablePanel {
     clearSelection()
     {
         model_.setTargetObj( nullptr );
-        info_panel_.setVisible( false );
         if ( on_selection_changed_ )
         {
             on_selection_changed_( std::nullopt );
@@ -450,7 +434,6 @@ class Scene : public hui::ClosablePanel {
     std::unique_ptr<dr4::Rectangle> border_;
     model::SceneManager             model_;
     dr4::Color                      background_color_;
-    view::ObjInfoPanel              info_panel_;
     std::unique_ptr<dr4::Image>     pixels_;
 };
 

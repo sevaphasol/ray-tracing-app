@@ -292,7 +292,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         {
             selected_shape_ = nullptr;
             tool_panel_.setActiveTool( std::nullopt );
-            return true;
+            return false;
         }
 
         // // std::cerr << "Giving to tool_panel" << std::endl;

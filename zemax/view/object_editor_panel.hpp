@@ -3,8 +3,9 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/input_text.hpp"
 #include "custom-hui-impl/label.hpp"
-#include "custom-hui-impl/scrollable_widget.hpp"
 #include "custom-hui-impl/closable_panel.hpp"
+#include "custom-hui-impl/scrollable_list_widget.hpp"
+#include "custom-hui-impl/dialog_box.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/hex_prism.hpp"
@@ -21,7 +22,7 @@
 namespace zemax {
 namespace view {
 
-// Single scrollable editor for objects: create when none selected, edit/copy/delete when selected.
+// Single editor for objects: create when none selected, edit/copy/delete when selected.
 class ObjectEditorPanel : public hui::ClosablePanel {
   public:
     explicit ObjectEditorPanel( hui::WindowManager*  wm,
@@ -30,8 +31,18 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                 const dr4::Vec2f&    size )
         : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Editor" ),
           scene_manager_( scene_manager ),
+          label_text_( wm->getWindow()->CreateText() ),
+          type_btn_( wm,
+                     { 12.0f, size.y - 34.0f },
+                     { 88.0f, 24.0f },
+                     CloseBtnDefaultColor,
+                     CloseBtnHoveredColor,
+                     CloseBtnPressedColor,
+                     "Type",
+                     CloseBtnFontColor,
+                     CloseBtnFontSize ),
           add_btn_( wm,
-                    { 12.0f, size.y - 34.0f },
+                    { 112.0f, size.y - 34.0f },
                     { 88.0f, 24.0f },
                     CloseBtnDefaultColor,
                     CloseBtnHoveredColor,
@@ -40,7 +51,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                     CloseBtnFontColor,
                     CloseBtnFontSize ),
           copy_btn_( wm,
-                     { 112.0f, size.y - 34.0f },
+                     { 12.0f, size.y - 34.0f },
                      { 88.0f, 24.0f },
                      CloseBtnDefaultColor,
                      CloseBtnHoveredColor,
@@ -49,12 +60,12 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                      CloseBtnFontColor,
                      CloseBtnFontSize ),
           del_btn_( wm,
-                    { 212.0f, size.y - 34.0f },
+                    { 112.0f, size.y - 34.0f },
                     { 88.0f, 24.0f },
                     CloseBtnDefaultColor,
                     CloseBtnHoveredColor,
                     CloseBtnPressedColor,
-                    "Del",
+                    "Delete",
                     CloseBtnFontColor,
                     CloseBtnFontSize ),
           apply_btn_( wm,
@@ -68,15 +79,16 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                       CloseBtnFontSize )
     {
         setDraggable( true );
-        addButtons();
         buildForm( current_type_ );
         prefillDefaults();
+        wireButtons();
     }
 
     void
     setTarget( std::optional<size_t> idx )
     {
         target_idx_ = idx;
+        editing_mode_ = idx.has_value();
         auto info   = idx.has_value() ? std::optional<model::SceneManager::ObjectInfo>(
                                           scene_manager_.getObjectInfo( idx.value() ) )
                                       : std::nullopt;
@@ -104,15 +116,17 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             return false;
         }
 
-        if ( event.apply( &add_btn_ ) )
-            return true;
-        if ( copy_visible_ && event.apply( &copy_btn_ ) )
-            return true;
-        if ( del_visible_ && event.apply( &del_btn_ ) )
-            return true;
-        for ( auto& btn : type_btns_ )
+        if ( editing_mode_ )
         {
-            if ( event.apply( btn.get() ) )
+            if ( event.apply( &copy_btn_ ) )
+                return true;
+            if ( event.apply( &del_btn_ ) )
+                return true;
+        } else
+        {
+            if ( event.apply( &type_btn_ ) )
+                return true;
+            if ( event.apply( &add_btn_ ) )
                 return true;
         }
 
@@ -147,17 +161,24 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             f.input->Redraw();
         }
 
-        for ( const auto& btn : type_btns_ )
+        if ( editing_mode_ )
         {
-            btn->Redraw();
-        }
-
-        add_btn_.Redraw();
-        if ( copy_visible_ )
             copy_btn_.Redraw();
-        if ( del_visible_ )
             del_btn_.Redraw();
+        } else
+        {
+            type_btn_.Redraw();
+            add_btn_.Redraw();
+        }
         apply_btn_.Redraw();
+
+        auto* font = wm_->getWindow()->GetDefaultFont();
+        label_text_->SetFont( font );
+        label_text_->SetFontSize( 14 );
+        label_text_->SetColor( { 220, 220, 220, 255 } );
+        label_text_->SetText( editing_mode_ ? "Editing" : ("Adding " + typeName( current_type_ )) );
+        label_text_->SetPos( { 12.0f, TopBarHeight + 4.0f } );
+        label_text_->DrawOn( *texture_ );
     }
 
   private:
@@ -177,6 +198,23 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         std::ostringstream ss;
         ss << std::fixed << std::setprecision( 2 ) << v;
         return ss.str();
+    }
+
+    static std::string
+    typeName( Type t )
+    {
+        switch ( t )
+        {
+            case Type::Sphere:
+                return "Sphere";
+            case Type::AABB:
+                return "AABB";
+            case Type::Torus:
+                return "Torus";
+            case Type::HexPrism:
+            default:
+                return "HexPrism";
+        }
     }
 
     void
@@ -269,6 +307,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     void
     prefill( size_t idx, const model::SceneManager::ObjectInfo& info )
     {
+        editing_mode_ = true;
         if ( auto* f = findField( "name" ) )
             f->input->setString( info.display_name.empty() ? info.type_name : info.display_name );
         if ( auto* f = findField( "x" ) )
@@ -482,6 +521,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     void
     prefillDefaults()
     {
+        editing_mode_ = false;
         if ( auto* f = findField( "name" ) )
             f->input->setString( defaultNameForType( current_type_ ) );
         if ( auto* f = findField( "x" ) )
@@ -621,56 +661,96 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         prefillDefaults();
     }
 
-    void
-    addButtons()
-    {
-        add_btn_.setParent( this );
-        copy_btn_.setParent( this );
-        del_btn_.setParent( this );
-        apply_btn_.setParent( this );
+    class TypePickerDialog : public hui::DialogBox {
+      public:
+        TypePickerDialog( hui::WindowManager* wm,
+                          float               x,
+                          float               y,
+                          std::function<void(Type)> on_ok,
+                          std::function<void()>     on_cancel )
+            : DialogBox( wm, x, y, 220.0f, 260.0f, on_cancel, "Choose Type" ),
+              list_( wm, { 10.0f, TopBarHeight + 10.0f }, { 200.0f, 180.0f }, 10.0f ),
+              ok_( wm, { 20.0f, 210.0f }, { 80.0f, 26.0f } ),
+              cancel_( wm, { 120.0f, 210.0f }, { 80.0f, 26.0f } ),
+              on_ok_( std::move( on_ok ) ),
+              on_cancel_( std::move( on_cancel ) )
+        {
+            list_.setParent( this );
+            ok_.setParent( this );
+            cancel_.setParent( this );
 
-        add_btn_.setOnClick( [this]() { addNewObjectFromUI(); } );
-        copy_btn_.setOnClick( [this]() { copyTarget(); } );
-        del_btn_.setOnClick( [this]() { deleteTarget(); } );
-        apply_btn_.setOnClick( [this]() { onApply(); } );
-
-        const float btn_w   = 70.0f;
-        const float btn_h   = 22.0f;
-        const float btn_gap = 8.0f;
-        const float base_y  = TopBarHeight + 6.0f;
-        float       x       = 12.0f;
-
-        auto make_btn = [&]( const char* label, Type type ) {
-            auto btn = std::make_unique<hui::Button>( wm_,
-                                                      dr4::Vec2f{ x, base_y },
-                                                      dr4::Vec2f{ btn_w, btn_h },
-                                                      CloseBtnDefaultColor,
-                                                      CloseBtnHoveredColor,
-                                                      CloseBtnPressedColor,
-                                                      label,
-                                                      CloseBtnFontColor,
-                                                      CloseBtnFontSize );
-            btn->setParent( this );
-            btn->setOnClick( [this, type]() {
-                if ( target_idx_.has_value() )
-                    return;
-                creation_type_ = type;
-                current_type_  = type;
-                buildForm( current_type_ );
-                updateTypeButtons();
-                prefillDefaults();
+            ok_.setOnClick( [this]() {
+                if ( on_ok_ )
+                    on_ok_( selected_ );
+                if ( on_cancel_ )
+                    on_cancel_();
             } );
-            x += btn_w + btn_gap;
-            return btn;
-        };
+            cancel_.setOnClick( [this]() {
+                if ( on_cancel_ )
+                    on_cancel_();
+            } );
 
-        type_btns_.push_back( make_btn( "Sphere", Type::Sphere ) );
-        type_btns_.push_back( make_btn( "AABB", Type::AABB ) );
-        type_btns_.push_back( make_btn( "Torus", Type::Torus ) );
-        type_btns_.push_back( make_btn( "Hex", Type::HexPrism ) );
+            buildItems();
+        }
 
-        updateTypeButtons();
-    }
+        bool
+        propagateEventToChildren( const hui::Event& event ) override
+        {
+            if ( event.apply( &list_ ) )
+                return true;
+            if ( event.apply( &ok_ ) )
+                return true;
+            if ( event.apply( &cancel_ ) )
+                return true;
+            return DialogBox::propagateEventToChildren( event );
+        }
+
+        void
+        RedrawMyTexture() const override
+        {
+            DialogBox::RedrawMyTexture();
+            list_.Redraw();
+            ok_.Redraw();
+            cancel_.Redraw();
+        }
+
+      private:
+        void
+        buildItems()
+        {
+            list_.clearItems();
+            auto add = [&]( const std::string& label, Type t ) {
+                auto btn = std::make_unique<hui::Button>( wm_,
+                                                          dr4::Vec2f{ 0, 0 },
+                                                          dr4::Vec2f{ 180.0f, 32.0f },
+                                                          t == selected_ ? CloseBtnPressedColor
+                                                                         : CloseBtnDefaultColor,
+                                                          CloseBtnHoveredColor,
+                                                          CloseBtnPressedColor,
+                                                          label,
+                                                          CloseBtnFontColor,
+                                                          CloseBtnFontSize );
+                btn->setOnClick( [this, t]() {
+                    selected_ = t;
+                    buildItems();
+                } );
+                list_.addItem( std::move( btn ) );
+            };
+
+            add( "Sphere", Type::Sphere );
+            add( "AABB", Type::AABB );
+            add( "Torus", Type::Torus );
+            add( "HexPrism", Type::HexPrism );
+        }
+
+      private:
+        hui::ScrollableListWidget    list_;
+        hui::ButtonOk                ok_;
+        hui::ButtonCancel            cancel_;
+        std::function<void(Type)>    on_ok_;
+        std::function<void()>        on_cancel_;
+        Type                         selected_ = Type::Sphere;
+    };
 
     void
     updateTypeButtons()
@@ -679,20 +759,51 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         del_visible_  = target_idx_.has_value();
     }
 
+    void
+    wireButtons()
+    {
+        type_btn_.setParent( this );
+        add_btn_.setParent( this );
+        copy_btn_.setParent( this );
+        del_btn_.setParent( this );
+        apply_btn_.setParent( this );
+
+        add_btn_.setOnClick( [this]() { addNewObjectFromUI(); } );
+        type_btn_.setOnClick( [this]() {
+            wm_->pushModal( std::make_unique<TypePickerDialog>(
+                wm_,
+                getRelPos().x + 20.0f,
+                getRelPos().y + 20.0f,
+                [this]( Type t ) {
+                    current_type_  = t;
+                    creation_type_ = t;
+                    buildForm( current_type_ );
+                    prefillDefaults();
+                    updateTypeButtons();
+                },
+                [this]() { wm_->popModal(); } ) );
+        } );
+        copy_btn_.setOnClick( [this]() { copyTarget(); } );
+        del_btn_.setOnClick( [this]() { deleteTarget(); } );
+        apply_btn_.setOnClick( [this]() { onApply(); } );
+    }
+
   private:
     model::SceneManager&  scene_manager_;
     std::optional<size_t> target_idx_;
     std::vector<FieldRef> form_fields_;
-    Type                                      current_type_    = Type::Sphere;
-    Type                                      creation_type_   = Type::Sphere;
-    const float                               type_row_height_ = 28.0f;
-    std::vector<std::unique_ptr<hui::Button>> type_btns_;
-    bool                                      copy_visible_ = false;
-    bool                                      del_visible_  = false;
-    hui::Button                               add_btn_;
-    hui::Button                               copy_btn_;
-    hui::Button                               del_btn_;
-    hui::Button                               apply_btn_;
+    Type                        current_type_    = Type::Sphere;
+    Type                        creation_type_   = Type::Sphere;
+    const float                 type_row_height_ = 28.0f;
+    bool                        copy_visible_    = false;
+    bool                        del_visible_     = false;
+    bool                        editing_mode_    = false;
+    hui::Button                 type_btn_;
+    hui::Button                 add_btn_;
+    hui::Button                 copy_btn_;
+    hui::Button                 del_btn_;
+    hui::Button                 apply_btn_;
+    std::unique_ptr<dr4::Text>  label_text_;
 };
 
 } // namespace view
