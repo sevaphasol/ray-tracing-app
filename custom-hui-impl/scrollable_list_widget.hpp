@@ -19,6 +19,9 @@ class ScrollableListWidget : public ContainerWidget {
     addItem( std::unique_ptr<Widget> item );
 
     void
+    clearItems();
+
+    void
     rebuildLayout();
 
     void

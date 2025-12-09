@@ -25,6 +25,14 @@ ScrollableListWidget::addItem( std::unique_ptr<Widget> item )
 }
 
 void
+ScrollableListWidget::clearItems()
+{
+    items_.clear();
+    total_items_y_ = 0.0f;
+    scroll_bar_.setScrollFactor( 0.0 );
+}
+
+void
 ScrollableListWidget::rebuildLayout()
 {
     float y = 0.0f;

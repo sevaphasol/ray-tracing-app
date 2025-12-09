@@ -5,6 +5,7 @@
 #include "dr4/math/vec2.hpp"
 #include "zemax/config.hpp"
 #include "zemax/view/file_dialog.hpp"
+#include "zemax/view/plugin_manager.hpp"
 #include "zemax/view/zemax.hpp"
 
 #include <dlfcn.h>
@@ -91,10 +92,14 @@ main()
                       } );
 
     toolbar->addMenu( "Edit",
-                      {
-                          { "Undo", []() { fprintf( stderr, "Undo\n" ); } },
-                          { "Redo", []() { fprintf( stderr, "Redo\n" ); } },
-                      } );
+                      { { "Plugins",
+                          [&wm, zemax_ptr]() {
+                              // Open a small popup to the right of the Edit button
+                              float x = 120.0f;
+                              float y = 30.0f;
+                              wm.pushModal( std::make_unique<zemax::view::PluginPopup>(
+                                  &wm, x, y, &zemax_ptr->annotator() ) );
+                          } } } );
 
     auto fmt_label = []( bool visible, const char* title ) {
         return std::string( visible ? "[x] " : "[ ] " ) + title;

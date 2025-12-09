@@ -15,6 +15,8 @@
 #include <memory>
 #include <unordered_map>
 #include <utility>
+#include <vector>
+#include <string>
 
 namespace zemax {
 namespace view {
@@ -28,17 +30,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
           tool_panel_( wm, 10, 100, 200 )
     {
         setDraggable( false );
-        for ( auto* plg : wm->getPluginManager()->GetAllOfType<cum::PPToolPlugin>() )
-        {
-            auto new_tools = plg->CreateTools( this );
-            for ( auto& tool : new_tools )
-            {
-                tools_.push_back( std::move( tool ) );
-            }
-        }
-
-        tool_panel_.addTools( &tools_ );
-
+        refreshPlugins();
         tool_panel_.setParent( this );
 
         border_.reset( wm->getWindow()->CreateRectangle() );
@@ -73,6 +65,64 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         setParent( parent );
         setRelPos( rel_pos );
         setSize( size );
+    }
+
+    void
+    refreshPlugins()
+    {
+        plugin_tools_.clear();
+        active_tools_  = nullptr;
+        bool active_still_present = false;
+
+        for ( auto* plg : wm_->getPluginManager()->GetAllOfType<cum::PPToolPlugin>() )
+        {
+            PluginTools bucket;
+            bucket.plugin = plg;
+            bucket.tools  = plg->CreateTools( this );
+            plugin_tools_.push_back( std::move( bucket ) );
+            if ( plg == active_plugin_ )
+            {
+                active_still_present = true;
+            }
+        }
+
+        if ( !plugin_tools_.empty() )
+        {
+            if ( !active_plugin_ || !active_still_present )
+            {
+                active_plugin_ = plugin_tools_.back().plugin;
+            }
+        } else
+        {
+            active_plugin_ = nullptr;
+        }
+
+        rebuildToolPanel();
+    }
+
+    void
+    setActivePlugin( cum::PPToolPlugin* plugin )
+    {
+        active_plugin_ = plugin;
+        rebuildToolPanel();
+    }
+
+    cum::PPToolPlugin*
+    getActivePlugin() const
+    {
+        return active_plugin_;
+    }
+
+    std::vector<std::pair<std::string, cum::PPToolPlugin*>>
+    listPlugins() const
+    {
+        std::vector<std::pair<std::string, cum::PPToolPlugin*>> res;
+        res.reserve( plugin_tools_.size() );
+        for ( const auto& p : plugin_tools_ )
+        {
+            res.emplace_back( p.plugin->GetName(), p.plugin );
+        }
+        return res;
     }
 
     void
@@ -166,11 +216,14 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         {
             return false;
         }
-        for ( auto& tool : tools_ )
+        if ( active_tools_ )
         {
-            if ( tool->OnKeyDown( event.info.key ) )
+            for ( auto& tool : *active_tools_ )
             {
-                return true;
+                if ( tool->OnKeyDown( event.info.key ) )
+                {
+                    return true;
+                }
             }
         }
 
@@ -250,9 +303,9 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        if ( tool_panel_.getActiveToolIdx().has_value() )
+        if ( active_tools_ && tool_panel_.getActiveToolIdx().has_value() )
         {
-            auto& active_tool = tools_[tool_panel_.getActiveToolIdx().value()];
+            auto& active_tool = ( *active_tools_ )[tool_panel_.getActiveToolIdx().value()];
             if ( active_tool->IsCurrentlyDrawing() )
             {
                 if ( active_tool->OnMouseDown( evt.info.mouseButton ) )
@@ -292,9 +345,9 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         // // std::cerr << "Shapes didn't took" << std::endl;
 
-        if ( tool_panel_.getActiveToolIdx().has_value() )
+        if ( active_tools_ && tool_panel_.getActiveToolIdx().has_value() )
         {
-            auto& active_tool = tools_[tool_panel_.getActiveToolIdx().value()];
+            auto& active_tool = ( *active_tools_ )[tool_panel_.getActiveToolIdx().value()];
             if ( active_tool->OnMouseDown( evt.info.mouseButton ) )
             {
                 return true;
@@ -307,7 +360,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     bool
     onTextEnter( const hui::Event& event ) override final
     {
-        for ( auto& tool : tools_ )
+        if ( !active_tools_ )
+        {
+            return false;
+        }
+
+        for ( auto& tool : *active_tools_ )
         {
             if ( tool->OnText( event.info.text ) )
             {
@@ -343,7 +401,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        for ( auto& tool : tools_ )
+        if ( !active_tools_ )
+        {
+            return false;
+        }
+
+        for ( auto& tool : *active_tools_ )
         {
             if ( tool->OnMouseUp( evt ) )
             {
@@ -379,7 +442,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        for ( auto& tool : tools_ )
+        if ( !active_tools_ )
+        {
+            return false;
+        }
+
+        for ( auto& tool : *active_tools_ )
         {
             if ( tool->OnMouseMove( evt ) )
             {
@@ -391,6 +459,22 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     }
 
   private:
+    void
+    rebuildToolPanel()
+    {
+        active_tools_ = nullptr;
+        for ( auto& entry : plugin_tools_ )
+        {
+            if ( entry.plugin == active_plugin_ )
+            {
+                active_tools_ = &entry.tools;
+                break;
+            }
+        }
+
+        tool_panel_.addTools( active_tools_ );
+    }
+
     void
     RedrawMyTexture() const override final
     {
@@ -417,7 +501,15 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     }
 
   private:
-    std::vector<std::unique_ptr<pp::Tool>> tools_;
+    struct PluginTools
+    {
+        cum::PPToolPlugin*                     plugin = nullptr;
+        std::vector<std::unique_ptr<pp::Tool>> tools;
+    };
+
+    std::vector<PluginTools>                 plugin_tools_;
+    std::vector<std::unique_ptr<pp::Tool>>*  active_tools_  = nullptr;
+    cum::PPToolPlugin*                       active_plugin_ = nullptr;
 
     bool active_ = false;
 

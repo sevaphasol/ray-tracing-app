@@ -71,10 +71,10 @@ ScrollableWidget::propagateEventToChildren( const Event& event )
 void
 ScrollableWidget::RedrawMyTexture() const
 {
-    if ( !needs_redraw_ )
-    {
-        return;
-    }
+    // if ( !needs_redraw_ )
+    // {
+    //     return;
+    // }
 
     texture_->Clear( { 0, 0, 0, 0 } );
 

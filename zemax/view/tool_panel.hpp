@@ -52,6 +52,12 @@ ToolPanel::addTools( Tools tools )
 {
     tools_.clear();
     active_tool_idx_.reset();
+    clearItems();
+
+    if ( tools == nullptr )
+    {
+        return;
+    }
 
     for ( size_t i = 0; i < tools->size(); ++i )
     {

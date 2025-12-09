@@ -184,6 +184,8 @@ class ScrollBar : public hui::ContainerWidget {
 
     double
     getScrollFactor() const;
+    void
+    setScrollFactor( double factor );
 
     bool
     isScrolled();

@@ -28,8 +28,8 @@ namespace view {
 
 class Scene : public ClosablePanel {
   public:
-    ~Scene() = default;
-    using SelectionChangedCb = std::function<void(std::optional<size_t>)>;
+    ~Scene()                 = default;
+    using SelectionChangedCb = std::function<void( std::optional<size_t> )>;
 
     explicit Scene( hui::WindowManager*           wm,
                     const dr4::Vec2f&             pos,
@@ -82,6 +82,16 @@ class Scene : public ClosablePanel {
         //                 zemax::model::Vector3f( -1, 0.5, -5 ),
         //                 zemax::model::Vector3f( 0.25, 0.25, 0.25 ) );
 
+        model_.addHexPrism( model::Material( zemax::model::Color( 8, 32, 8 ), 0.8f ),
+                            zemax::model::Vector3f( 0, 0, -13 ),
+                            1,
+                            2 );
+
+        // model_.addTorus( model::Material( zemax::model::Color( 8, 32, 8 ), 0.2f ),
+        //                  zemax::model::Vector3f( 0, 0, -13 ),
+        //                  1,
+        //                  2 );
+
         model_.addSphere( model::Material( zemax::model::Color( 8, 32, 8 ), 1.0f ),
                           zemax::model::Vector3f( 0, 0, -13 ),
                           0.3 );
@@ -101,6 +111,11 @@ class Scene : public ClosablePanel {
         model_.addSphere( model::Material( zemax::model::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
                           zemax::model::Vector3f( 1.2, -1.4, -14.1 ),
                           1.0 );
+
+        model_.addTorus( model::Material( zemax::model::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
+                         zemax::model::Vector3f( 1.2, -1.4, -14.1 ),
+                         1.0,
+                         2.0 );
 
         // model_.addAABB( model::Material( zemax::model::Color( 118, 185, 0 ), 0.9f
         // ),
@@ -427,7 +442,7 @@ class Scene : public ClosablePanel {
     }
 
   private:
-    bool need_update_ = true;
+    bool               need_update_ = true;
     SelectionChangedCb on_selection_changed_;
 
     std::unique_ptr<dr4::Text>      camera_pos_text_;

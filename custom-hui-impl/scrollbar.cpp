@@ -295,6 +295,13 @@ ScrollBar::getScrollFactor() const
     return scroll_factor_;
 }
 
+void
+ScrollBar::setScrollFactor( double factor )
+{
+    scroll_factor_ = std::clamp( factor, 0.0, 1.0 );
+    updateThumbPosition();
+}
+
 bool
 ScrollBar::isScrolled()
 {
