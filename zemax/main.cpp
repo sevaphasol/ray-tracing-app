@@ -4,6 +4,7 @@
 #include "custom-hui-impl/window_manager.hpp"
 #include "dr4/math/vec2.hpp"
 #include "zemax/config.hpp"
+#include "zemax/view/file_dialog.hpp"
 #include "zemax/view/zemax.hpp"
 
 #include <dlfcn.h>
@@ -42,10 +43,50 @@ main()
     auto toolbar     = std::make_unique<hui::ToolBar>( &wm, 28.0f );
     auto* toolbar_ptr = toolbar.get();
 
+    const std::string scene_file_default = "scene.txt";
+
     toolbar->addMenu( "File",
                       {
-                          { "New", []() { fprintf( stderr, "New\n" ); } },
-                          { "Open", []() { fprintf( stderr, "Open\n" ); } },
+                          { "New",
+                            [zemax_ptr]() {
+                                zemax_ptr->scene().getModel().clear();
+                                zemax_ptr->scene().clearSelection();
+                            } },
+                          { "Open",
+                            [zemax_ptr, &wm]() {
+                                wm.pushModal( std::make_unique<zemax::view::FileDialog>(
+                                    &wm,
+                                    600,
+                                    300,
+                                    400,
+                                    160,
+                                    "Open Scene",
+                                    "scene.txt",
+                                    [zemax_ptr, &wm]( const std::string& path ) {
+                                        if ( zemax_ptr->scene().getModel().loadFromFile( path ) )
+                                        {
+                                            zemax_ptr->scene().clearSelection();
+                                        }
+                                        wm.popModal();
+                                    },
+                                    [&wm]() { wm.popModal(); } ) );
+                            } },
+                          { "Save",
+                            [zemax_ptr, &wm, scene_file_default]() {
+                                wm.pushModal( std::make_unique<zemax::view::FileDialog>(
+                                    &wm,
+                                    600,
+                                    300,
+                                    400,
+                                    160,
+                                    "Save Scene",
+                                    scene_file_default,
+                                    [zemax_ptr, &wm]( const std::string& path ) {
+                                        zemax_ptr->scene().getModel().saveToFile( path );
+                                        wm.popModal();
+                                    },
+                                    [&wm]() { wm.popModal(); } ) );
+                            } },
                           { "Exit", [&]() { wm.getWindow()->Close(); } },
                       } );
 
@@ -104,6 +145,15 @@ main()
                       zemax_ptr->objectEditor().hide();
                   toolbar_ptr->setMenuItemLabel(
                       "View", 4, fmt_label( new_state, "Object Editor" ) );
+              } },
+            { fmt_label( zemax_ptr->annotator().isVisible(), "Annotator" ), [&]() {
+                  bool new_state = !zemax_ptr->annotator().isVisible();
+                  if ( new_state )
+                      zemax_ptr->annotator().show();
+                  else
+                      zemax_ptr->annotator().hide();
+                  toolbar_ptr->setMenuItemLabel(
+                      "View", 5, fmt_label( new_state, "Annotator" ) );
               } },
         } );
 

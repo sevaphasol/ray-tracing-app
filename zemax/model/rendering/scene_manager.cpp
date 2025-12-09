@@ -10,8 +10,10 @@
 #include "zemax/model/rendering/color.hpp"
 #include "zemax/model/rendering/vector3.hpp"
 #include <cassert>
+#include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 
 namespace zemax {
 namespace model {
@@ -66,6 +68,150 @@ SceneManager::addTorus( const Material& material,
                         float           major_radius )
 {
     objects_.push_back( std::make_unique<Torus>( material, center, minor_radius, major_radius ) );
+}
+
+bool
+SceneManager::saveToFile( const std::string& path ) const
+{
+    std::ofstream out( path );
+    if ( !out.is_open() )
+    {
+        return false;
+    }
+
+    // Simple text format:
+    // LIGHTS N
+    // x y z emb diff glare
+    // ...
+    // OBJECTS N
+    // TYPE name x y z p1 p2 p3 p4 r g b refl
+    out << "LIGHTS " << lights_.size() << '\n';
+    for ( const auto& l : lights_ )
+    {
+        auto p = l.getPos();
+        out << p.x << ' ' << p.y << ' ' << p.z << ' ' << l.getEmbeddedIntensity() << ' '
+            << l.getDiffuseIntensity() << ' ' << l.getGlareIntensity() << '\n';
+    }
+
+    out << "OBJECTS " << objects_.size() << '\n';
+    for ( const auto& obj_ptr : objects_ )
+    {
+        auto* obj = obj_ptr.get();
+        auto  info = getObjectInfo( static_cast<size_t>( &obj_ptr - &objects_[0] ) ); // order preserved
+
+        auto material = obj->getMaterial();
+        out << info.type_name << ' ' << info.display_name << ' ' << info.pos.x << ' ' << info.pos.y
+            << ' ' << info.pos.z << ' ';
+
+        if ( auto* s = dynamic_cast<Sphere*>( obj ) )
+        {
+            out << s->getRadius() << " 0 0 0 ";
+        } else if ( auto* a = dynamic_cast<AABB*>( obj ) )
+        {
+            auto hs = a->getHalfSize();
+            out << hs.x << ' ' << hs.y << ' ' << hs.z << " 0 ";
+        } else if ( auto* t = dynamic_cast<Torus*>( obj ) )
+        {
+            out << t->getMajorRadius() << ' ' << t->getMinorRadius() << " 0 0 ";
+        } else if ( auto* h = dynamic_cast<HexPrism*>( obj ) )
+        {
+            out << h->getRadius() << ' ' << h->getHeight() << " 0 0 ";
+        } else
+        {
+            out << "0 0 0 0 ";
+        }
+
+        out << static_cast<int>( material.color.r ) << ' ' << static_cast<int>( material.color.g )
+            << ' ' << static_cast<int>( material.color.b ) << ' ' << material.reflection_factor
+            << '\n';
+    }
+
+    return true;
+}
+
+bool
+SceneManager::loadFromFile( const std::string& path )
+{
+    std::ifstream in( path );
+    if ( !in.is_open() )
+    {
+        return false;
+    }
+
+    clear();
+
+    std::string header;
+    size_t      count = 0;
+
+    // Lights
+    if ( !( in >> header >> count ) || header != "LIGHTS" )
+    {
+        return false;
+    }
+    for ( size_t i = 0; i < count; ++i )
+    {
+        float x, y, z, emb, diff, glare;
+        if ( !( in >> x >> y >> z >> emb >> diff >> glare ) )
+        {
+            return false;
+        }
+        addLight( { x, y, z }, emb, diff, glare );
+    }
+
+    if ( !( in >> header >> count ) || header != "OBJECTS" )
+    {
+        return false;
+    }
+
+    std::string line;
+    std::getline( in, line ); // consume endline
+    for ( size_t i = 0; i < count; ++i )
+    {
+        if ( !std::getline( in, line ) )
+            break;
+        std::istringstream iss( line );
+        std::string        type, name;
+        float              x, y, z, p1, p2, p3, p4;
+        int                r, g, b;
+        float              refl;
+
+        if ( !( iss >> type >> name >> x >> y >> z >> p1 >> p2 >> p3 >> p4 >> r >> g >> b >>
+                refl ) )
+        {
+            continue;
+        }
+
+        Material  mat( Color( static_cast<uint8_t>( r ), static_cast<uint8_t>( g ),
+                              static_cast<uint8_t>( b ) ),
+                       refl );
+        Vector3f origin{ x, y, z };
+
+        if ( type == "Sphere" )
+        {
+            addSphere( mat, origin, p1 );
+        } else if ( type == "AABB" )
+        {
+            addAABB( mat, origin, { p1, p2, p3 } );
+        } else if ( type == "Torus" )
+        {
+            addTorus( mat, origin, p2, p1 );
+        } else if ( type == "HexPrism" )
+        {
+            addHexPrism( mat, origin, p1, p2 );
+        } else
+        {
+            continue;
+        }
+
+        if ( !objects_.empty() )
+        {
+            objects_.back()->setDisplayName( name );
+        }
+    }
+
+    need_update_ = true;
+    target_obj_  = nullptr;
+    return true;
 }
 
 void

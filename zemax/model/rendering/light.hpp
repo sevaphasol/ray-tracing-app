@@ -23,6 +23,27 @@ class Light {
                const Vector3f& normal,
                const Material& color ) const;
 
+    Vector3f
+    getPos() const
+    {
+        return pos_;
+    }
+    float
+    getEmbeddedIntensity() const
+    {
+        return embedded_intensity_;
+    }
+    float
+    getDiffuseIntensity() const
+    {
+        return diffuse_intensity_;
+    }
+    float
+    getGlareIntensity() const
+    {
+        return glare_intensity_;
+    }
+
   private:
     Color
     calcEmbeddedLight( const Material& color ) const;

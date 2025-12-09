@@ -6,7 +6,6 @@
 #include "custom-hui-impl/widget.hpp"
 #include "dr4/event.hpp"
 #include "dr4/keycodes.hpp"
-#include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
 #include "pp/canvas.hpp"
 #include "pp/shape.hpp"
@@ -28,6 +27,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
           active_( false ),
           tool_panel_( wm, 10, 100, 200 )
     {
+        setDraggable( false );
         for ( auto* plg : wm->getPluginManager()->GetAllOfType<cum::PPToolPlugin>() )
         {
             auto new_tools = plg->CreateTools( this );
@@ -59,6 +59,51 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     SnapshotAnnotator( hui::WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size )
         : SnapshotAnnotator( wm, pos.x, pos.y, size.x, size.y )
     {
+    }
+
+    void
+    attachTo( hui::Widget* parent )
+    {
+        attachTo( parent, { 0.0f, 0.0f }, parent->getSize() );
+    }
+
+    void
+    attachTo( hui::Widget* parent, const dr4::Vec2f& rel_pos, const dr4::Vec2f& size )
+    {
+        setParent( parent );
+        setRelPos( rel_pos );
+        setSize( size );
+    }
+
+    void
+    show()
+    {
+        active_ = true;
+    }
+
+    void
+    hide()
+    {
+        active_ = false;
+        tool_panel_.setActiveTool( std::nullopt );
+        shapes_.clear();
+        selected_shape_ = nullptr;
+    }
+
+    bool
+    isVisible() const
+    {
+        return active_;
+    }
+
+    void
+    setSize( const dr4::Vec2f& size ) override
+    {
+        hui::Widget::setSize( size );
+        if ( border_ )
+        {
+            border_->SetSize( size );
+        }
     }
 
     pp::ControlsTheme
@@ -105,6 +150,10 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     bool
     onIdle( const hui::Event& event ) override final
     {
+        if ( !active_ )
+        {
+            return false;
+        }
         event.apply( &tool_panel_ );
 
         return false;
@@ -113,6 +162,10 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     bool
     onKeyPress( const hui::Event& event ) override final
     {
+        if ( !active_ )
+        {
+            return false;
+        }
         for ( auto& tool : tools_ )
         {
             if ( tool->OnKeyDown( event.info.key ) )
@@ -127,25 +180,6 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             {
                 return true;
             }
-        }
-
-        if ( event.info.key.sym == dr4::KEYCODE_ESCAPE )
-        {
-            for ( auto& tool : tools_ )
-            {
-                if ( tool->IsCurrentlyDrawing() )
-                {
-                    tool->OnBreak();
-                    return true;
-                }
-            }
-
-            shapes_.clear();
-
-            selected_shape_ = nullptr;
-
-            active_ = !active_;
-            return true;
         }
 
         // if ( active_ )
@@ -367,6 +401,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return;
         }
 
+        texture_->Clear( { 0, 0, 0, 0 } );
         border_->DrawOn( *texture_ );
 
         for ( const auto& pair : shapes_ )

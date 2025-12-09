@@ -13,6 +13,7 @@
 #include "zemax/model/rendering/ray.hpp"
 #include "zemax/model/rendering/vector3.hpp"
 #include <assert.h>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -103,8 +104,55 @@ class SceneManager {
         return objects_;
     }
 
+    void
+    clear()
+    {
+        objects_.clear();
+        target_obj_  = nullptr;
+        need_update_ = true;
+    }
+
+    bool
+    saveToFile( const std::string& path ) const;
+
+    bool
+    loadFromFile( const std::string& path );
+
     ObjectInfo
     getObjectInfo( size_t idx )
+    {
+        auto* obj = objects_[idx].get();
+
+        std::string obj_name;
+
+        if ( typeid( *obj ).hash_code() == typeid( Sphere ).hash_code() )
+        {
+            obj_name = "Sphere";
+        } else if ( typeid( *obj ).hash_code() == typeid( Plane ).hash_code() )
+        {
+            obj_name = "Plane";
+        } else if ( typeid( *obj ).hash_code() == typeid( AABB ).hash_code() )
+        {
+            obj_name = "AABB";
+        } else if ( typeid( *obj ).hash_code() == typeid( Torus ).hash_code() )
+        {
+            obj_name = "Torus";
+        } else if ( typeid( *obj ).hash_code() == typeid( HexPrism ).hash_code() )
+        {
+            obj_name = "HexPrism";
+        } else
+        {
+            obj_name = "Unknown";
+        }
+
+        return { .material     = obj->getMaterial(),
+                 .pos          = obj->getOrigin(),
+                 .type_name    = obj_name,
+                 .display_name = obj->getDisplayName(),
+                 .objects_idx  = idx };
+    }
+    ObjectInfo
+    getObjectInfo( size_t idx ) const
     {
         auto* obj = objects_[idx].get();
 
@@ -169,6 +217,12 @@ class SceneManager {
               float    embedded_intensity,
               float    diffuse_intensity,
               float    glare_intensity );
+
+    const std::vector<Light>&
+    getLights() const
+    {
+        return lights_;
+    }
 
     void
     deleteTargetObj()

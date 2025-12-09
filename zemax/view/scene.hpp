@@ -395,6 +395,17 @@ class Scene : public ClosablePanel {
         visible_ = false;
     }
 
+    void
+    clearSelection()
+    {
+        model_.setTargetObj( nullptr );
+        info_panel_.setVisible( false );
+        if ( on_selection_changed_ )
+        {
+            on_selection_changed_( std::nullopt );
+        }
+    }
+
     bool
     isVisible() const
     {

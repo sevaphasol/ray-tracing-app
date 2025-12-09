@@ -35,7 +35,7 @@ class Zemax : public hui::ContainerWidget {
                   scene_.getModel(),
                   Config::ControlPanel::Position,
                   Config::ControlPanel::Size ),
-          snp_annotator_( wm, Config::Scene::Position, Config::Scene::Size ),
+        snp_annotator_( wm, Config::Scene::Position, Config::Scene::Size ),
           obj_list_( wm,
                      1725,
                      Config::CameraPanel::Position.y,
@@ -47,18 +47,18 @@ class Zemax : public hui::ContainerWidget {
                          scene_.getModel().setTargetObj( scene_.getModel().getObjects()[idx].get() );
                          editor_.setTarget( idx );
                      } ),
-          editor_( wm,
-                   scene_.getModel(),
-                   { Config::CameraPanel::Position.x, Config::ControlPanel::Position.y + 340.0f },
-                   { Config::ControlPanel::Size.x, 320.0f } )
+         editor_( wm,
+                  scene_.getModel(),
+                  { Config::CameraPanel::Position.x, Config::ControlPanel::Position.y + 340.0f },
+                  { Config::ControlPanel::Size.x, 320.0f } )
     {
-        // // fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
         scene_.setParent( this );
         camera_panel_.setParent( this );
         panel_.setParent( this );
-        snp_annotator_.setParent( this );
         obj_list_.setParent( this );
         editor_.setParent( this );
+
+        syncAnnotatorWithScene();
 
         scene_.setOnSelectionChanged( [this]( std::optional<size_t> idx ) {
             editor_.setTarget( idx );
@@ -70,6 +70,8 @@ class Zemax : public hui::ContainerWidget {
     bool
     propagateEventToChildren( const hui::Event& event ) override
     {
+        syncAnnotatorWithScene();
+
         if ( event.apply( &snp_annotator_ ) )
         {
             return true;
@@ -107,6 +109,8 @@ class Zemax : public hui::ContainerWidget {
     RedrawMyTexture() const override
     {
         texture_->Clear( { 0, 0, 0 } );
+
+        const_cast<Zemax*>( this )->syncAnnotatorWithScene();
 
         scene_.Redraw();
         if ( camera_panel_.isVisible() )
@@ -158,7 +162,23 @@ class Zemax : public hui::ContainerWidget {
         return editor_;
     }
 
+    SnapshotAnnotator&
+    annotator()
+    {
+        return snp_annotator_;
+    }
+
   private:
+    void
+    syncAnnotatorWithScene()
+    {
+        auto content_pos  = scene_.contentOffset();
+        auto content_size = scene_.contentSize();
+        snp_annotator_.setParent( this );
+        snp_annotator_.setRelPos( scene_.getRelPos() + content_pos );
+        snp_annotator_.setSize( content_size );
+    }
+
     Scene                 scene_;
     CameraControlPanel    camera_panel_;
     ControlPanel          panel_;
