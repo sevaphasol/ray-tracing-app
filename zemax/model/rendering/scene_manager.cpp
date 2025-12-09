@@ -1,14 +1,25 @@
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
+#include "zemax/model/primitives/impls/capped_cone.hpp"
+#include "zemax/model/primitives/impls/capped_cylinder.hpp"
+#include "zemax/model/primitives/impls/capsule.hpp"
+#include "zemax/model/primitives/impls/ellipse.hpp"
+#include "zemax/model/primitives/impls/ellipsoid.hpp"
+#include "zemax/model/primitives/impls/goursat.hpp"
 #include "zemax/model/primitives/impls/hex_prism.hpp"
 #include "zemax/model/primitives/impls/plane.hpp"
+#include "zemax/model/primitives/impls/rounded_box.hpp"
+#include "zemax/model/primitives/impls/rounded_cone.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
 #include "zemax/model/primitives/impls/torus.hpp"
+#include "zemax/model/primitives/impls/triangle.hpp"
+#include "zemax/model/primitives/impls/wedge.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
 #include "zemax/model/rendering/color.hpp"
 #include "zemax/model/rendering/vector3.hpp"
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -67,7 +78,109 @@ SceneManager::addTorus( const Material& material,
                         float           minor_radius,
                         float           major_radius )
 {
-    objects_.push_back( std::make_unique<Torus>( material, center, minor_radius, major_radius ) );
+    objects_.push_back( std::make_unique<Torus>( material, center, major_radius, minor_radius ) );
+}
+
+void
+SceneManager::addGoursat( const Material& material, const Vector3f& center, float ka, float kb )
+{
+    objects_.push_back( std::make_unique<Goursat>( material, center, ka, kb ) );
+}
+
+void
+SceneManager::addRoundedBox( const Material& material,
+                             const Vector3f& center,
+                             const Vector3f& half_size,
+                             float           radius )
+{
+    objects_.push_back( std::make_unique<RoundedBox>( material, center, half_size, radius ) );
+}
+
+void
+SceneManager::addEllipsoid( const Material& material,
+                            const Vector3f& center,
+                            const Vector3f& radii )
+{
+    objects_.push_back( std::make_unique<Ellipsoid>( material, center, radii ) );
+}
+
+void
+SceneManager::addCapsule( const Material& material,
+                          const Vector3f& center,
+                          float           height,
+                          float           radius )
+{
+    Vector3f pa_local{ 0.0f, -0.5f * height, 0.0f };
+    Vector3f pb_local{ 0.0f, 0.5f * height, 0.0f };
+    objects_.push_back( std::make_unique<Capsule>( material, center, pa_local, pb_local, radius ) );
+}
+
+void
+SceneManager::addRoundedCone( const Material& material,
+                              const Vector3f& center,
+                              float           height,
+                              float           ra,
+                              float           rb )
+{
+    Vector3f pa_local{ 0.0f, -0.5f * height, 0.0f };
+    Vector3f pb_local{ 0.0f, 0.5f * height, 0.0f };
+    objects_.push_back(
+        std::make_unique<RoundedCone>( material, center, pa_local, pb_local, ra, rb ) );
+}
+
+void
+SceneManager::addEllipse( const Material& material,
+                          const Vector3f& center,
+                          const Vector3f& u,
+                          const Vector3f& v )
+{
+    objects_.push_back( std::make_unique<Ellipse>( material, center, u, v ) );
+}
+
+void
+SceneManager::addTriangle( const Material& material,
+                           const Vector3f& v0,
+                           const Vector3f& v1,
+                           const Vector3f& v2 )
+{
+    objects_.push_back( std::make_unique<Triangle>( material, v0, v1, v2 ) );
+}
+
+void
+SceneManager::addCappedCone( const Material& material,
+                             const Vector3f& center,
+                             float           height,
+                             float           ra,
+                             float           rb )
+{
+    // Ось по Y, локальные концы относительно center
+    Vector3f pa_local{ 0.0f, -0.5f * height, 0.0f };
+    Vector3f pb_local{ 0.0f, 0.5f * height, 0.0f };
+
+    objects_.push_back(
+        std::make_unique<CappedCone>( material, center, pa_local, pb_local, ra, rb ) );
+}
+
+void
+SceneManager::addCappedCylinder( const Material& material,
+                                 const Vector3f& center,
+                                 float           height,
+                                 float           radius )
+{
+    // Ось по Y, локальные концы относительно center
+    Vector3f a_local{ 0.0f, -0.5f * height, 0.0f };
+    Vector3f b_local{ 0.0f, 0.5f * height, 0.0f };
+
+    objects_.push_back(
+        std::make_unique<CappedCylinder>( material, center, a_local, b_local, radius ) );
+}
+
+void
+SceneManager::addWedge( const Material& material,
+                        const Vector3f& center,
+                        const Vector3f& half_size )
+{
+    objects_.push_back( std::make_unique<Wedge>( material, center, half_size ) );
 }
 
 bool
@@ -97,7 +210,8 @@ SceneManager::saveToFile( const std::string& path ) const
     for ( const auto& obj_ptr : objects_ )
     {
         auto* obj = obj_ptr.get();
-        auto  info = getObjectInfo( static_cast<size_t>( &obj_ptr - &objects_[0] ) ); // order preserved
+        auto  info =
+            getObjectInfo( static_cast<size_t>( &obj_ptr - &objects_[0] ) ); // order preserved
 
         auto material = obj->getMaterial();
         out << info.type_name << ' ' << info.display_name << ' ' << info.pos.x << ' ' << info.pos.y
@@ -181,9 +295,10 @@ SceneManager::loadFromFile( const std::string& path )
             continue;
         }
 
-        Material  mat( Color( static_cast<uint8_t>( r ), static_cast<uint8_t>( g ),
-                              static_cast<uint8_t>( b ) ),
-                       refl );
+        Material mat( Color( static_cast<uint8_t>( r ),
+                             static_cast<uint8_t>( g ),
+                             static_cast<uint8_t>( b ) ),
+                      refl );
         Vector3f origin{ x, y, z };
 
         if ( type == "Sphere" )

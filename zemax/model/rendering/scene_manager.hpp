@@ -257,7 +257,55 @@ class SceneManager {
               float           major_radius );
 
     void
-    addCube( const Material& material, const Vector3f& center, float side );
+    addGoursat( const Material& material, const Vector3f& center, float ka, float kb );
+
+    void
+    addRoundedBox( const Material& material,
+                   const Vector3f& center,
+                   const Vector3f& half_size,
+                   float           radius );
+
+    void
+    addEllipsoid( const Material& material, const Vector3f& center, const Vector3f& radii );
+
+    void
+    addCapsule( const Material& material, const Vector3f& center, float height, float radius );
+
+    void
+    addRoundedCone( const Material& material,
+                    const Vector3f& center,
+                    float           height,
+                    float           ra,
+                    float           rb );
+
+    void
+    addEllipse( const Material& material,
+                const Vector3f& center,
+                const Vector3f& u,
+                const Vector3f& v );
+
+    void
+    addTriangle( const Material& material,
+                 const Vector3f& v0,
+                 const Vector3f& v1,
+                 const Vector3f& v2 );
+
+    void
+    addCappedCone( const Material& material,
+                   const Vector3f& center,
+                   float           height,
+                   float           ra,
+                   float           rb );
+
+    void
+    addCappedCylinder( const Material& material,
+                       const Vector3f& center,
+                       float           height,
+                       float           radius );
+
+    // Wedge: пересечение AABB [-s,+s] с клиновой плоскостью, центр в center.
+    void
+    addWedge( const Material& material, const Vector3f& center, const Vector3f& half_size );
 
     Color
     calcPixelColor( uint row, uint col, const Color& background_color );
