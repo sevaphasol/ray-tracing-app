@@ -1,14 +1,11 @@
 #pragma once
 
-#include "zemax/view/obj_info_box.hpp"
-#include <string>
+#include "custom-hui-impl/dialog_box.hpp"
 
-namespace zemax {
-namespace view {
+namespace hui {
 
 // Simple reusable panel with a top bar and a working close button.
-// Derived widgets should check isVisible() in their event/redraw handlers.
-class ClosablePanel : public ObjInfoBox {
+class ClosablePanel : public DialogBox {
   public:
     ClosablePanel( hui::WindowManager* wm,
                    float               x,
@@ -16,7 +13,7 @@ class ClosablePanel : public ObjInfoBox {
                    float               w,
                    float               h,
                    const std::string&  title )
-        : ObjInfoBox( wm, x, y, w, h, [this]() { this->hide(); }, title )
+        : DialogBox( wm, x, y, w, h, [this]() { this->hide(); }, title )
     {
     }
 
@@ -38,7 +35,6 @@ class ClosablePanel : public ObjInfoBox {
         return visible_;
     }
 
-    // Helpers for derived widgets to compute client area under the top bar.
     dr4::Vec2f
     contentOffset() const
     {
@@ -55,5 +51,4 @@ class ClosablePanel : public ObjInfoBox {
     bool visible_ = true;
 };
 
-} // namespace view
-} // namespace zemax
+} // namespace hui

@@ -4,13 +4,13 @@
 #include "custom-hui-impl/input_text.hpp"
 #include "custom-hui-impl/label.hpp"
 #include "custom-hui-impl/scrollable_widget.hpp"
+#include "custom-hui-impl/closable_panel.hpp"
+#include "zemax/config.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/hex_prism.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
 #include "zemax/model/primitives/impls/torus.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
-#include "zemax/view/closable_panel.hpp"
-#include "zemax/config.hpp"
 #include <iomanip>
 #include <memory>
 #include <optional>
@@ -22,13 +22,13 @@ namespace zemax {
 namespace view {
 
 // Single scrollable editor for objects: create when none selected, edit/copy/delete when selected.
-class ObjectEditorPanel : public ClosablePanel {
+class ObjectEditorPanel : public hui::ClosablePanel {
   public:
     explicit ObjectEditorPanel( hui::WindowManager*  wm,
                                 model::SceneManager& scene_manager,
                                 const dr4::Vec2f&    pos,
                                 const dr4::Vec2f&    size )
-        : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Editor" ),
+        : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Editor" ),
           scene_manager_( scene_manager ),
           add_btn_( wm,
                     { 12.0f, size.y - 34.0f },
@@ -77,9 +77,9 @@ class ObjectEditorPanel : public ClosablePanel {
     setTarget( std::optional<size_t> idx )
     {
         target_idx_ = idx;
-        auto info = idx.has_value() ? std::optional<model::SceneManager::ObjectInfo>(
+        auto info   = idx.has_value() ? std::optional<model::SceneManager::ObjectInfo>(
                                           scene_manager_.getObjectInfo( idx.value() ) )
-                                    : std::nullopt;
+                                      : std::nullopt;
 
         if ( info.has_value() )
         {
@@ -126,7 +126,7 @@ class ObjectEditorPanel : public ClosablePanel {
             return true;
         }
 
-        return ObjInfoBox::propagateEventToChildren( event );
+        return hui::DialogBox::propagateEventToChildren( event );
     }
 
     void
@@ -137,7 +137,7 @@ class ObjectEditorPanel : public ClosablePanel {
             return;
         }
 
-        ObjInfoBox::RedrawMyTexture();
+        hui::DialogBox::RedrawMyTexture();
 
         if ( scroll_ )
         {
@@ -287,7 +287,7 @@ class ObjectEditorPanel : public ClosablePanel {
         {
             auto* t = win->CreateText();
             t->SetFont( font );
-            t->SetFontSize( 12 );
+            t->SetFontSize( 15 );
             t->SetText( d.label );
             t->SetColor( { 220, 220, 220, 255 } );
 
@@ -433,7 +433,7 @@ class ObjectEditorPanel : public ClosablePanel {
         }
 
         CommonFields res{ f_name ? std::string( f_name->input->getString().value_or( "" ) )
-                                  : std::string(),
+                                 : std::string(),
                           model::Vector3f( static_cast<float>( *vx ),
                                            static_cast<float>( *vy ),
                                            static_cast<float>( *vz ) ),
@@ -636,7 +636,7 @@ class ObjectEditorPanel : public ClosablePanel {
 
         created->setDisplayName( common.name );
         scene_manager_.setTargetObj( created );
-        target_idx_ = scene_manager_.getObjects().size() - 1;
+        target_idx_                 = scene_manager_.getObjects().size() - 1;
         scene_manager_.needUpdate() = true;
         prefill( target_idx_.value(), scene_manager_.getObjectInfo( target_idx_.value() ) );
         updateTypeButtons();
@@ -650,12 +650,13 @@ class ObjectEditorPanel : public ClosablePanel {
         auto* target = scene_manager_.getTargetObj();
         if ( !target )
             return;
-        auto origin = target->getOrigin();
-        float dx    = Config::Camera::ObjMoveFactor * 2.0f;
+        auto  origin = target->getOrigin();
+        float dx     = Config::Camera::ObjMoveFactor * 2.0f;
         scene_manager_.copyTargetObj( origin.x + dx, origin.y, origin.z );
         target_idx_ = scene_manager_.getObjects().size() - 1;
         scene_manager_.setTargetObj( scene_manager_.getObjects().back().get() );
-        current_type_ = typeFromName( scene_manager_.getObjectInfo( target_idx_.value() ).type_name );
+        current_type_ =
+            typeFromName( scene_manager_.getObjectInfo( target_idx_.value() ).type_name );
         buildForm( current_type_ );
         prefill( target_idx_.value(), scene_manager_.getObjectInfo( target_idx_.value() ) );
         updateTypeButtons();
@@ -737,19 +738,19 @@ class ObjectEditorPanel : public ClosablePanel {
     model::SceneManager&  scene_manager_;
     std::optional<size_t> target_idx_;
 
-    hui::ScrollableWidget*                 scroll_raw_ = nullptr;
-    std::unique_ptr<hui::ScrollableWidget> scroll_;
-    FormContent*                           form_raw_ = nullptr;
-    Type                                   current_type_    = Type::Sphere;
-    Type                                   creation_type_   = Type::Sphere;
-    const float                            type_row_height_ = 28.0f;
+    hui::ScrollableWidget*                    scroll_raw_ = nullptr;
+    std::unique_ptr<hui::ScrollableWidget>    scroll_;
+    FormContent*                              form_raw_        = nullptr;
+    Type                                      current_type_    = Type::Sphere;
+    Type                                      creation_type_   = Type::Sphere;
+    const float                               type_row_height_ = 28.0f;
     std::vector<std::unique_ptr<hui::Button>> type_btns_;
     bool                                      copy_visible_ = false;
     bool                                      del_visible_  = false;
-    hui::Button                            add_btn_;
-    hui::Button                            copy_btn_;
-    hui::Button                            del_btn_;
-    hui::Button                            apply_btn_;
+    hui::Button                               add_btn_;
+    hui::Button                               copy_btn_;
+    hui::Button                               del_btn_;
+    hui::Button                               apply_btn_;
 };
 
 } // namespace view

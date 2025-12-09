@@ -1,7 +1,6 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
-#include "custom-hui-impl/event.hpp"
 #include "custom-hui-impl/label.hpp"
 #include "custom-hui-impl/widget.hpp"
 #include "custom-hui-impl/window_manager.hpp"
@@ -9,11 +8,12 @@
 #include "dr4/texture.hpp"
 #include <cstdlib>
 #include <memory>
+#include <string>
 
-namespace zemax {
-namespace view {
+namespace hui {
 
-class ObjInfoBox : public hui::ContainerWidget {
+// Generic dialog panel with a top bar, title and close button.
+class DialogBox : public hui::ContainerWidget {
   private:
     std::unique_ptr<dr4::Rectangle> rect_;
     std::unique_ptr<dr4::Rectangle> top_bar_;
@@ -42,13 +42,13 @@ class ObjInfoBox : public hui::ContainerWidget {
     static constexpr float         LabelPadY            = std::abs( TopBarBorderThickness ) + 2.0f;
 
   public:
-    ObjInfoBox( hui::WindowManager* wm,
-                float               x,
-                float               y,
-                float               w,
-                float               h,
-                CloseBtnCallBack    close_call_back,
-                const std::string&  label )
+    DialogBox( hui::WindowManager* wm,
+               float               x,
+               float               y,
+               float               w,
+               float               h,
+               CloseBtnCallBack    close_call_back,
+               const std::string&  label )
         : hui::ContainerWidget( wm, x, y, w, h ),
           close_btn_( wm,
                       {
@@ -104,5 +104,4 @@ class ObjInfoBox : public hui::ContainerWidget {
     }
 };
 
-} // namespace view
-} // namespace zemax
+} // namespace hui

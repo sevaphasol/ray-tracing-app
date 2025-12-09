@@ -45,7 +45,7 @@ struct Config
 
             static inline const char* const FontName  = "assets/JetBrainsMono-Regular.ttf";
             static inline const dr4::Color  FontColor = { 220, 220, 220, 255 };
-            static inline const size_t      FontSize  = 12;
+            static inline const size_t      FontSize  = 15;
 
             struct MvL
             {
@@ -139,7 +139,7 @@ struct Config
 
             static inline const char* const FontName  = "assets/JetBrainsMono-Regular.ttf";
             static inline const dr4::Color  FontColor = { 220, 220, 220, 255 };
-            static inline const size_t      FontSize  = 12;
+            static inline const size_t      FontSize  = 15;
 
             struct MoveObjLeft
             {

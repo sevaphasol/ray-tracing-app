@@ -2,16 +2,84 @@
 
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
+#include "custom-hui-impl/file_dialog_box.hpp"
+#include "custom-hui-impl/dialog_box.hpp"
 #include "zemax/config.hpp"
-#include "zemax/view/file_dialog.hpp"
-#include "zemax/view/obj_info_box.hpp"
 #include "zemax/view/snapshot_annotator.hpp"
 #include <functional>
+#include <memory>
+#include <string>
 
 namespace zemax {
 namespace view {
 
-class PluginListModal : public ObjInfoBox {
+class PluginItemRow : public hui::ContainerWidget {
+  public:
+    PluginItemRow( hui::WindowManager*   wm,
+                   const dr4::Vec2f&     size,
+                   const std::string&    label,
+                   bool                  active,
+                   std::function<void()> on_select,
+                   std::function<void()> on_delete )
+        : ContainerWidget( wm, { 0, 0 }, size ),
+          select_btn_( wm,
+                       dr4::Vec2f{ 0.0f, 0.0f },
+                       dr4::Vec2f{ size.x - btn_w_ - gap_, size.y },
+                       active ? Config::ControlPanel::Button::PressedColor
+                              : Config::ControlPanel::Button::DefaultColor,
+                       Config::ControlPanel::Button::HoveredColor,
+                       Config::ControlPanel::Button::PressedColor,
+                       label,
+                       Config::ControlPanel::Button::FontColor,
+                       Config::ControlPanel::Button::FontSize ),
+          del_btn_( wm,
+                    dr4::Vec2f{ size.x - btn_w_, 0.0f },
+                    dr4::Vec2f{ btn_w_ - gap_, size.y },
+                    Config::ControlPanel::Button::DefaultColor,
+                    Config::ControlPanel::Button::HoveredColor,
+                    Config::ControlPanel::Button::PressedColor,
+                    "X",
+                    Config::ControlPanel::Button::FontColor,
+                    Config::ControlPanel::Button::FontSize )
+    {
+        select_btn_.setParent( this );
+        del_btn_.setParent( this );
+
+        select_btn_.setOnClick( std::move( on_select ) );
+        del_btn_.setOnClick( std::move( on_delete ) );
+    }
+
+    void
+    setActive( bool active )
+    {
+        select_btn_.setBackgroundColor( active ? Config::ControlPanel::Button::PressedColor
+                                               : Config::ControlPanel::Button::DefaultColor );
+    }
+
+    bool
+    propagateEventToChildren( const hui::Event& event ) override
+    {
+        bool handled = false;
+        handled |= event.apply( &select_btn_ );
+        handled |= event.apply( &del_btn_ );
+        return handled;
+    }
+
+    void
+    RedrawMyTexture() const override
+    {
+        select_btn_.Redraw();
+        del_btn_.Redraw();
+    }
+
+  private:
+    static constexpr float btn_w_ = 50.0f;
+    static constexpr float gap_   = 4.0f;
+    hui::Button            select_btn_;
+    hui::Button            del_btn_;
+};
+
+class PluginListModal : public hui::DialogBox {
   public:
     PluginListModal( hui::WindowManager*   wm,
                      float                 x,
@@ -20,7 +88,7 @@ class PluginListModal : public ObjInfoBox {
                      float                 h,
                      SnapshotAnnotator*    annotator,
                      std::function<void()> on_close )
-        : ObjInfoBox(
+        : DialogBox(
               wm,
               x,
               y,
@@ -47,27 +115,21 @@ class PluginListModal : public ObjInfoBox {
 
         for ( auto& entry : plugins )
         {
-            auto* plugin        = entry.second;
-            auto  color_default = ( plugin == active ) ? Config::ControlPanel::Button::PressedColor
-                                                       : Config::ControlPanel::Button::DefaultColor;
-            auto  color_hover   = ( plugin == active ) ? Config::ControlPanel::Button::PressedColor
-                                                       : Config::ControlPanel::Button::HoveredColor;
-            auto  color_pressed = Config::ControlPanel::Button::PressedColor;
-
-            auto btn = std::make_unique<hui::Button>( wm_,
-                                                      dr4::Vec2f( 4.0f, 0.0f ),
-                                                      dr4::Vec2f( list_.getSize().x - 8.0f, 32.0f ),
-                                                      color_default,
-                                                      color_hover,
-                                                      color_pressed,
-                                                      entry.first,
-                                                      Config::ControlPanel::Button::FontColor,
-                                                      Config::ControlPanel::Button::FontSize );
-            btn->setOnClick( [this, plugin]() {
-                annotator_->setActivePlugin( plugin );
-                rebuild();
-            } );
-            list_.addItem( std::move( btn ) );
+            auto* plugin = entry.second;
+            auto  row    = std::make_unique<PluginItemRow>(
+                wm_,
+                dr4::Vec2f{ list_.getSize().x - 12.0f, 32.0f },
+                entry.first,
+                plugin == active,
+                [this, plugin]() {
+                    annotator_->setActivePlugin( plugin );
+                    rebuild();
+                },
+                [this, plugin]() {
+                    annotator_->removePlugin( plugin );
+                    rebuild();
+                } );
+            list_.addItem( std::move( row ) );
         }
     }
 
@@ -76,10 +138,10 @@ class PluginListModal : public ObjInfoBox {
     hui::ScrollableListWidget list_;
 };
 
-class PluginPopup : public ObjInfoBox {
+class PluginPopup : public hui::DialogBox {
   public:
     PluginPopup( hui::WindowManager* wm, float x, float y, SnapshotAnnotator* annotator )
-        : ObjInfoBox(
+        : DialogBox(
               wm,
               x,
               y,
@@ -111,7 +173,7 @@ class PluginPopup : public ObjInfoBox {
         show_btn_.setParent( this );
 
         new_btn_.setOnClick( [this, wm]() {
-            wm->pushModal( std::make_unique<view::FileDialog>(
+            wm->pushModal( std::make_unique<hui::FileDialogBox>(
                 wm,
                 getRelPos().x + getSize().x + 10.0f,
                 getRelPos().y,
@@ -151,14 +213,13 @@ class PluginPopup : public ObjInfoBox {
             return true;
         if ( event.apply( &show_btn_ ) )
             return true;
-        return ObjInfoBox::propagateEventToChildren( event );
+        return hui::DialogBox::propagateEventToChildren( event );
     }
 
     void
     RedrawMyTexture() const override
     {
-        std::cerr << "from " << __func__ << " " << this << std::endl;
-        ObjInfoBox::RedrawMyTexture();
+        hui::DialogBox::RedrawMyTexture();
         new_btn_.Redraw();
         show_btn_.Redraw();
     }

@@ -139,13 +139,12 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/label.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
-#include "obj_info_box.hpp"
+#include "custom-hui-impl/dialog_box.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/plane.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
-#include "zemax/view/aabb_params_dialog.hpp"
-#include "zemax/view/sphere_params_dialog.hpp"
+#include "zemax/view/object_params_dialogs.hpp"
 #include <functional>
 #include <memory>
 #include <string>
@@ -154,7 +153,7 @@
 namespace zemax {
 namespace view {
 
-class SceneObjectsListModal : public ObjInfoBox {
+class SceneObjectsListModal : public hui::DialogBox {
   public:
     using CloseCb = std::function<void()>;
     SceneObjectsListModal( hui::WindowManager*         wm,
@@ -165,19 +164,19 @@ class SceneObjectsListModal : public ObjInfoBox {
                            model::SceneManager&        scene_manager,
                            CloseCb                     close_cb,
                            std::function<void(size_t)> on_select )
-        : ObjInfoBox( wm,
-                      x,
-                      y,
-                      w,
-                      h,
-                      [this, close_cb]() {
-                          this->hide();
-                          if ( close_cb )
-                          {
-                              close_cb();
-                          }
-                      },
-                      "Objects list" ),
+        : hui::DialogBox( wm,
+                          x,
+                          y,
+                          w,
+                          h,
+                          [this, close_cb]() {
+                              this->hide();
+                              if ( close_cb )
+                              {
+                                  close_cb();
+                              }
+                          },
+                          "Objects list" ),
           scene_manager_( scene_manager ),
           close_cb_( std::move( close_cb ) ),
           on_select_( std::move( on_select ) )
@@ -220,7 +219,7 @@ class SceneObjectsListModal : public ObjInfoBox {
         {
             return true;
         }
-        return ObjInfoBox::propagateEventToChildren( event );
+        return hui::DialogBox::propagateEventToChildren( event );
     }
 
     void
@@ -231,7 +230,7 @@ class SceneObjectsListModal : public ObjInfoBox {
             return;
         }
 
-        ObjInfoBox::RedrawMyTexture();
+        hui::DialogBox::RedrawMyTexture();
         if ( list_ )
         {
             list_->Redraw();

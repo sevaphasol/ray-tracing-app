@@ -212,7 +212,7 @@
 // //
 // //             auto* t = wm_->getWindow()->CreateText();
 // //             t->SetFont( font );
-// //             t->SetFontSize( 12 );
+// //             t->SetFontSize( 15 );
 // //             // std::cerr << "DEBUG IN " << __FILE__ << ':' << __LINE__ << ':' << __func__ <<
 // //             // std::endl;
 // //             t->SetText( items_[i].label );
@@ -426,7 +426,7 @@
 // //             const auto& md = menu_defs_[i];
 // //             auto*       t  = wm_->getWindow()->CreateText();
 // //             t->SetFont( font );
-// //             t->SetFontSize( 12 );
+// //             t->SetFontSize( 15 );
 // //             t->SetText( md.name );
 // //             t->SetColor( { 220, 220, 220, 255 } );
 // //             // place text inside topbar at md.pos
@@ -866,7 +866,7 @@
 //         {
 //             auto* text = wm_->getWindow()->CreateText();
 //             text->SetFont( font );
-//             text->SetFontSize( 12 );
+//             text->SetFontSize( 15 );
 //             text->SetText( items_[i].label );
 //             text->SetColor( { 220, 220, 220, 255 } );
 //             text->SetPos( { 4.0f, static_cast<float>( i ) * ItemHeight + 4.0f } );
@@ -963,7 +963,7 @@
 //             // Текст пункта меню
 //             auto* text = wm_->getWindow()->CreateText();
 //             text->SetFont( font );
-//             text->SetFontSize( 12 );
+//             text->SetFontSize( 15 );
 //             text->SetText( md.name );
 //             text->SetColor( { 220, 220, 220, 255 } );
 //             text->SetPos( { md.pos.x + 6.0f, 6.0f } );

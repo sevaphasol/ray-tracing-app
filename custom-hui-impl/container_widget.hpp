@@ -169,16 +169,22 @@ class VectorContainerWidget : public ContainerWidget {
     virtual bool
     propagateEventToChildren( const Event& event ) override
     {
-        int i = 0;
+        const bool is_mouse_move = dynamic_cast<const hui::MouseMoveEvent*>( &event ) != nullptr;
+
+        bool handled = false;
         for ( auto& child : children_ )
         {
             if ( event.apply( child.get() ) )
             {
-                return true;
+                handled = true;
+                if ( !is_mouse_move )
+                {
+                    return true;
+                }
             }
         }
 
-        return false;
+        return handled;
     }
 
     void

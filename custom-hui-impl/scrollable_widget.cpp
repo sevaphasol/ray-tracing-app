@@ -47,25 +47,37 @@ ScrollableWidget::updateContentPosition()
 bool
 ScrollableWidget::propagateEventToChildren( const Event& event )
 {
+    const bool is_mouse_move = dynamic_cast<const hui::MouseMoveEvent*>( &event ) != nullptr;
+
     if ( scroll_bar_.isScrolled() )
     {
         updateContentPosition();
     }
 
+    bool handled = false;
+
     if ( event.apply( &scroll_bar_ ) )
     {
-        return true;
+        handled = true;
+        if ( !is_mouse_move )
+        {
+            return true;
+        }
     }
 
     if ( content_ )
     {
         if ( event.apply( content_.get() ) )
         {
-            return true;
+            handled = true;
+            if ( !is_mouse_move )
+            {
+                return true;
+            }
         }
     }
 
-    return false;
+    return handled;
 }
 
 void

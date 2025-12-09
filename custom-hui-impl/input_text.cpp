@@ -20,7 +20,7 @@ hui::InputText::InputText( hui::WindowManager* wm, float x, float y, float w, fl
 
     text_->SetFont( wm->getWindow()->GetDefaultFont() );
     text_->SetColor( { 255, 255, 255 } );
-    text_->SetFontSize( 12 );
+    text_->SetFontSize( 15 );
 
     cursor_->SetFillColor( { 255, 255, 255 } );
 

@@ -12,6 +12,7 @@
 #include "pp/tool.hpp"
 #include "zemax/view/tool_panel.hpp"
 #include <cassert>
+#include <algorithm>
 #include <memory>
 #include <unordered_map>
 #include <utility>
@@ -111,6 +112,23 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     getActivePlugin() const
     {
         return active_plugin_;
+    }
+
+    void
+    removePlugin( cum::PPToolPlugin* plugin )
+    {
+        plugin_tools_.erase(
+            std::remove_if( plugin_tools_.begin(),
+                            plugin_tools_.end(),
+                            [plugin]( const PluginTools& p ) { return p.plugin == plugin; } ),
+            plugin_tools_.end() );
+
+        if ( active_plugin_ == plugin )
+        {
+            active_plugin_ = plugin_tools_.empty() ? nullptr : plugin_tools_.back().plugin;
+        }
+
+        rebuildToolPanel();
     }
 
     std::vector<std::pair<std::string, cum::PPToolPlugin*>>

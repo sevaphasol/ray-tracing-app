@@ -13,7 +13,7 @@
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
-#include "zemax/view/closable_panel.hpp"
+#include "custom-hui-impl/closable_panel.hpp"
 #include "zemax/view/info_panel.hpp"
 
 #include <cstddef>
@@ -26,7 +26,7 @@
 namespace zemax {
 namespace view {
 
-class Scene : public ClosablePanel {
+class Scene : public hui::ClosablePanel {
   public:
     ~Scene()                 = default;
     using SelectionChangedCb = std::function<void( std::optional<size_t> )>;
@@ -241,7 +241,7 @@ class Scene : public ClosablePanel {
             }
         }
 
-        if ( ObjInfoBox::propagateEventToChildren( event ) )
+        if ( hui::DialogBox::propagateEventToChildren( event ) )
         {
             return true;
         }
@@ -332,7 +332,7 @@ class Scene : public ClosablePanel {
             return;
         }
 
-        ObjInfoBox::RedrawMyTexture();
+        hui::DialogBox::RedrawMyTexture();
 
         texture_->Draw( *pixels_ );
 

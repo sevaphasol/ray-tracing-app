@@ -2,26 +2,25 @@
 
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/window_manager.hpp"
+#include "custom-hui-impl/closable_panel.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/model/rendering/vector3.hpp"
-#include "zemax/view/aabb_params_dialog.hpp"
-#include "zemax/view/closable_panel.hpp"
+#include "zemax/view/object_params_dialogs.hpp"
 #include "zemax/view/scene_objects_list.hpp"
-#include "zemax/view/sphere_params_dialog.hpp"
 #include <memory>
 #include <optional>
 
 namespace zemax {
 namespace view {
 
-class ControlPanel : public ClosablePanel {
+class ControlPanel : public hui::ClosablePanel {
   public:
     explicit ControlPanel( hui::WindowManager*         wm,
                            zemax::model::SceneManager& scene_manager,
                            const dr4::Vec2f&           pos  = Config::ControlPanel::Position,
                            const dr4::Vec2f&           size = Config::ControlPanel::Size )
-        : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Controls" ),
+        : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Controls" ),
           scene_manager_( scene_manager )
     {
         setupButton( ButtonCode::MoveObjLeft,
@@ -73,7 +72,7 @@ class ControlPanel : public ClosablePanel {
             }
         }
 
-        return ObjInfoBox::propagateEventToChildren( event );
+        return hui::DialogBox::propagateEventToChildren( event );
     }
 
     bool
@@ -96,7 +95,7 @@ class ControlPanel : public ClosablePanel {
             return;
         }
 
-        ObjInfoBox::RedrawMyTexture();
+        hui::DialogBox::RedrawMyTexture();
 
         for ( const auto& button : buttons_ )
         {

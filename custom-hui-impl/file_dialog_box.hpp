@@ -2,29 +2,28 @@
 
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/input_text.hpp"
-#include "zemax/view/obj_info_box.hpp"
+#include "custom-hui-impl/dialog_box.hpp"
 #include <functional>
 #include <memory>
 #include <string>
 
-namespace zemax {
-namespace view {
+namespace hui {
 
-class FileDialog : public ObjInfoBox {
+class FileDialogBox : public DialogBox {
   public:
     using ConfirmCb = std::function<void( const std::string& )>;
     using CancelCb  = std::function<void()>;
 
-    FileDialog( hui::WindowManager* wm,
-                float               x,
-                float               y,
-                float               w,
-                float               h,
-                const std::string&  title,
-                const std::string&  default_name,
-                ConfirmCb           confirm,
-                CancelCb            cancel )
-        : ObjInfoBox( wm, x, y, w, h, [cancel]() { cancel(); }, title ),
+    FileDialogBox( hui::WindowManager* wm,
+                   float               x,
+                   float               y,
+                   float               w,
+                   float               h,
+                   const std::string&  title,
+                   const std::string&  default_name,
+                   ConfirmCb           confirm,
+                   CancelCb            cancel )
+        : DialogBox( wm, x, y, w, h, [cancel]() { cancel(); }, title ),
           confirm_( std::move( confirm ) ), cancel_( std::move( cancel ) ),
           input_( wm, 20.0f, TopBarHeight + 20.0f, w - 40.0f, 24.0f ),
           ok_btn_( wm,
@@ -73,13 +72,13 @@ class FileDialog : public ObjInfoBox {
         {
             return true;
         }
-        return ObjInfoBox::propagateEventToChildren( event );
+        return DialogBox::propagateEventToChildren( event );
     }
 
     void
     RedrawMyTexture() const override
     {
-        ObjInfoBox::RedrawMyTexture();
+        DialogBox::RedrawMyTexture();
         input_.Redraw();
         ok_btn_.Redraw();
         cancel_btn_.Redraw();
@@ -93,5 +92,5 @@ class FileDialog : public ObjInfoBox {
     hui::Button    cancel_btn_;
 };
 
-} // namespace view
-} // namespace zemax
+} // namespace hui
+

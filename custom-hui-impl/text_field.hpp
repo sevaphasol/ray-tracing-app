@@ -70,12 +70,12 @@
 //         label_.reset( wm->getWindow()->CreateText() );
 //         text_.reset( wm->getWindow()->CreateText() );
 //
-//         label_->SetFontSize( 12 );
+//         label_->SetFontSize( 15 );
 //         label_->SetColor( { 255, 255, 255, 255 } );
 //         label_->SetFont( font );
 //         label_->SetText( label );
 //
-//         text_->SetFontSize( 12 );
+//         text_->SetFontSize( 15 );
 //         text_->SetColor( { 255, 255, 255, 255 } );
 //         text_->SetFont( font );
 //         text_->SetPos( { 1.8f * label_->GetText().length() * 6.5f, h * 0.1f } );

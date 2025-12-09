@@ -63,6 +63,8 @@ ScrollableListWidget::updateContentPosition()
 bool
 ScrollableListWidget::propagateEventToChildren( const Event& event )
 {
+    const bool is_mouse_move = dynamic_cast<const hui::MouseMoveEvent*>( &event ) != nullptr;
+
     if ( scroll_bar_.isScrolled() )
     {
         updateContentPosition();
@@ -73,15 +75,20 @@ ScrollableListWidget::propagateEventToChildren( const Event& event )
         return true;
     }
 
+    bool handled = false;
     for ( auto& item : items_ )
     {
         if ( event.apply( item.get() ) )
         {
-            return true;
+            handled = true;
+            if ( !is_mouse_move )
+            {
+                return true;
+            }
         }
     }
 
-    return false;
+    return handled;
 }
 
 void

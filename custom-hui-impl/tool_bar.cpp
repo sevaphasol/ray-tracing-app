@@ -150,7 +150,7 @@ MenuPopup::createTextElements()
     {
         auto* text = wm_->getWindow()->CreateText();
         text->SetFont( font );
-        text->SetFontSize( 12 );
+        text->SetFontSize( 15 );
         text->SetText( items_[i].label );
         text->SetColor( { 220, 220, 220, 255 } );
         text->SetPos( { 4.0f, static_cast<float>( i ) * ItemHeight + 4.0f } );
@@ -279,7 +279,7 @@ ToolBar::createTextElements()
     {
         auto* text = wm_->getWindow()->CreateText();
         text->SetFont( font );
-        text->SetFontSize( 12 );
+        text->SetFontSize( 15 );
         text->SetText( menu_defs_[i].name );
         text->SetColor( { 220, 220, 220, 255 } );
         text->SetPos( { menu_defs_[i].pos.x + 6.0f, 6.0f } );

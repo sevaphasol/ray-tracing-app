@@ -4,7 +4,7 @@
 #include "custom-hui-impl/window_manager.hpp"
 #include "dr4/math/vec2.hpp"
 #include "zemax/config.hpp"
-#include "zemax/view/file_dialog.hpp"
+#include "custom-hui-impl/file_dialog_box.hpp"
 #include "zemax/view/plugin_manager.hpp"
 #include "zemax/view/zemax.hpp"
 
@@ -38,10 +38,10 @@ main()
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
     window->SetDefaultFont( font );
 
-    auto zemax      = std::make_unique<zemax::view::Zemax>( &wm, window, 28.0f );
+    auto  zemax     = std::make_unique<zemax::view::Zemax>( &wm, window, 28.0f );
     auto* zemax_ptr = zemax.get();
 
-    auto toolbar     = std::make_unique<hui::ToolBar>( &wm, 28.0f );
+    auto  toolbar     = std::make_unique<hui::ToolBar>( &wm, 28.0f );
     auto* toolbar_ptr = toolbar.get();
 
     const std::string scene_file_default = "scene.txt";
@@ -55,7 +55,7 @@ main()
                             } },
                           { "Open",
                             [zemax_ptr, &wm]() {
-                                wm.pushModal( std::make_unique<zemax::view::FileDialog>(
+                                wm.pushModal( std::make_unique<hui::FileDialogBox>(
                                     &wm,
                                     600,
                                     300,
@@ -74,7 +74,7 @@ main()
                             } },
                           { "Save",
                             [zemax_ptr, &wm, scene_file_default]() {
-                                wm.pushModal( std::make_unique<zemax::view::FileDialog>(
+                                wm.pushModal( std::make_unique<hui::FileDialogBox>(
                                     &wm,
                                     600,
                                     300,
@@ -91,23 +91,26 @@ main()
                           { "Exit", [&]() { wm.getWindow()->Close(); } },
                       } );
 
-    toolbar->addMenu( "Edit",
-                      { { "Plugins",
-                          [&wm, zemax_ptr]() {
-                              // Open a small popup to the right of the Edit button
-                              float x = 120.0f;
-                              float y = 30.0f;
-                              wm.pushModal( std::make_unique<zemax::view::PluginPopup>(
-                                  &wm, x, y, &zemax_ptr->annotator() ) );
-                          } } } );
+    toolbar->addMenu( "Edit", { { "Plugins", [&wm, zemax_ptr]() {
+                                     // Open a small popup to the right of the Edit button
+                                     float x = 120.0f;
+                                     float y = 30.0f;
+                                     wm.pushModal( std::make_unique<zemax::view::PluginPopup>(
+                                         &wm,
+                                         x,
+                                         y,
+                                         &zemax_ptr->annotator() ) );
+                                 } } } );
 
     auto fmt_label = []( bool visible, const char* title ) {
         return std::string( visible ? "[x] " : "[ ] " ) + title;
     };
 
-    toolbar->addMenu( "View",
+    toolbar->addMenu(
+        "View",
         {
-            { fmt_label( zemax_ptr->scene().isVisible(), "Scene" ), [&]() {
+            { fmt_label( zemax_ptr->scene().isVisible(), "Scene" ),
+              [&]() {
                   bool new_state = !zemax_ptr->scene().isVisible();
                   if ( new_state )
                       zemax_ptr->scene().show();
@@ -115,50 +118,58 @@ main()
                       zemax_ptr->scene().hide();
                   toolbar_ptr->setMenuItemLabel( "View", 0, fmt_label( new_state, "Scene" ) );
               } },
-            { fmt_label( zemax_ptr->cameraPanel().isVisible(), "Camera Controls" ), [&]() {
+            { fmt_label( zemax_ptr->cameraPanel().isVisible(), "Camera Controls" ),
+              [&]() {
                   bool new_state = !zemax_ptr->cameraPanel().isVisible();
                   if ( new_state )
                       zemax_ptr->cameraPanel().show();
                   else
                       zemax_ptr->cameraPanel().hide();
-                  toolbar_ptr->setMenuItemLabel(
-                      "View", 1, fmt_label( new_state, "Camera Controls" ) );
+                  toolbar_ptr->setMenuItemLabel( "View",
+                                                 1,
+                                                 fmt_label( new_state, "Camera Controls" ) );
               } },
-            { fmt_label( zemax_ptr->objectPanel().isVisible(), "Object Controls" ), [&]() {
+            { fmt_label( zemax_ptr->objectPanel().isVisible(), "Object Controls" ),
+              [&]() {
                   bool new_state = !zemax_ptr->objectPanel().isVisible();
                   if ( new_state )
                       zemax_ptr->objectPanel().show();
                   else
                       zemax_ptr->objectPanel().hide();
-                  toolbar_ptr->setMenuItemLabel(
-                      "View", 2, fmt_label( new_state, "Object Controls" ) );
+                  toolbar_ptr->setMenuItemLabel( "View",
+                                                 2,
+                                                 fmt_label( new_state, "Object Controls" ) );
               } },
-            { fmt_label( zemax_ptr->objectsList().isVisible(), "Objects List" ), [&]() {
+            { fmt_label( zemax_ptr->objectsList().isVisible(), "Objects List" ),
+              [&]() {
                   bool new_state = !zemax_ptr->objectsList().isVisible();
                   if ( new_state )
                       zemax_ptr->objectsList().show();
                   else
                       zemax_ptr->objectsList().hide();
-                  toolbar_ptr->setMenuItemLabel(
-                      "View", 3, fmt_label( new_state, "Objects List" ) );
+                  toolbar_ptr->setMenuItemLabel( "View",
+                                                 3,
+                                                 fmt_label( new_state, "Objects List" ) );
               } },
-            { fmt_label( zemax_ptr->objectEditor().isVisible(), "Object Editor" ), [&]() {
+            { fmt_label( zemax_ptr->objectEditor().isVisible(), "Object Editor" ),
+              [&]() {
                   bool new_state = !zemax_ptr->objectEditor().isVisible();
                   if ( new_state )
                       zemax_ptr->objectEditor().show();
                   else
                       zemax_ptr->objectEditor().hide();
-                  toolbar_ptr->setMenuItemLabel(
-                      "View", 4, fmt_label( new_state, "Object Editor" ) );
+                  toolbar_ptr->setMenuItemLabel( "View",
+                                                 4,
+                                                 fmt_label( new_state, "Object Editor" ) );
               } },
-            { fmt_label( zemax_ptr->annotator().isVisible(), "Annotator" ), [&]() {
+            { fmt_label( zemax_ptr->annotator().isVisible(), "Annotator" ),
+              [&]() {
                   bool new_state = !zemax_ptr->annotator().isVisible();
                   if ( new_state )
                       zemax_ptr->annotator().show();
                   else
                       zemax_ptr->annotator().hide();
-                  toolbar_ptr->setMenuItemLabel(
-                      "View", 5, fmt_label( new_state, "Annotator" ) );
+                  toolbar_ptr->setMenuItemLabel( "View", 5, fmt_label( new_state, "Annotator" ) );
               } },
         } );
 
