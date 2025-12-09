@@ -116,9 +116,10 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 return true;
         }
 
-        if ( event.apply( scroll_.get() ) )
+        for ( auto& f : form_fields_ )
         {
-            return true;
+            if ( event.apply( f.input.get() ) )
+                return true;
         }
 
         if ( event.apply( &apply_btn_ ) )
@@ -139,9 +140,11 @@ class ObjectEditorPanel : public hui::ClosablePanel {
 
         hui::DialogBox::RedrawMyTexture();
 
-        if ( scroll_ )
+        for ( auto& f : form_fields_ )
         {
-            scroll_->Redraw();
+            f.label->SetPos( f.label_pos );
+            f.label->DrawOn( *texture_ );
+            f.input->Redraw();
         }
 
         for ( const auto& btn : type_btns_ )
@@ -166,54 +169,6 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         std::unique_ptr<dr4::Text>      label;
         std::unique_ptr<hui::InputText> input;
         dr4::Vec2f                      label_pos;
-    };
-
-    class FormContent : public hui::ContainerWidget {
-      public:
-        explicit FormContent( hui::WindowManager* wm, const dr4::Vec2f& size )
-            : ContainerWidget( wm, { 0, 0 }, size )
-        {
-        }
-
-        bool
-        propagateEventToChildren( const hui::Event& event ) override
-        {
-            for ( auto& f : fields_ )
-            {
-                if ( event.apply( f.input.get() ) )
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        void
-        RedrawMyTexture() const override
-        {
-            texture_->Clear( { 0, 0, 0, 0 } );
-            for ( auto& f : fields_ )
-            {
-                f.label->SetPos( f.label_pos );
-                f.label->DrawOn( *texture_ );
-                f.input->Redraw();
-            }
-        }
-
-        void
-        setFields( std::vector<FieldRef> fields )
-        {
-            fields_ = std::move( fields );
-        }
-
-        std::vector<FieldRef>&
-        fields()
-        {
-            return fields_;
-        }
-
-      private:
-        std::vector<FieldRef> fields_;
     };
 
     static std::string
@@ -269,18 +224,14 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         defs.push_back( { "G", "g" } );
         defs.push_back( { "B", "b" } );
         defs.push_back( { "Reflection", "f" } );
-
-        float content_height = margin_top + defs.size() * line_h + 10.0f;
-        auto  form           = std::make_unique<FormContent>(
-            wm_,
-            dr4::Vec2f{ size_.x - scrollbar_w,
-                        std::max( size_.y - TopBarHeight, content_height ) } );
+        defs.push_back( { "Refraction", "refract" } );
+        defs.push_back( { "Eta", "eta" } );
 
         auto* win  = wm_->getWindow();
         auto* font = win->GetDefaultFont();
 
-        std::vector<FieldRef> fields;
-        fields.reserve( defs.size() );
+        form_fields_.clear();
+        form_fields_.reserve( defs.size() );
 
         float cur_y = margin_top;
         for ( auto& d : defs )
@@ -296,38 +247,18 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                                            cur_y,
                                                            field_w,
                                                            field_h );
-            input->setParent( form.get() );
+            input->setParent( this );
 
-            fields.push_back( { d.key,
-                                std::unique_ptr<dr4::Text>( t ),
-                                std::move( input ),
-                                { margin_x, cur_y } } );
+            form_fields_.push_back(
+                { d.key, std::unique_ptr<dr4::Text>( t ), std::move( input ), { margin_x, cur_y } } );
             cur_y += line_h;
         }
-
-        form->setFields( std::move( fields ) );
-
-        auto form_raw = form.get();
-        scroll_ =
-            std::make_unique<hui::ScrollableWidget>( wm_,
-                                                     contentOffset(),
-                                                     dr4::Vec2f{ size_.x, size_.y - TopBarHeight },
-                                                     scrollbar_w );
-        scroll_->setParent( this );
-        scroll_->setContent( std::move( form ) );
-        form_raw_   = form_raw;
-        scroll_raw_ = scroll_.get();
     }
 
     FieldRef*
     findField( const std::string& key )
     {
-        if ( !form_raw_ )
-        {
-            return nullptr;
-        }
-
-        for ( auto& f : form_raw_->fields() )
+        for ( auto& f : form_fields_ )
         {
             if ( f.key == key )
                 return &f;
@@ -354,6 +285,10 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             f->input->setString( std::to_string( info.material.color.b ) );
         if ( auto* f = findField( "f" ) )
             f->input->setString( fmt2( info.material.reflection_factor ) );
+        if ( auto* f = findField( "refract" ) )
+            f->input->setString( fmt2( info.material.refraction_factor ) );
+        if ( auto* f = findField( "eta" ) )
+            f->input->setString( fmt2( info.material.refraction_eta ) );
 
         auto& obj = scene_manager_.getObjects()[idx];
         if ( auto* sphere = dynamic_cast<model::Sphere*>( obj.get() ) )
@@ -418,6 +353,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         auto* fg     = findField( "g" );
         auto* fb     = findField( "b" );
         auto* ff     = findField( "f" );
+        auto* fre    = findField( "refract" );
+        auto* feta   = findField( "eta" );
 
         auto vx = parse( fx, []( double ) { return true; } );
         auto vy = parse( fy, []( double ) { return true; } );
@@ -426,14 +363,16 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         auto vg = parse( fg, []( double v ) { return v >= 0 && v <= 255; } );
         auto vb = parse( fb, []( double v ) { return v >= 0 && v <= 255; } );
         auto vf = parse( ff, []( double ) { return true; } );
+        auto vref = parse( fre, []( double v ) { return v >= 0.0 && v <= 1.0; } );
+        auto veta = parse( feta, []( double v ) { return v > 0.0; } );
 
-        if ( !vx || !vy || !vz || !vr || !vg || !vb || !vf )
+        if ( !vx || !vy || !vz || !vr || !vg || !vb || !vf || !vref || !veta )
         {
             return std::nullopt;
         }
 
         CommonFields res{ f_name ? std::string( f_name->input->getString().value_or( "" ) )
-                                 : std::string(),
+                                  : std::string(),
                           model::Vector3f( static_cast<float>( *vx ),
                                            static_cast<float>( *vy ),
                                            static_cast<float>( *vz ) ),
@@ -441,14 +380,16 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                                          static_cast<std::uint8_t>( *vg ),
                                                          static_cast<std::uint8_t>( *vb ),
                                                          255 ),
-                                           static_cast<float>( *vf ) ) };
+                                           static_cast<float>( *vf ),
+                                           static_cast<float>( *vref ),
+                                           static_cast<float>( *veta ) ) };
         return res;
     }
 
     void
     onApply()
     {
-        if ( !form_raw_ )
+        if ( form_fields_.empty() )
         {
             return;
         }
@@ -557,6 +498,10 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             f->input->setString( "0" );
         if ( auto* f = findField( "f" ) )
             f->input->setString( "0.50" );
+        if ( auto* f = findField( "refract" ) )
+            f->input->setString( "0.00" );
+        if ( auto* f = findField( "eta" ) )
+            f->input->setString( "1.00" );
 
         switch ( current_type_ )
         {
@@ -737,10 +682,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
   private:
     model::SceneManager&  scene_manager_;
     std::optional<size_t> target_idx_;
-
-    hui::ScrollableWidget*                    scroll_raw_ = nullptr;
-    std::unique_ptr<hui::ScrollableWidget>    scroll_;
-    FormContent*                              form_raw_        = nullptr;
+    std::vector<FieldRef> form_fields_;
     Type                                      current_type_    = Type::Sphere;
     Type                                      creation_type_   = Type::Sphere;
     const float                               type_row_height_ = 28.0f;

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
-#include "custom-hui-impl/input_text.hpp"
+#include "custom-hui-impl/button_cancel.hpp"
+#include "custom-hui-impl/button_ok.hpp"
 #include "custom-hui-impl/dialog_box.hpp"
+#include "custom-hui-impl/input_text.hpp"
 #include <functional>
 #include <memory>
 #include <string>
@@ -23,27 +25,19 @@ class FileDialogBox : public DialogBox {
                    const std::string&  default_name,
                    ConfirmCb           confirm,
                    CancelCb            cancel )
-        : DialogBox( wm, x, y, w, h, [cancel]() { cancel(); }, title ),
-          confirm_( std::move( confirm ) ), cancel_( std::move( cancel ) ),
+        : DialogBox(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              [cancel]() { cancel(); },
+              title ),
+          confirm_( std::move( confirm ) ),
+          cancel_( std::move( cancel ) ),
           input_( wm, 20.0f, TopBarHeight + 20.0f, w - 40.0f, 24.0f ),
-          ok_btn_( wm,
-                   { 20.0f, h - 60.0f },
-                   { 80.0f, 26.0f },
-                   CloseBtnDefaultColor,
-                   CloseBtnHoveredColor,
-                   CloseBtnPressedColor,
-                   "OK",
-                   CloseBtnFontColor,
-                   CloseBtnFontSize ),
-          cancel_btn_( wm,
-                       { 120.0f, h - 60.0f },
-                       { 80.0f, 26.0f },
-                       CloseBtnDefaultColor,
-                       CloseBtnHoveredColor,
-                       CloseBtnPressedColor,
-                       "Cancel",
-                       CloseBtnFontColor,
-                       CloseBtnFontSize )
+          ok_btn_( wm, { 20.0f, h - 60.0f }, { 80.0f, 26.0f } ),
+          cancel_btn_( wm, { 120.0f, h - 60.0f }, { 80.0f, 26.0f } )
     {
         input_.setParent( this );
         input_.setString( default_name );
@@ -85,12 +79,11 @@ class FileDialogBox : public DialogBox {
     }
 
   private:
-    ConfirmCb  confirm_;
-    CancelCb   cancel_;
-    hui::InputText input_;
-    hui::Button    ok_btn_;
-    hui::Button    cancel_btn_;
+    ConfirmCb         confirm_;
+    CancelCb          cancel_;
+    hui::InputText    input_;
+    hui::ButtonOk     ok_btn_;
+    hui::ButtonCancel cancel_btn_;
 };
 
 } // namespace hui
-

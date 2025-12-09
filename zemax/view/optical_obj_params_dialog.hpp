@@ -1,17 +1,19 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
+#include "custom-hui-impl/button_cancel.hpp"
+#include "custom-hui-impl/button_ok.hpp"
 #include "custom-hui-impl/dialog_box.hpp"
 #include "custom-hui-impl/input_text.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include <functional>
+#include <iomanip>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
-#include <iomanip>
 
 namespace zemax {
 namespace view {
@@ -29,48 +31,32 @@ class OpticalObjParamsDialog : public hui::DialogBox {
 
     struct CommonFields
     {
-        std::string       name;
-        model::Vector3f   pos;
-        model::Material   material;
+        std::string        name;
+        model::Vector3f    pos;
+        model::Material    material;
         std::optional<int> idx; // optional index for edit mode
     };
 
     using CloseCb = std::function<void()>;
 
   protected:
-    OpticalObjParamsDialog( hui::WindowManager*         wm,
-                            float                       x,
-                            float                       y,
-                            float                       w,
-                            float                       h,
-                            const std::string&          title,
-                            zemax::model::SceneManager& scene_manager,
-                            Mode                        mode,
-                            std::optional<size_t>       obj_idx,
+    OpticalObjParamsDialog( hui::WindowManager*          wm,
+                            float                        x,
+                            float                        y,
+                            float                        w,
+                            float                        h,
+                            const std::string&           title,
+                            zemax::model::SceneManager&  scene_manager,
+                            Mode                         mode,
+                            std::optional<size_t>        obj_idx,
                             const std::vector<FieldDef>& specific_fields,
-                            CloseCb                     close_cb )
+                            CloseCb                      close_cb )
         : DialogBox( wm, x, y, w, h, close_cb, title ),
           scene_manager_( scene_manager ),
           mode_( mode ),
           obj_idx_( obj_idx ),
-          ok_btn_( wm,
-                   { 10.0f, TopBarHeight + 8.0f },
-                   { 80.0f, 24.0f },
-                   CloseBtnDefaultColor,
-                   CloseBtnHoveredColor,
-                   CloseBtnPressedColor,
-                   "OK",
-                   CloseBtnFontColor,
-                   CloseBtnFontSize ),
-          cancel_btn_( wm,
-                       { 100.0f, TopBarHeight + 8.0f },
-                       { 80.0f, 24.0f },
-                       CloseBtnDefaultColor,
-                       CloseBtnHoveredColor,
-                       CloseBtnPressedColor,
-                       "Cancel",
-                       CloseBtnFontColor,
-                       CloseBtnFontSize )
+          ok_btn_( wm, { 10.0f, TopBarHeight + 8.0f }, { 80.0f, 24.0f } ),
+          cancel_btn_( wm, { 100.0f, TopBarHeight + 8.0f }, { 80.0f, 24.0f } )
     {
         initLayout( w, specific_fields );
         wireButtons( close_cb );
@@ -221,7 +207,7 @@ class OpticalObjParamsDialog : public hui::DialogBox {
         }
 
         CommonFields res{ f_name ? std::string( f_name->input->getString().value_or( "" ) )
-                                  : std::string(),
+                                 : std::string(),
                           model::Vector3f( static_cast<float>( *vx ),
                                            static_cast<float>( *vy ),
                                            static_cast<float>( *vz ) ),
@@ -277,8 +263,8 @@ class OpticalObjParamsDialog : public hui::DialogBox {
             label->SetColor( { 220, 220, 220, 255 } );
             label->SetPos( { start_x, cur_y } );
 
-            auto input = std::make_unique<hui::InputText>(
-                wm_, start_x + label_w, cur_y, input_w, field_h );
+            auto input =
+                std::make_unique<hui::InputText>( wm_, start_x + label_w, cur_y, input_w, field_h );
             input->setParent( this );
 
             fields_.push_back( { d.key, std::move( label ), std::move( input ) } );
@@ -315,8 +301,8 @@ class OpticalObjParamsDialog : public hui::DialogBox {
     std::vector<FieldRef> fields_;
 
   protected:
-    hui::Button ok_btn_;
-    hui::Button cancel_btn_;
+    hui::ButtonOk     ok_btn_;
+    hui::ButtonCancel cancel_btn_;
 };
 
 } // namespace view
