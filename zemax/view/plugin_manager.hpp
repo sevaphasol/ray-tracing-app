@@ -2,10 +2,10 @@
 
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
+#include "zemax/config.hpp"
 #include "zemax/view/file_dialog.hpp"
 #include "zemax/view/obj_info_box.hpp"
 #include "zemax/view/snapshot_annotator.hpp"
-#include "zemax/config.hpp"
 #include <functional>
 
 namespace zemax {
@@ -13,19 +13,26 @@ namespace view {
 
 class PluginListModal : public ObjInfoBox {
   public:
-    PluginListModal( hui::WindowManager* wm,
-                     float               x,
-                     float               y,
-                     float               w,
-                     float               h,
-                     SnapshotAnnotator*  annotator,
+    PluginListModal( hui::WindowManager*   wm,
+                     float                 x,
+                     float                 y,
+                     float                 w,
+                     float                 h,
+                     SnapshotAnnotator*    annotator,
                      std::function<void()> on_close )
-        : ObjInfoBox( wm, x, y, w, h, [on_close]() { if ( on_close ) on_close(); }, "Plugins" ),
+        : ObjInfoBox(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              [on_close]() {
+                  if ( on_close )
+                      on_close();
+              },
+              "Plugins" ),
           annotator_( annotator ),
-          list_( wm,
-                 { 8.0f, TopBarHeight + 8.0f },
-                 { w - 16.0f, h - TopBarHeight - 16.0f },
-                 12.0f )
+          list_( wm, { 8.0f, TopBarHeight + 8.0f }, { w - 16.0f, h - TopBarHeight - 16.0f }, 12.0f )
     {
         list_.setParent( this );
         rebuild();
@@ -40,19 +47,16 @@ class PluginListModal : public ObjInfoBox {
 
         for ( auto& entry : plugins )
         {
-            auto* plugin = entry.second;
-            auto  color_default = ( plugin == active )
-                                      ? Config::ControlPanel::Button::PressedColor
-                                      : Config::ControlPanel::Button::DefaultColor;
-            auto color_hover    = ( plugin == active )
-                                      ? Config::ControlPanel::Button::PressedColor
-                                      : Config::ControlPanel::Button::HoveredColor;
-            auto color_pressed  = Config::ControlPanel::Button::PressedColor;
+            auto* plugin        = entry.second;
+            auto  color_default = ( plugin == active ) ? Config::ControlPanel::Button::PressedColor
+                                                       : Config::ControlPanel::Button::DefaultColor;
+            auto  color_hover   = ( plugin == active ) ? Config::ControlPanel::Button::PressedColor
+                                                       : Config::ControlPanel::Button::HoveredColor;
+            auto  color_pressed = Config::ControlPanel::Button::PressedColor;
 
             auto btn = std::make_unique<hui::Button>( wm_,
                                                       dr4::Vec2f( 4.0f, 0.0f ),
-                                                      dr4::Vec2f( list_.getSize().x - 8.0f,
-                                                                  32.0f ),
+                                                      dr4::Vec2f( list_.getSize().x - 8.0f, 32.0f ),
                                                       color_default,
                                                       color_hover,
                                                       color_pressed,
@@ -68,27 +72,25 @@ class PluginListModal : public ObjInfoBox {
     }
 
   private:
-    SnapshotAnnotator*      annotator_;
+    SnapshotAnnotator*        annotator_;
     hui::ScrollableListWidget list_;
 };
 
 class PluginPopup : public ObjInfoBox {
   public:
-    PluginPopup( hui::WindowManager* wm,
-                 float               x,
-                 float               y,
-                 SnapshotAnnotator*  annotator )
-        : ObjInfoBox( wm,
-                      x,
-                      y,
-                      220.0f,
-                      100.0f,
-                      [wm]() { wm->popModal(); },
-                      "Plugins" ),
+    PluginPopup( hui::WindowManager* wm, float x, float y, SnapshotAnnotator* annotator )
+        : ObjInfoBox(
+              wm,
+              x,
+              y,
+              240.0f,
+              120.0f,
+              [wm]() { wm->popModal(); },
+              "Plugins" ),
           annotator_( annotator ),
           new_btn_( wm,
-                    dr4::Vec2f( 10.0f, TopBarHeight + 10.0f ),
-                    dr4::Vec2f( 90.0f, 32.0f ),
+                    dr4::Vec2f( 10.0f, TopBarHeight + 12.0f ),
+                    dr4::Vec2f( 100.0f, 32.0f ),
                     Config::ControlPanel::Button::DefaultColor,
                     Config::ControlPanel::Button::HoveredColor,
                     Config::ControlPanel::Button::PressedColor,
@@ -96,8 +98,8 @@ class PluginPopup : public ObjInfoBox {
                     Config::ControlPanel::Button::FontColor,
                     Config::ControlPanel::Button::FontSize ),
           show_btn_( wm,
-                     dr4::Vec2f( 120.0f, TopBarHeight + 10.0f ),
-                     dr4::Vec2f( 90.0f, 32.0f ),
+                     dr4::Vec2f( 130.0f, TopBarHeight + 12.0f ),
+                     dr4::Vec2f( 100.0f, 32.0f ),
                      Config::ControlPanel::Button::DefaultColor,
                      Config::ControlPanel::Button::HoveredColor,
                      Config::ControlPanel::Button::PressedColor,
@@ -132,14 +134,13 @@ class PluginPopup : public ObjInfoBox {
 
         show_btn_.setOnClick( [this, wm]() {
             annotator_->refreshPlugins();
-            wm->pushModal( std::make_unique<PluginListModal>(
-                wm,
-                getRelPos().x + getSize().x + 10.0f,
-                getRelPos().y,
-                260.0f,
-                260.0f,
-                annotator_,
-                [wm]() { wm->popModal(); } ) );
+            wm->pushModal( std::make_unique<PluginListModal>( wm,
+                                                              getRelPos().x + getSize().x + 10.0f,
+                                                              getRelPos().y,
+                                                              320.0f,
+                                                              280.0f,
+                                                              annotator_,
+                                                              [wm]() { wm->popModal(); } ) );
         } );
     }
 
@@ -156,6 +157,7 @@ class PluginPopup : public ObjInfoBox {
     void
     RedrawMyTexture() const override
     {
+        std::cerr << "from " << __func__ << " " << this << std::endl;
         ObjInfoBox::RedrawMyTexture();
         new_btn_.Redraw();
         show_btn_.Redraw();

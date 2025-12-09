@@ -4,6 +4,7 @@
 #include "dr4/window.hpp"
 #include "event.hpp"
 #include <memory>
+#include <typeinfo>
 
 namespace hui {
 
@@ -46,13 +47,14 @@ WindowManager::getTopModal() const
 void
 WindowManager::pushModal( std::unique_ptr<hui::Widget> wgt )
 {
-    // wgt->setParent( &desktop_ );
+    wgt->setParent( &desktop_ );
     modal_widgets_.push_back( std::move( wgt ) );
 }
 
 void
 WindowManager::popModal()
 {
+    std::cerr << __func__ << std::endl;
     if ( !modal_widgets_.empty() )
         modal_widgets_.pop_back();
 }
@@ -114,10 +116,11 @@ WindowManager::draw()
     desktop_.Redraw();
     win_->Draw( *desktop_.getTexture() );
 
+    int i = 0;
+
     for ( auto& modal : modal_widgets_ )
     {
-        modal->getTexture()->Clear( { 0, 0, 0, 0 } );
-        modal->RedrawMyTexture();
+        modal->Redraw();
         win_->Draw( *modal->getTexture() );
     }
 

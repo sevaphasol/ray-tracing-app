@@ -208,7 +208,7 @@ MenuPopup::onMousePress( const Event& event )
             items_[idx].on_click();
         }
         // Закрываем меню
-        wm_->popModal();
+        // wm_->popModal();
         return true;
     }
 
