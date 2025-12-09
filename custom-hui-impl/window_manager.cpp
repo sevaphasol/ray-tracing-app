@@ -116,6 +116,7 @@ WindowManager::draw()
 
     for ( auto& modal : modal_widgets_ )
     {
+        modal->getTexture()->Clear( { 0, 0, 0, 0 } );
         modal->RedrawMyTexture();
         win_->Draw( *modal->getTexture() );
     }

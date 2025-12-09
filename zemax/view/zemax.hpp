@@ -51,7 +51,7 @@ class Zemax : public hui::ContainerWidget {
           editor_( wm,
                    scene_.getModel(),
                    { 1725.0f, 275.0f },
-                   { Config::ControlPanel::Size.x, 320.0f } )
+                   { Config::ControlPanel::Size.x, 520.0f } )
     {
         scene_.setParent( this );
         camera_panel_.setParent( this );

@@ -43,19 +43,6 @@ class ControlPanel : public ClosablePanel {
                      Config::ControlPanel::Button::MoveObjBackward::Position,
                      Config::ControlPanel::Button::MoveObjBackward::Title );
 
-        setupButton( ButtonCode::AddObj,
-                     Config::ControlPanel::Button::AddObj::Position,
-                     Config::ControlPanel::Button::AddObj::Title );
-        setupButton( ButtonCode::CopyObj,
-                     Config::ControlPanel::Button::CopyObj::Position,
-                     Config::ControlPanel::Button::CopyObj::Title );
-        setupButton( ButtonCode::EditObj,
-                     Config::ControlPanel::Button::EditObj::Position,
-                     Config::ControlPanel::Button::EditObj::Title );
-        setupButton( ButtonCode::DeleteObj,
-                     Config::ControlPanel::Button::DeleteObj::Position,
-                     Config::ControlPanel::Button::DeleteObj::Title );
-
         buttons_[MoveObjLeft]->setOnHoldPress(
             [this]() { moveTarget( { -Config::Camera::ObjMoveFactor, 0.0f, 0.0f } ); } );
         buttons_[MoveObjRight]->setOnHoldPress(
@@ -68,24 +55,6 @@ class ControlPanel : public ClosablePanel {
             [this]() { moveTarget( { 0.0f, 0.0f, -Config::Camera::ObjMoveFactor } ); } );
         buttons_[MoveObjBackward]->setOnHoldPress(
             [this]() { moveTarget( { 0.0f, 0.0f, Config::Camera::ObjMoveFactor } ); } );
-
-        buttons_[AddObj]->setOnClick( [this]() {
-            wm_->pushModal( std::make_unique<zemax::view::SphereParamsDialog>(
-                wm_,
-                800,
-                250,
-                500,
-                400,
-                scene_manager_,
-                [this]() { wm_->popModal(); } ) );
-        } );
-        buttons_[CopyObj]->setOnClick( [this]() { copyTarget(); } );
-        // Edit now handled by persistent editor panel
-        buttons_[EditObj]->setOnClick( []() {} );
-        buttons_[DeleteObj]->setOnClick( [this]() {
-            scene_manager_.deleteTargetObj();
-            scene_manager_.needUpdate() = true;
-        } );
     }
 
     bool
@@ -143,10 +112,6 @@ class ControlPanel : public ClosablePanel {
         MoveObjDown,
         MoveObjForward,
         MoveObjBackward,
-        AddObj,
-        CopyObj,
-        EditObj,
-        DeleteObj,
         ButtonCount,
     };
 
@@ -247,15 +212,7 @@ class ControlPanel : public ClosablePanel {
     void
     copyTarget()
     {
-        auto* target = scene_manager_.getTargetObj();
-        if ( target == nullptr )
-        {
-            return;
-        }
-
-        auto  origin = target->getOrigin();
-        float dx     = Config::Camera::ObjMoveFactor * 2.0f;
-        scene_manager_.copyTargetObj( origin.x + dx, origin.y, origin.z );
+        // Copy now handled inside ObjectEditorPanel
     }
 
   private:

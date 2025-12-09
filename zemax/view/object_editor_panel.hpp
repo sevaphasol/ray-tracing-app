@@ -10,14 +10,18 @@
 #include "zemax/model/primitives/impls/torus.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/view/closable_panel.hpp"
+#include "zemax/config.hpp"
 #include <iomanip>
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace zemax {
 namespace view {
 
+// Single scrollable editor for objects: create when none selected, edit/copy/delete when selected.
 class ObjectEditorPanel : public ClosablePanel {
   public:
     explicit ObjectEditorPanel( hui::WindowManager*  wm,
@@ -26,8 +30,35 @@ class ObjectEditorPanel : public ClosablePanel {
                                 const dr4::Vec2f&    size )
         : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Editor" ),
           scene_manager_( scene_manager ),
+          add_btn_( wm,
+                    { 12.0f, size.y - 34.0f },
+                    { 88.0f, 24.0f },
+                    CloseBtnDefaultColor,
+                    CloseBtnHoveredColor,
+                    CloseBtnPressedColor,
+                    "Add",
+                    CloseBtnFontColor,
+                    CloseBtnFontSize ),
+          copy_btn_( wm,
+                     { 112.0f, size.y - 34.0f },
+                     { 88.0f, 24.0f },
+                     CloseBtnDefaultColor,
+                     CloseBtnHoveredColor,
+                     CloseBtnPressedColor,
+                     "Copy",
+                     CloseBtnFontColor,
+                     CloseBtnFontSize ),
+          del_btn_( wm,
+                    { 212.0f, size.y - 34.0f },
+                    { 88.0f, 24.0f },
+                    CloseBtnDefaultColor,
+                    CloseBtnHoveredColor,
+                    CloseBtnPressedColor,
+                    "Del",
+                    CloseBtnFontColor,
+                    CloseBtnFontSize ),
           apply_btn_( wm,
-                      { 12.0f, size.y - 34.0f },
+                      { size.x - 100.0f, size.y - 34.0f },
                       { 88.0f, 24.0f },
                       CloseBtnDefaultColor,
                       CloseBtnHoveredColor,
@@ -37,41 +68,32 @@ class ObjectEditorPanel : public ClosablePanel {
                       CloseBtnFontSize )
     {
         setDraggable( true );
-        buildForm( Type::None );
-
-        apply_btn_.setParent( this );
-        apply_btn_.setOnClick( [this]() { onApply(); } );
+        addButtons();
+        buildForm( current_type_ );
+        prefillDefaults();
     }
 
     void
     setTarget( std::optional<size_t> idx )
     {
         target_idx_ = idx;
-        if ( !idx.has_value() )
-        {
-            buildForm( Type::None );
-            return;
-        }
+        auto info = idx.has_value() ? std::optional<model::SceneManager::ObjectInfo>(
+                                          scene_manager_.getObjectInfo( idx.value() ) )
+                                    : std::nullopt;
 
-        auto info = scene_manager_.getObjectInfo( idx.value() );
-        if ( info.type_name == "Sphere" )
+        if ( info.has_value() )
         {
-            buildForm( Type::Sphere );
-        } else if ( info.type_name == "AABB" )
-        {
-            buildForm( Type::AABB );
-        } else if ( info.type_name == "Torus" )
-        {
-            buildForm( Type::Torus );
-        } else if ( info.type_name == "HexPrism" )
-        {
-            buildForm( Type::HexPrism );
+            current_type_ = typeFromName( info->type_name );
+            buildForm( current_type_ );
+            prefill( idx.value(), info.value() );
         } else
         {
-            buildForm( Type::None );
+            current_type_ = creation_type_;
+            buildForm( current_type_ );
+            prefillDefaults();
         }
 
-        prefill( idx.value(), info );
+        updateTypeButtons();
     }
 
     bool
@@ -80,6 +102,18 @@ class ObjectEditorPanel : public ClosablePanel {
         if ( !visible_ )
         {
             return false;
+        }
+
+        if ( event.apply( &add_btn_ ) )
+            return true;
+        if ( copy_visible_ && event.apply( &copy_btn_ ) )
+            return true;
+        if ( del_visible_ && event.apply( &del_btn_ ) )
+            return true;
+        for ( auto& btn : type_btns_ )
+        {
+            if ( event.apply( btn.get() ) )
+                return true;
         }
 
         if ( event.apply( scroll_.get() ) )
@@ -110,11 +144,21 @@ class ObjectEditorPanel : public ClosablePanel {
             scroll_->Redraw();
         }
 
+        for ( const auto& btn : type_btns_ )
+        {
+            btn->Redraw();
+        }
+
+        add_btn_.Redraw();
+        if ( copy_visible_ )
+            copy_btn_.Redraw();
+        if ( del_visible_ )
+            del_btn_.Redraw();
         apply_btn_.Redraw();
     }
 
   private:
-    enum class Type { None, Sphere, AABB, Torus, HexPrism };
+    enum class Type { Sphere, AABB, Torus, HexPrism };
 
     struct FieldRef
     {
@@ -184,7 +228,7 @@ class ObjectEditorPanel : public ClosablePanel {
     buildForm( Type type )
     {
         const float margin_x    = 12.0f;
-        const float margin_top  = TopBarHeight + 10.0f;
+        const float margin_top  = TopBarHeight + type_row_height_ + 14.0f;
         const float line_h      = 24.0f;
         const float label_w     = 120.0f;
         const float field_h     = 18.0f;
@@ -219,9 +263,6 @@ class ObjectEditorPanel : public ClosablePanel {
             case Type::HexPrism:
                 defs.push_back( { "Radius", "p1" } );
                 defs.push_back( { "Height", "p2" } );
-                break;
-            case Type::None:
-            default:
                 break;
         }
         defs.push_back( { "R", "r" } );
@@ -359,14 +400,16 @@ class ObjectEditorPanel : public ClosablePanel {
         return *val;
     }
 
-    void
-    onApply()
+    struct CommonFields
     {
-        if ( !target_idx_.has_value() || !form_raw_ )
-        {
-            return;
-        }
+        std::string     name;
+        model::Vector3f origin;
+        model::Material material;
+    };
 
+    std::optional<CommonFields>
+    parseCommonFields()
+    {
         auto* f_name = findField( "name" );
         auto* fx     = findField( "x" );
         auto* fy     = findField( "y" );
@@ -386,26 +429,52 @@ class ObjectEditorPanel : public ClosablePanel {
 
         if ( !vx || !vy || !vz || !vr || !vg || !vb || !vf )
         {
+            return std::nullopt;
+        }
+
+        CommonFields res{ f_name ? std::string( f_name->input->getString().value_or( "" ) )
+                                  : std::string(),
+                          model::Vector3f( static_cast<float>( *vx ),
+                                           static_cast<float>( *vy ),
+                                           static_cast<float>( *vz ) ),
+                          model::Material( model::Color( static_cast<std::uint8_t>( *vr ),
+                                                         static_cast<std::uint8_t>( *vg ),
+                                                         static_cast<std::uint8_t>( *vb ),
+                                                         255 ),
+                                           static_cast<float>( *vf ) ) };
+        return res;
+    }
+
+    void
+    onApply()
+    {
+        if ( !form_raw_ )
+        {
             return;
         }
 
-        model::Vector3f origin( static_cast<float>( *vx ),
-                                static_cast<float>( *vy ),
-                                static_cast<float>( *vz ) );
-        model::Material material( model::Color( static_cast<std::uint8_t>( *vr ),
-                                                static_cast<std::uint8_t>( *vg ),
-                                                static_cast<std::uint8_t>( *vb ),
-                                                255 ),
-                                  static_cast<float>( *vf ) );
-
-        auto& obj = scene_manager_.getObjects()[target_idx_.value()];
-        obj->setOrigin( origin );
-        obj->setMaterial( material );
-        if ( f_name )
+        auto common = parseCommonFields();
+        if ( !common.has_value() )
         {
-            auto name_sv = f_name->input->getString();
-            obj->setDisplayName( std::string( name_sv.value_or( "" ) ) );
+            return;
         }
+
+        if ( target_idx_.has_value() )
+        {
+            applyToExisting( *common );
+        } else
+        {
+            addNewObject( *common );
+        }
+    }
+
+    void
+    applyToExisting( const CommonFields& common )
+    {
+        auto& obj = scene_manager_.getObjects()[target_idx_.value()];
+        obj->setOrigin( common.origin );
+        obj->setMaterial( common.material );
+        obj->setDisplayName( common.name );
 
         if ( auto* sphere = dynamic_cast<model::Sphere*>( obj.get() ) )
         {
@@ -446,6 +515,224 @@ class ObjectEditorPanel : public ClosablePanel {
         scene_manager_.needUpdate() = true;
     }
 
+    void
+    addNewObjectFromUI()
+    {
+        auto common = parseCommonFields();
+        if ( !common.has_value() )
+        {
+            return;
+        }
+        addNewObject( *common );
+    }
+
+    static Type
+    typeFromName( const std::string& name )
+    {
+        if ( name == "Sphere" )
+            return Type::Sphere;
+        if ( name == "AABB" )
+            return Type::AABB;
+        if ( name == "Torus" )
+            return Type::Torus;
+        return Type::HexPrism;
+    }
+
+    void
+    prefillDefaults()
+    {
+        if ( auto* f = findField( "name" ) )
+            f->input->setString( defaultNameForType( current_type_ ) );
+        if ( auto* f = findField( "x" ) )
+            f->input->setString( "0.00" );
+        if ( auto* f = findField( "y" ) )
+            f->input->setString( "0.00" );
+        if ( auto* f = findField( "z" ) )
+            f->input->setString( "-10.00" );
+        if ( auto* f = findField( "r" ) )
+            f->input->setString( "118" );
+        if ( auto* f = findField( "g" ) )
+            f->input->setString( "185" );
+        if ( auto* f = findField( "b" ) )
+            f->input->setString( "0" );
+        if ( auto* f = findField( "f" ) )
+            f->input->setString( "0.50" );
+
+        switch ( current_type_ )
+        {
+            case Type::Sphere:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "1.00" );
+                break;
+            case Type::AABB:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p3" ) )
+                    f->input->setString( "1.00" );
+                break;
+            case Type::Torus:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "2.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "0.80" );
+                break;
+            case Type::HexPrism:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "2.00" );
+                break;
+        }
+    }
+
+    std::string
+    defaultNameForType( Type t )
+    {
+        switch ( t )
+        {
+            case Type::Sphere:
+                return "Sphere";
+            case Type::AABB:
+                return "AABB";
+            case Type::Torus:
+                return "Torus";
+            case Type::HexPrism:
+            default:
+                return "HexPrism";
+        }
+    }
+
+    void
+    addNewObject( const CommonFields& common )
+    {
+        float p1 = parse( findField( "p1" ), []( double v ) { return v > 0; } ).value_or( 1.0 );
+        float p2 = parse( findField( "p2" ), []( double v ) { return v > 0; } ).value_or( 1.0 );
+        float p3 = parse( findField( "p3" ), []( double v ) { return v > 0; } ).value_or( 1.0 );
+
+        model::Primitive* created = nullptr;
+        switch ( current_type_ )
+        {
+            case Type::Sphere:
+                scene_manager_.addSphere( common.material, common.origin, p1 );
+                break;
+            case Type::AABB:
+                scene_manager_.addAABB( common.material, common.origin, { p1, p2, p3 } );
+                break;
+            case Type::Torus:
+                // UI shows major radius first, but addTorus expects (minor, major)
+                scene_manager_.addTorus( common.material, common.origin, p2, p1 );
+                break;
+            case Type::HexPrism:
+                scene_manager_.addHexPrism( common.material, common.origin, p1, p2 );
+                break;
+        }
+
+        if ( !scene_manager_.getObjects().empty() )
+        {
+            created = scene_manager_.getObjects().back().get();
+        }
+
+        created->setDisplayName( common.name );
+        scene_manager_.setTargetObj( created );
+        target_idx_ = scene_manager_.getObjects().size() - 1;
+        scene_manager_.needUpdate() = true;
+        prefill( target_idx_.value(), scene_manager_.getObjectInfo( target_idx_.value() ) );
+        updateTypeButtons();
+    }
+
+    void
+    copyTarget()
+    {
+        if ( !target_idx_.has_value() )
+            return;
+        auto* target = scene_manager_.getTargetObj();
+        if ( !target )
+            return;
+        auto origin = target->getOrigin();
+        float dx    = Config::Camera::ObjMoveFactor * 2.0f;
+        scene_manager_.copyTargetObj( origin.x + dx, origin.y, origin.z );
+        target_idx_ = scene_manager_.getObjects().size() - 1;
+        scene_manager_.setTargetObj( scene_manager_.getObjects().back().get() );
+        current_type_ = typeFromName( scene_manager_.getObjectInfo( target_idx_.value() ).type_name );
+        buildForm( current_type_ );
+        prefill( target_idx_.value(), scene_manager_.getObjectInfo( target_idx_.value() ) );
+        updateTypeButtons();
+    }
+
+    void
+    deleteTarget()
+    {
+        if ( !target_idx_.has_value() )
+            return;
+        scene_manager_.deleteTargetObj();
+        scene_manager_.needUpdate() = true;
+        target_idx_.reset();
+        current_type_ = creation_type_;
+        buildForm( current_type_ );
+        updateTypeButtons();
+        prefillDefaults();
+    }
+
+    void
+    addButtons()
+    {
+        add_btn_.setParent( this );
+        copy_btn_.setParent( this );
+        del_btn_.setParent( this );
+        apply_btn_.setParent( this );
+
+        add_btn_.setOnClick( [this]() { addNewObjectFromUI(); } );
+        copy_btn_.setOnClick( [this]() { copyTarget(); } );
+        del_btn_.setOnClick( [this]() { deleteTarget(); } );
+        apply_btn_.setOnClick( [this]() { onApply(); } );
+
+        const float btn_w   = 70.0f;
+        const float btn_h   = 22.0f;
+        const float btn_gap = 8.0f;
+        const float base_y  = TopBarHeight + 6.0f;
+        float       x       = 12.0f;
+
+        auto make_btn = [&]( const char* label, Type type ) {
+            auto btn = std::make_unique<hui::Button>( wm_,
+                                                      dr4::Vec2f{ x, base_y },
+                                                      dr4::Vec2f{ btn_w, btn_h },
+                                                      CloseBtnDefaultColor,
+                                                      CloseBtnHoveredColor,
+                                                      CloseBtnPressedColor,
+                                                      label,
+                                                      CloseBtnFontColor,
+                                                      CloseBtnFontSize );
+            btn->setParent( this );
+            btn->setOnClick( [this, type]() {
+                if ( target_idx_.has_value() )
+                    return;
+                creation_type_ = type;
+                current_type_  = type;
+                buildForm( current_type_ );
+                updateTypeButtons();
+                prefillDefaults();
+            } );
+            x += btn_w + btn_gap;
+            return btn;
+        };
+
+        type_btns_.push_back( make_btn( "Sphere", Type::Sphere ) );
+        type_btns_.push_back( make_btn( "AABB", Type::AABB ) );
+        type_btns_.push_back( make_btn( "Torus", Type::Torus ) );
+        type_btns_.push_back( make_btn( "Hex", Type::HexPrism ) );
+
+        updateTypeButtons();
+    }
+
+    void
+    updateTypeButtons()
+    {
+        copy_visible_ = target_idx_.has_value();
+        del_visible_  = target_idx_.has_value();
+    }
+
   private:
     model::SceneManager&  scene_manager_;
     std::optional<size_t> target_idx_;
@@ -453,6 +740,15 @@ class ObjectEditorPanel : public ClosablePanel {
     hui::ScrollableWidget*                 scroll_raw_ = nullptr;
     std::unique_ptr<hui::ScrollableWidget> scroll_;
     FormContent*                           form_raw_ = nullptr;
+    Type                                   current_type_    = Type::Sphere;
+    Type                                   creation_type_   = Type::Sphere;
+    const float                            type_row_height_ = 28.0f;
+    std::vector<std::unique_ptr<hui::Button>> type_btns_;
+    bool                                      copy_visible_ = false;
+    bool                                      del_visible_  = false;
+    hui::Button                            add_btn_;
+    hui::Button                            copy_btn_;
+    hui::Button                            del_btn_;
     hui::Button                            apply_btn_;
 };
 
