@@ -11,6 +11,16 @@
 #include "zemax/model/primitives/impls/hex_prism.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
 #include "zemax/model/primitives/impls/torus.hpp"
+#include "zemax/model/primitives/impls/goursat.hpp"
+#include "zemax/model/primitives/impls/rounded_box.hpp"
+#include "zemax/model/primitives/impls/ellipsoid.hpp"
+#include "zemax/model/primitives/impls/capsule.hpp"
+#include "zemax/model/primitives/impls/rounded_cone.hpp"
+#include "zemax/model/primitives/impls/capped_cone.hpp"
+#include "zemax/model/primitives/impls/capped_cylinder.hpp"
+#include "zemax/model/primitives/impls/wedge.hpp"
+#include "zemax/model/primitives/impls/ellipse.hpp"
+#include "zemax/model/primitives/impls/triangle.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include <iomanip>
 #include <memory>
@@ -182,7 +192,22 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     }
 
   private:
-    enum class Type { Sphere, AABB, Torus, HexPrism };
+    enum class Type {
+        Sphere,
+        AABB,
+        Torus,
+        HexPrism,
+        Goursat,
+        RoundedBox,
+        Ellipsoid,
+        Capsule,
+        RoundedCone,
+        CappedCone,
+        CappedCylinder,
+        Wedge,
+        Ellipse,
+        Triangle
+    };
 
     struct FieldRef
     {
@@ -212,8 +237,28 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             case Type::Torus:
                 return "Torus";
             case Type::HexPrism:
-            default:
                 return "HexPrism";
+            case Type::Goursat:
+                return "Goursat";
+            case Type::RoundedBox:
+                return "RoundedBox";
+            case Type::Ellipsoid:
+                return "Ellipsoid";
+            case Type::Capsule:
+                return "Capsule";
+            case Type::RoundedCone:
+                return "RoundedCone";
+            case Type::CappedCone:
+                return "CappedCone";
+            case Type::CappedCylinder:
+                return "CappedCylinder";
+            case Type::Wedge:
+                return "Wedge";
+            case Type::Ellipse:
+                return "Ellipse";
+            case Type::Triangle:
+            default:
+                return "Triangle";
         }
     }
 
@@ -256,6 +301,63 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             case Type::HexPrism:
                 defs.push_back( { "Radius", "p1" } );
                 defs.push_back( { "Height", "p2" } );
+                break;
+            case Type::Goursat:
+                defs.push_back( { "ka", "ka" } );
+                defs.push_back( { "kb", "kb" } );
+                break;
+            case Type::RoundedBox:
+                defs.push_back( { "Half size X", "p1" } );
+                defs.push_back( { "Half size Y", "p2" } );
+                defs.push_back( { "Half size Z", "p3" } );
+                defs.push_back( { "Radius", "p4" } );
+                break;
+            case Type::Ellipsoid:
+                defs.push_back( { "Radius X", "p1" } );
+                defs.push_back( { "Radius Y", "p2" } );
+                defs.push_back( { "Radius Z", "p3" } );
+                break;
+            case Type::Capsule:
+                defs.push_back( { "Height", "p1" } );
+                defs.push_back( { "Radius", "p2" } );
+                break;
+            case Type::RoundedCone:
+                defs.push_back( { "Height", "p1" } );
+                defs.push_back( { "Radius A", "p2" } );
+                defs.push_back( { "Radius B", "p3" } );
+                break;
+            case Type::CappedCone:
+                defs.push_back( { "Height", "p1" } );
+                defs.push_back( { "Radius A", "p2" } );
+                defs.push_back( { "Radius B", "p3" } );
+                break;
+            case Type::CappedCylinder:
+                defs.push_back( { "Height", "p1" } );
+                defs.push_back( { "Radius", "p2" } );
+                break;
+            case Type::Wedge:
+                defs.push_back( { "Half size X", "p1" } );
+                defs.push_back( { "Half size Y", "p2" } );
+                defs.push_back( { "Half size Z", "p3" } );
+                break;
+            case Type::Ellipse:
+                defs.push_back( { "U.x", "ux" } );
+                defs.push_back( { "U.y", "uy" } );
+                defs.push_back( { "U.z", "uz" } );
+                defs.push_back( { "V.x", "vx" } );
+                defs.push_back( { "V.y", "vy" } );
+                defs.push_back( { "V.z", "vz" } );
+                break;
+            case Type::Triangle:
+                defs.push_back( { "V0.x", "v0x" } );
+                defs.push_back( { "V0.y", "v0y" } );
+                defs.push_back( { "V0.z", "v0z" } );
+                defs.push_back( { "V1.x", "v1x" } );
+                defs.push_back( { "V1.y", "v1y" } );
+                defs.push_back( { "V1.z", "v1z" } );
+                defs.push_back( { "V2.x", "v2x" } );
+                defs.push_back( { "V2.y", "v2y" } );
+                defs.push_back( { "V2.z", "v2z" } );
                 break;
         }
         defs.push_back( { "R", "r" } );
@@ -355,6 +457,118 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 f->input->setString( fmt2( hex->getRadius() ) );
             if ( auto* f = findField( "p2" ) )
                 f->input->setString( fmt2( hex->getHeight() ) );
+        } else if ( auto* g = dynamic_cast<model::Goursat*>( obj.get() ) )
+        {
+            if ( auto* f = findField( "ka" ) )
+                f->input->setString( fmt2( g->getKa() ) );
+            if ( auto* f = findField( "kb" ) )
+                f->input->setString( fmt2( g->getKb() ) );
+        } else if ( auto* rb = dynamic_cast<model::RoundedBox*>( obj.get() ) )
+        {
+            auto hs = rb->getHalfSize();
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( hs.x ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( hs.y ) );
+            if ( auto* f = findField( "p3" ) )
+                f->input->setString( fmt2( hs.z ) );
+            if ( auto* f = findField( "p4" ) )
+                f->input->setString( fmt2( rb->getRadius() ) );
+        } else if ( auto* el = dynamic_cast<model::Ellipsoid*>( obj.get() ) )
+        {
+            auto r = el->getRadii();
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( r.x ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( r.y ) );
+            if ( auto* f = findField( "p3" ) )
+                f->input->setString( fmt2( r.z ) );
+        } else if ( auto* cap = dynamic_cast<model::Capsule*>( obj.get() ) )
+        {
+            auto pa = cap->getPaLocal();
+            auto pb = cap->getPbLocal();
+            float h = std::abs( ( pb - pa ).y );
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( h ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( cap->getRadius() ) );
+        } else if ( auto* rc = dynamic_cast<model::RoundedCone*>( obj.get() ) )
+        {
+            auto pa = rc->getPaLocal();
+            auto pb = rc->getPbLocal();
+            float h = std::abs( ( pb - pa ).y );
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( h ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( rc->getRadiusA() ) );
+            if ( auto* f = findField( "p3" ) )
+                f->input->setString( fmt2( rc->getRadiusB() ) );
+        } else if ( auto* cc = dynamic_cast<model::CappedCone*>( obj.get() ) )
+        {
+            auto pa = cc->getPaLocal();
+            auto pb = cc->getPbLocal();
+            float h = std::abs( ( pb - pa ).y );
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( h ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( cc->getRadiusA() ) );
+            if ( auto* f = findField( "p3" ) )
+                f->input->setString( fmt2( cc->getRadiusB() ) );
+        } else if ( auto* cyl = dynamic_cast<model::CappedCylinder*>( obj.get() ) )
+        {
+            auto a = cyl->getALocal();
+            auto b = cyl->getBLocal();
+            float h = std::abs( ( b - a ).y );
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( h ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( cyl->getRadius() ) );
+        } else if ( auto* w = dynamic_cast<model::Wedge*>( obj.get() ) )
+        {
+            auto hs = w->getS();
+            if ( auto* f = findField( "p1" ) )
+                f->input->setString( fmt2( hs.x ) );
+            if ( auto* f = findField( "p2" ) )
+                f->input->setString( fmt2( hs.y ) );
+            if ( auto* f = findField( "p3" ) )
+                f->input->setString( fmt2( hs.z ) );
+        } else if ( auto* e = dynamic_cast<model::Ellipse*>( obj.get() ) )
+        {
+            auto u = e->getU();
+            auto v = e->getV();
+            if ( auto* f = findField( "ux" ) )
+                f->input->setString( fmt2( u.x ) );
+            if ( auto* f = findField( "uy" ) )
+                f->input->setString( fmt2( u.y ) );
+            if ( auto* f = findField( "uz" ) )
+                f->input->setString( fmt2( u.z ) );
+            if ( auto* f = findField( "vx" ) )
+                f->input->setString( fmt2( v.x ) );
+            if ( auto* f = findField( "vy" ) )
+                f->input->setString( fmt2( v.y ) );
+            if ( auto* f = findField( "vz" ) )
+                f->input->setString( fmt2( v.z ) );
+        } else if ( auto* t = dynamic_cast<model::Triangle*>( obj.get() ) )
+        {
+            auto v0 = t->getV0();
+            auto v1 = t->getV1();
+            auto v2 = t->getV2();
+            auto set = [&]( const char* key, const model::Vector3f& v, int idx ) {
+                if ( auto* f = findField( key ) )
+                {
+                    float val = idx == 0 ? v.x : ( idx == 1 ? v.y : v.z );
+                    f->input->setString( fmt2( val ) );
+                }
+            };
+            set( "v0x", v0, 0 );
+            set( "v0y", v0, 1 );
+            set( "v0z", v0, 2 );
+            set( "v1x", v1, 0 );
+            set( "v1y", v1, 1 );
+            set( "v1z", v1, 2 );
+            set( "v2x", v2, 0 );
+            set( "v2y", v2, 1 );
+            set( "v2z", v2, 2 );
         }
     }
 
@@ -420,9 +634,203 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                                          static_cast<std::uint8_t>( *vb ),
                                                          255 ),
                                            static_cast<float>( *vf ),
-                                           static_cast<float>( *vref ),
-                                           static_cast<float>( *veta ) ) };
+                                          static_cast<float>( *vref ),
+                                          static_cast<float>( *veta ) ) };
         return res;
+    }
+
+    std::unique_ptr<model::Primitive>
+    buildObject( Type type, const CommonFields& common )
+    {
+        auto read = [&]( const char* key, auto validator ) { return parse( findField( key ), validator ); };
+
+        switch ( type )
+        {
+            case Type::Sphere: {
+                auto r = read( "p1", []( double v ) { return v > 0; } );
+                if ( !r )
+                    return nullptr;
+                return std::make_unique<model::Sphere>( common.material,
+                                                        common.origin,
+                                                        static_cast<float>( *r ) );
+            }
+            case Type::AABB: {
+                auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                if ( !p1 || !p2 || !p3 )
+                    return nullptr;
+                return std::make_unique<model::AABB>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f( static_cast<float>( *p1 ),
+                                     static_cast<float>( *p2 ),
+                                     static_cast<float>( *p3 ) ) );
+            }
+            case Type::Torus: {
+                auto maj = read( "p1", []( double v ) { return v > 0; } );
+                auto min = read( "p2", []( double v ) { return v > 0; } );
+                if ( !maj || !min )
+                    return nullptr;
+                return std::make_unique<model::Torus>(
+                    common.material,
+                    common.origin,
+                    static_cast<float>( *maj ),
+                    static_cast<float>( *min ) );
+            }
+            case Type::HexPrism: {
+                auto r = read( "p1", []( double v ) { return v > 0; } );
+                auto h = read( "p2", []( double v ) { return v > 0; } );
+                if ( !r || !h )
+                    return nullptr;
+                return std::make_unique<model::HexPrism>(
+                    common.material, common.origin, static_cast<float>( *r ), static_cast<float>( *h ) );
+            }
+            case Type::Goursat: {
+                auto ka = read( "ka", []( double v ) { return v > 0; } );
+                auto kb = read( "kb", []( double v ) { return v > 0; } );
+                if ( !ka || !kb )
+                    return nullptr;
+                return std::make_unique<model::Goursat>(
+                    common.material, common.origin, static_cast<float>( *ka ), static_cast<float>( *kb ) );
+            }
+            case Type::RoundedBox: {
+                auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                auto p4 = read( "p4", []( double v ) { return v > 0; } );
+                if ( !p1 || !p2 || !p3 || !p4 )
+                    return nullptr;
+                return std::make_unique<model::RoundedBox>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f( static_cast<float>( *p1 ),
+                                     static_cast<float>( *p2 ),
+                                     static_cast<float>( *p3 ) ),
+                    static_cast<float>( *p4 ) );
+            }
+            case Type::Ellipsoid: {
+                auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                if ( !p1 || !p2 || !p3 )
+                    return nullptr;
+                return std::make_unique<model::Ellipsoid>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f( static_cast<float>( *p1 ),
+                                     static_cast<float>( *p2 ),
+                                     static_cast<float>( *p3 ) ) );
+            }
+            case Type::Capsule: {
+                auto h = read( "p1", []( double v ) { return v > 0; } );
+                auto r = read( "p2", []( double v ) { return v > 0; } );
+                if ( !h || !r )
+                    return nullptr;
+                float fh = static_cast<float>( *h );
+                return std::make_unique<model::Capsule>( common.material,
+                                                         common.origin,
+                                                         model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                                                         model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                                                         static_cast<float>( *r ) );
+            }
+            case Type::RoundedCone: {
+                auto h = read( "p1", []( double v ) { return v > 0; } );
+                auto ra = read( "p2", []( double v ) { return v > 0; } );
+                auto rb = read( "p3", []( double v ) { return v > 0; } );
+                if ( !h || !ra || !rb )
+                    return nullptr;
+                float fh = static_cast<float>( *h );
+                return std::make_unique<model::RoundedCone>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                    model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                    static_cast<float>( *ra ),
+                    static_cast<float>( *rb ) );
+            }
+            case Type::CappedCone: {
+                auto h = read( "p1", []( double v ) { return v > 0; } );
+                auto ra = read( "p2", []( double v ) { return v > 0; } );
+                auto rb = read( "p3", []( double v ) { return v > 0; } );
+                if ( !h || !ra || !rb )
+                    return nullptr;
+                float fh = static_cast<float>( *h );
+                return std::make_unique<model::CappedCone>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                    model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                    static_cast<float>( *ra ),
+                    static_cast<float>( *rb ) );
+            }
+            case Type::CappedCylinder: {
+                auto h = read( "p1", []( double v ) { return v > 0; } );
+                auto r = read( "p2", []( double v ) { return v > 0; } );
+                if ( !h || !r )
+                    return nullptr;
+                float fh = static_cast<float>( *h );
+                return std::make_unique<model::CappedCylinder>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                    model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                    static_cast<float>( *r ) );
+            }
+            case Type::Wedge: {
+                auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                if ( !p1 || !p2 || !p3 )
+                    return nullptr;
+                return std::make_unique<model::Wedge>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f( static_cast<float>( *p1 ),
+                                     static_cast<float>( *p2 ),
+                                     static_cast<float>( *p3 ) ) );
+            }
+            case Type::Ellipse: {
+                auto ux = read( "ux", []( double ) { return true; } );
+                auto uy = read( "uy", []( double ) { return true; } );
+                auto uz = read( "uz", []( double ) { return true; } );
+                auto vx = read( "vx", []( double ) { return true; } );
+                auto vy = read( "vy", []( double ) { return true; } );
+                auto vz = read( "vz", []( double ) { return true; } );
+                if ( !ux || !uy || !uz || !vx || !vy || !vz )
+                    return nullptr;
+                return std::make_unique<model::Ellipse>(
+                    common.material,
+                    common.origin,
+                    model::Vector3f( static_cast<float>( *ux ),
+                                     static_cast<float>( *uy ),
+                                     static_cast<float>( *uz ) ),
+                    model::Vector3f( static_cast<float>( *vx ),
+                                     static_cast<float>( *vy ),
+                                     static_cast<float>( *vz ) ) );
+            }
+            case Type::Triangle: {
+                auto fetch = [&]( const char* key ) { return read( key, []( double ) { return true; } ); };
+                auto v0x = fetch( "v0x" ), v0y = fetch( "v0y" ), v0z = fetch( "v0z" );
+                auto v1x = fetch( "v1x" ), v1y = fetch( "v1y" ), v1z = fetch( "v1z" );
+                auto v2x = fetch( "v2x" ), v2y = fetch( "v2y" ), v2z = fetch( "v2z" );
+                if ( !v0x || !v0y || !v0z || !v1x || !v1y || !v1z || !v2x || !v2y || !v2z )
+                    return nullptr;
+                return std::make_unique<model::Triangle>(
+                    common.material,
+                    model::Vector3f( static_cast<float>( *v0x ),
+                                     static_cast<float>( *v0y ),
+                                     static_cast<float>( *v0z ) ),
+                    model::Vector3f( static_cast<float>( *v1x ),
+                                     static_cast<float>( *v1y ),
+                                     static_cast<float>( *v1z ) ),
+                    model::Vector3f( static_cast<float>( *v2x ),
+                                     static_cast<float>( *v2y ),
+                                     static_cast<float>( *v2z ) ) );
+            }
+        }
+
+        return nullptr;
     }
 
     void
@@ -451,47 +859,15 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     void
     applyToExisting( const CommonFields& common )
     {
-        auto& obj = scene_manager_.getObjects()[target_idx_.value()];
-        obj->setOrigin( common.origin );
-        obj->setMaterial( common.material );
-        obj->setDisplayName( common.name );
-
-        if ( auto* sphere = dynamic_cast<model::Sphere*>( obj.get() ) )
+        auto obj = buildObject( current_type_, common );
+        if ( !obj )
         {
-            auto p1 = parse( findField( "p1" ), []( double v ) { return v > 0; } );
-            if ( p1 )
-                sphere->setRadius( static_cast<float>( *p1 ) );
-        } else if ( auto* aabb = dynamic_cast<model::AABB*>( obj.get() ) )
-        {
-            auto p1 = parse( findField( "p1" ), []( double v ) { return v > 0; } );
-            auto p2 = parse( findField( "p2" ), []( double v ) { return v > 0; } );
-            auto p3 = parse( findField( "p3" ), []( double v ) { return v > 0; } );
-            if ( p1 && p2 && p3 )
-            {
-                aabb->setHalfSize( { static_cast<float>( *p1 ),
-                                     static_cast<float>( *p2 ),
-                                     static_cast<float>( *p3 ) } );
-            }
-        } else if ( auto* torus = dynamic_cast<model::Torus*>( obj.get() ) )
-        {
-            auto pMaj = parse( findField( "p1" ), []( double v ) { return v > 0; } );
-            auto pMin = parse( findField( "p2" ), []( double v ) { return v > 0; } );
-            if ( pMaj && pMin )
-            {
-                torus->setMajorRadius( static_cast<float>( *pMaj ) );
-                torus->setMinorRadius( static_cast<float>( *pMin ) );
-            }
-        } else if ( auto* hex = dynamic_cast<model::HexPrism*>( obj.get() ) )
-        {
-            auto pr = parse( findField( "p1" ), []( double v ) { return v > 0; } );
-            auto ph = parse( findField( "p2" ), []( double v ) { return v > 0; } );
-            if ( pr && ph )
-            {
-                hex->setRadius( static_cast<float>( *pr ) );
-                hex->setHeight( static_cast<float>( *ph ) );
-            }
+            return;
         }
 
+        obj->setDisplayName( common.name );
+        scene_manager_.getObjects()[*target_idx_] = std::move( obj );
+        scene_manager_.setTargetObj( scene_manager_.getObjects()[*target_idx_].get() );
         scene_manager_.needUpdate() = true;
     }
 
@@ -515,7 +891,29 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             return Type::AABB;
         if ( name == "Torus" )
             return Type::Torus;
-        return Type::HexPrism;
+        if ( name == "HexPrism" )
+            return Type::HexPrism;
+        if ( name == "Goursat" )
+            return Type::Goursat;
+        if ( name == "RoundedBox" )
+            return Type::RoundedBox;
+        if ( name == "Ellipsoid" )
+            return Type::Ellipsoid;
+        if ( name == "Capsule" )
+            return Type::Capsule;
+        if ( name == "RoundedCone" )
+            return Type::RoundedCone;
+        if ( name == "CappedCone" )
+            return Type::CappedCone;
+        if ( name == "CappedCylinder" )
+            return Type::CappedCylinder;
+        if ( name == "Wedge" )
+            return Type::Wedge;
+        if ( name == "Ellipse" )
+            return Type::Ellipse;
+        if ( name == "Triangle" )
+            return Type::Triangle;
+        return Type::Sphere;
     }
 
     void
@@ -569,6 +967,97 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 if ( auto* f = findField( "p2" ) )
                     f->input->setString( "2.00" );
                 break;
+            case Type::Goursat:
+                if ( auto* f = findField( "ka" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "kb" ) )
+                    f->input->setString( "1.00" );
+                break;
+            case Type::RoundedBox:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p3" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p4" ) )
+                    f->input->setString( "0.20" );
+                break;
+            case Type::Ellipsoid:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "1.50" );
+                if ( auto* f = findField( "p3" ) )
+                    f->input->setString( "0.75" );
+                break;
+            case Type::Capsule:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "2.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "0.50" );
+                break;
+            case Type::RoundedCone:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "2.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p3" ) )
+                    f->input->setString( "0.50" );
+                break;
+            case Type::CappedCone:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "2.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p3" ) )
+                    f->input->setString( "0.50" );
+                break;
+            case Type::CappedCylinder:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "2.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "0.50" );
+                break;
+            case Type::Wedge:
+                if ( auto* f = findField( "p1" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p2" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "p3" ) )
+                    f->input->setString( "1.00" );
+                break;
+            case Type::Ellipse:
+                if ( auto* f = findField( "ux" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "uy" ) )
+                    f->input->setString( "0.00" );
+                if ( auto* f = findField( "uz" ) )
+                    f->input->setString( "0.00" );
+                if ( auto* f = findField( "vx" ) )
+                    f->input->setString( "0.00" );
+                if ( auto* f = findField( "vy" ) )
+                    f->input->setString( "1.00" );
+                if ( auto* f = findField( "vz" ) )
+                    f->input->setString( "0.00" );
+                break;
+            case Type::Triangle: {
+                std::vector<std::pair<const char*, const char*>> defaults = { { "v0x", "0.0" },
+                                                                               { "v0y", "0.0" },
+                                                                               { "v0z", "0.0" },
+                                                                               { "v1x", "1.0" },
+                                                                               { "v1y", "0.0" },
+                                                                               { "v1z", "0.0" },
+                                                                               { "v2x", "0.0" },
+                                                                               { "v2y", "1.0" },
+                                                                               { "v2z", "0.0" } };
+                for ( auto& p : defaults )
+                {
+                    if ( auto* f = findField( p.first ) )
+                        f->input->setString( p.second );
+                }
+                break;
+            }
         }
     }
 
@@ -584,44 +1073,44 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             case Type::Torus:
                 return "Torus";
             case Type::HexPrism:
-            default:
                 return "HexPrism";
+            case Type::Goursat:
+                return "Goursat";
+            case Type::RoundedBox:
+                return "RoundedBox";
+            case Type::Ellipsoid:
+                return "Ellipsoid";
+            case Type::Capsule:
+                return "Capsule";
+            case Type::RoundedCone:
+                return "RoundedCone";
+            case Type::CappedCone:
+                return "CappedCone";
+            case Type::CappedCylinder:
+                return "CappedCylinder";
+            case Type::Wedge:
+                return "Wedge";
+            case Type::Ellipse:
+                return "Ellipse";
+            case Type::Triangle:
+            default:
+                return "Triangle";
         }
     }
 
     void
     addNewObject( const CommonFields& common )
     {
-        float p1 = parse( findField( "p1" ), []( double v ) { return v > 0; } ).value_or( 1.0 );
-        float p2 = parse( findField( "p2" ), []( double v ) { return v > 0; } ).value_or( 1.0 );
-        float p3 = parse( findField( "p3" ), []( double v ) { return v > 0; } ).value_or( 1.0 );
-
-        model::Primitive* created = nullptr;
-        switch ( current_type_ )
+        auto obj = buildObject( current_type_, common );
+        if ( !obj )
         {
-            case Type::Sphere:
-                scene_manager_.addSphere( common.material, common.origin, p1 );
-                break;
-            case Type::AABB:
-                scene_manager_.addAABB( common.material, common.origin, { p1, p2, p3 } );
-                break;
-            case Type::Torus:
-                // UI shows major radius first, but addTorus expects (minor, major)
-                scene_manager_.addTorus( common.material, common.origin, p2, p1 );
-                break;
-            case Type::HexPrism:
-                scene_manager_.addHexPrism( common.material, common.origin, p1, p2 );
-                break;
+            return;
         }
 
-        if ( !scene_manager_.getObjects().empty() )
-        {
-            created = scene_manager_.getObjects().back().get();
-        }
-
-        created->setDisplayName( common.name );
-        scene_manager_.setTargetObj( created );
-        target_idx_                 = scene_manager_.getObjects().size() - 1;
+        obj->setDisplayName( common.name );
+        scene_manager_.getObjects().push_back( std::move( obj ) );
+        target_idx_ = scene_manager_.getObjects().size() - 1;
+        scene_manager_.setTargetObj( scene_manager_.getObjects().back().get() );
         scene_manager_.needUpdate() = true;
         prefill( target_idx_.value(), scene_manager_.getObjectInfo( target_idx_.value() ) );
         updateTypeButtons();
@@ -666,6 +1155,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         TypePickerDialog( hui::WindowManager* wm,
                           float               x,
                           float               y,
+                          Type                initial,
                           std::function<void(Type)> on_ok,
                           std::function<void()>     on_cancel )
             : DialogBox( wm, x, y, 220.0f, 260.0f, on_cancel, "Choose Type" ),
@@ -673,7 +1163,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
               ok_( wm, { 20.0f, 210.0f }, { 80.0f, 26.0f } ),
               cancel_( wm, { 120.0f, 210.0f }, { 80.0f, 26.0f } ),
               on_ok_( std::move( on_ok ) ),
-              on_cancel_( std::move( on_cancel ) )
+              on_cancel_( std::move( on_cancel ) ),
+              selected_( initial )
         {
             list_.setParent( this );
             ok_.setParent( this );
@@ -741,6 +1232,16 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             add( "AABB", Type::AABB );
             add( "Torus", Type::Torus );
             add( "HexPrism", Type::HexPrism );
+            add( "Goursat", Type::Goursat );
+            add( "RoundedBox", Type::RoundedBox );
+            add( "Ellipsoid", Type::Ellipsoid );
+            add( "Capsule", Type::Capsule );
+            add( "RoundedCone", Type::RoundedCone );
+            add( "CappedCone", Type::CappedCone );
+            add( "CappedCylinder", Type::CappedCylinder );
+            add( "Wedge", Type::Wedge );
+            add( "Ellipse", Type::Ellipse );
+            add( "Triangle", Type::Triangle );
         }
 
       private:
@@ -774,6 +1275,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 wm_,
                 getRelPos().x + 20.0f,
                 getRelPos().y + 20.0f,
+                current_type_,
                 [this]( Type t ) {
                     current_type_  = t;
                     creation_type_ = t;
