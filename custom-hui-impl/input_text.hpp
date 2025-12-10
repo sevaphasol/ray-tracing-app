@@ -15,9 +15,36 @@ namespace hui {
 
 class InputText : public Widget {
   public:
-    explicit InputText( hui::WindowManager* wm, float x, float y, float w, float h );
-    explicit InputText( hui::WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size )
-        : InputText( wm, pos.x, pos.y, size.x, size.y )
+    struct Theme
+    {
+        dr4::Color border_color;
+        dr4::Color fill_color;
+        dr4::Color text_color;
+        size_t     font_size;
+        dr4::Color cursor_color;
+        dr4::Color selection_color;
+        float      border_thickness;
+    };
+
+    static const inline Theme DefaultTheme = { { 118, 185, 0, 255 },
+                                               { 0, 0, 0, 0 },
+                                               { 255, 255, 255, 255 },
+                                               15,
+                                               { 255, 255, 255, 255 },
+                                               { 50, 100, 200, 100 },
+                                               -2.0f };
+
+    explicit InputText( hui::WindowManager* wm,
+                        float               x,
+                        float               y,
+                        float               w,
+                        float               h,
+                        const Theme&        theme = DefaultTheme );
+    explicit InputText( hui::WindowManager* wm,
+                        const dr4::Vec2f&   pos,
+                        const dr4::Vec2f&   size,
+                        const Theme&        theme = DefaultTheme )
+        : InputText( wm, pos.x, pos.y, size.x, size.y, theme )
     {
     }
 
@@ -153,9 +180,8 @@ class InputText : public Widget {
     OnKeyDownReadOnly( const dr4::Event::KeyEvent& evt );
 
   private:
-    static constexpr float RectBorderThickness = -2.0f;
-    static constexpr float RectMarginX         = 10.0f;
-    static constexpr float RectMarginY         = 10.0f;
+    static constexpr float RectMarginX = 10.0f;
+    static constexpr float RectMarginY = 10.0f;
 
     const std::string empty_str_;
 
@@ -178,6 +204,7 @@ class InputText : public Widget {
     std::unique_ptr<dr4::Rectangle> selection_rect_;
 
     bool is_drawing_ = false;
+    Theme theme_;
 
     float ascent_;
     float descent_;

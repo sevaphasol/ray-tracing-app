@@ -13,12 +13,8 @@ class ButtonOk : public hui::Button {
         : Button( wm,
                   pos,
                   size,
-                  Colors::Default,
-                  Colors::Hover,
-                  Colors::Pressed,
                   "OK",
-                  Colors::Font,
-                  12 )
+                  hui::Button::Theme{ Colors::Default, Colors::Hover, Colors::Pressed, Colors::Font, 12 } )
     {
     }
 

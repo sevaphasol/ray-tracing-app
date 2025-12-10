@@ -25,22 +25,22 @@ class PluginItemRow : public hui::ContainerWidget {
           select_btn_( wm,
                        dr4::Vec2f{ 0.0f, 0.0f },
                        dr4::Vec2f{ size.x - btn_w_ - gap_, size.y },
-                       active ? Config::ControlPanel::Button::PressedColor
-                              : Config::ControlPanel::Button::DefaultColor,
-                       Config::ControlPanel::Button::HoveredColor,
-                       Config::ControlPanel::Button::PressedColor,
                        label,
-                       Config::ControlPanel::Button::FontColor,
-                       Config::ControlPanel::Button::FontSize ),
+                       hui::Button::Theme{ active ? Config::ControlPanel::Button::PressedColor
+                                                  : Config::ControlPanel::Button::DefaultColor,
+                                           Config::ControlPanel::Button::HoveredColor,
+                                           Config::ControlPanel::Button::PressedColor,
+                                           Config::ControlPanel::Button::FontColor,
+                                           Config::ControlPanel::Button::FontSize } ),
           del_btn_( wm,
                     dr4::Vec2f{ size.x - btn_w_, 0.0f },
                     dr4::Vec2f{ btn_w_ - gap_, size.y },
-                    Config::ControlPanel::Button::DefaultColor,
-                    Config::ControlPanel::Button::HoveredColor,
-                    Config::ControlPanel::Button::PressedColor,
                     "X",
-                    Config::ControlPanel::Button::FontColor,
-                    Config::ControlPanel::Button::FontSize )
+                    hui::Button::Theme{ Config::ControlPanel::Button::DefaultColor,
+                                        Config::ControlPanel::Button::HoveredColor,
+                                        Config::ControlPanel::Button::PressedColor,
+                                        Config::ControlPanel::Button::FontColor,
+                                        Config::ControlPanel::Button::FontSize } )
     {
         select_btn_.setParent( this );
         del_btn_.setParent( this );
@@ -153,21 +153,21 @@ class PluginPopup : public hui::DialogBox {
           new_btn_( wm,
                     dr4::Vec2f( 10.0f, TopBarHeight + 12.0f ),
                     dr4::Vec2f( 100.0f, 32.0f ),
-                    Config::ControlPanel::Button::DefaultColor,
-                    Config::ControlPanel::Button::HoveredColor,
-                    Config::ControlPanel::Button::PressedColor,
                     "New",
-                    Config::ControlPanel::Button::FontColor,
-                    Config::ControlPanel::Button::FontSize ),
+                    hui::Button::Theme{ Config::ControlPanel::Button::DefaultColor,
+                                        Config::ControlPanel::Button::HoveredColor,
+                                        Config::ControlPanel::Button::PressedColor,
+                                        Config::ControlPanel::Button::FontColor,
+                                        Config::ControlPanel::Button::FontSize } ),
           show_btn_( wm,
                      dr4::Vec2f( 130.0f, TopBarHeight + 12.0f ),
                      dr4::Vec2f( 100.0f, 32.0f ),
-                     Config::ControlPanel::Button::DefaultColor,
-                     Config::ControlPanel::Button::HoveredColor,
-                     Config::ControlPanel::Button::PressedColor,
                      "Show",
-                     Config::ControlPanel::Button::FontColor,
-                     Config::ControlPanel::Button::FontSize )
+                     hui::Button::Theme{ Config::ControlPanel::Button::DefaultColor,
+                                         Config::ControlPanel::Button::HoveredColor,
+                                         Config::ControlPanel::Button::PressedColor,
+                                         Config::ControlPanel::Button::FontColor,
+                                         Config::ControlPanel::Button::FontSize } )
     {
         new_btn_.setParent( this );
         show_btn_.setParent( this );

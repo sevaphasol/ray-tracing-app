@@ -45,48 +45,28 @@ class ObjectEditorPanel : public hui::ClosablePanel {
           type_btn_( wm,
                      { 12.0f, size.y - 34.0f },
                      { 88.0f, 24.0f },
-                     CloseBtnDefaultColor,
-                     CloseBtnHoveredColor,
-                     CloseBtnPressedColor,
                      "Type",
-                     CloseBtnFontColor,
-                     CloseBtnFontSize ),
+                     hui::Button::DefaultTheme ),
           add_btn_( wm,
                     { 112.0f, size.y - 34.0f },
                     { 88.0f, 24.0f },
-                    CloseBtnDefaultColor,
-                    CloseBtnHoveredColor,
-                    CloseBtnPressedColor,
                     "Add",
-                    CloseBtnFontColor,
-                    CloseBtnFontSize ),
+                    hui::Button::DefaultTheme ),
           copy_btn_( wm,
                      { 12.0f, size.y - 34.0f },
                      { 88.0f, 24.0f },
-                     CloseBtnDefaultColor,
-                     CloseBtnHoveredColor,
-                     CloseBtnPressedColor,
                      "Copy",
-                     CloseBtnFontColor,
-                     CloseBtnFontSize ),
+                     hui::Button::DefaultTheme ),
           del_btn_( wm,
                     { 112.0f, size.y - 34.0f },
                     { 88.0f, 24.0f },
-                    CloseBtnDefaultColor,
-                    CloseBtnHoveredColor,
-                    CloseBtnPressedColor,
                     "Delete",
-                    CloseBtnFontColor,
-                    CloseBtnFontSize ),
+                    hui::Button::DefaultTheme ),
           apply_btn_( wm,
                       { size.x - 100.0f, size.y - 34.0f },
                       { 88.0f, 24.0f },
-                      CloseBtnDefaultColor,
-                      CloseBtnHoveredColor,
-                      CloseBtnPressedColor,
                       "Apply",
-                      CloseBtnFontColor,
-                      CloseBtnFontSize )
+                      hui::Button::DefaultTheme )
     {
         setDraggable( true );
         buildForm( current_type_ );
@@ -1214,13 +1194,14 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 auto btn = std::make_unique<hui::Button>( wm_,
                                                           dr4::Vec2f{ 0, 0 },
                                                           dr4::Vec2f{ 180.0f, 32.0f },
-                                                          t == selected_ ? CloseBtnPressedColor
-                                                                         : CloseBtnDefaultColor,
-                                                          CloseBtnHoveredColor,
-                                                          CloseBtnPressedColor,
                                                           label,
-                                                          CloseBtnFontColor,
-                                                          CloseBtnFontSize );
+                                                          t == selected_
+                                                              ? hui::Button::Theme{ hui::Button::DefaultTheme.pressed_color,
+                                                                                    hui::Button::DefaultTheme.hovered_color,
+                                                                                    hui::Button::DefaultTheme.pressed_color,
+                                                                                    hui::Button::DefaultTheme.font_color,
+                                                                                    hui::Button::DefaultTheme.font_size }
+                                                              : hui::Button::DefaultTheme );
                 btn->setOnClick( [this, t]() {
                     selected_ = t;
                     buildItems();

@@ -156,14 +156,49 @@ class Arrow : public hui::Widget {
 
 class ScrollBar : public hui::ContainerWidget {
   public:
+    struct Theme
+    {
+        struct ColorSet
+        {
+            dr4::Color default_color;
+            dr4::Color hover_color;
+            dr4::Color pressed_color;
+        };
+
+        ColorSet   thumb;
+        ColorSet   arrow_field;
+        ColorSet   arrow_triangle;
+        dr4::Color border_fill;
+        dr4::Color border_line;
+
+        Theme()
+            : thumb{ { 48 + 32, 48 + 32, 48 + 32, 170 },
+                     { 64 + 32, 64 + 32, 64 + 32, 230 },
+                     { 32 + 32, 32 + 32, 32 + 32, 175 } },
+              arrow_field{ { 96 + 32, 96 + 32, 96 + 32, 255 },
+                           { 64 + 32, 64 + 32, 64 + 32, 255 },
+                           { 32 + 32, 32 + 32, 32 + 32, 255 } },
+              arrow_triangle{ { 96, 96, 96, 255 },
+                              { 64, 64, 64, 255 },
+                              { 32, 32, 32, 255 } },
+              border_fill( { 48, 48, 48, 223 } ),
+              border_line( { 32, 32, 32, 255 } )
+        {
+        }
+    };
+
+    static const inline Theme DefaultTheme{};
+
     ScrollBar( hui::WindowManager* wm,
                const dr4::Vec2f&   pos,
-               dr4::Vec2f          size = detail::ScrollBar::Size );
+               dr4::Vec2f          size = detail::ScrollBar::Size,
+               const Theme&        theme = DefaultTheme );
     ScrollBar( hui::WindowManager* wm,
                float               x,
                float               y,
                float               w = detail::ScrollBar::Size.x,
-               float               h = detail::ScrollBar::Size.y );
+               float               h = detail::ScrollBar::Size.y,
+               const Theme&        theme = DefaultTheme );
 
     void
     bringToFront( Widget* child ) override;
@@ -190,6 +225,12 @@ class ScrollBar : public hui::ContainerWidget {
     bool
     isScrolled();
 
+    const Theme&
+    theme() const
+    {
+        return theme_;
+    }
+
   private:
     void
     updateThumbPosition();
@@ -197,6 +238,7 @@ class ScrollBar : public hui::ContainerWidget {
   private:
     bool   is_scrolled_   = false;
     double scroll_factor_ = 0.0;
+    Theme  theme_;
 
     std::unique_ptr<dr4::Rectangle> border_;
 

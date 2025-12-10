@@ -161,16 +161,17 @@ class CameraControlPanel : public hui::ClosablePanel {
     void
     setupButton( ButtonCode code, const dr4::Vec2f& pos, const char* title )
     {
+        hui::Button::Theme theme{ Config::CameraPanel::Button::DefaultColor,
+                                  Config::CameraPanel::Button::HoveredColor,
+                                  Config::CameraPanel::Button::PressedColor,
+                                  Config::CameraPanel::Button::FontColor,
+                                  Config::CameraPanel::Button::FontSize };
         buttons_[code] =
             std::move( std::make_unique<hui::Button>( wm_,
                                                       pos,
                                                       Config::CameraPanel::Button::Size,
-                                                      Config::CameraPanel::Button::DefaultColor,
-                                                      Config::CameraPanel::Button::HoveredColor,
-                                                      Config::CameraPanel::Button::PressedColor,
                                                       title,
-                                                      Config::CameraPanel::Button::FontColor,
-                                                      Config::CameraPanel::Button::FontSize ) );
+                                                      theme ) );
         buttons_[code]->setParent( this );
     }
 

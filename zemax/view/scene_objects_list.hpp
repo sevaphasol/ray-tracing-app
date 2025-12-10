@@ -297,17 +297,13 @@ class SceneObjectsListModal : public hui::DialogBox {
         for ( size_t i = 0; i < names.size(); ++i )
         {
             auto item_idx = object_indices[i]; // Capture the actual object index
-            auto btn =
-                std::make_unique<hui::Button>( wm_,
-                                               dr4::Vec2f{ 0.0f, 0.0f },
-                                               dr4::Vec2f{ item_w, item_h },
-                                               dr4::Color{ 50, 50, 50, 255 },    // Default color
-                                               dr4::Color{ 70, 70, 70, 255 },    // Hover color
-                                               dr4::Color{ 30, 30, 30, 255 },    // Pressed color
-                                               names[i],
-                                               dr4::Color{ 220, 220, 220, 255 }, // Text color
-                                               13                                // Font size
-                );
+            hui::Button::Theme theme{ dr4::Color{ 50, 50, 50, 255 },
+                                      dr4::Color{ 70, 70, 70, 255 },
+                                      dr4::Color{ 30, 30, 30, 255 },
+                                      dr4::Color{ 220, 220, 220, 255 },
+                                      13 };
+            auto btn = std::make_unique<hui::Button>(
+                wm_, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ item_w, item_h }, names[i], theme );
 
             btn->setOnClick( [this, item_idx]() {
                 if ( on_select_ )

@@ -119,16 +119,17 @@ class ControlPanel : public hui::ClosablePanel {
     void
     setupButton( ButtonCode code, const dr4::Vec2f& pos, const char* title )
     {
+        hui::Button::Theme theme{ Config::ControlPanel::Button::DefaultColor,
+                                  Config::ControlPanel::Button::HoveredColor,
+                                  Config::ControlPanel::Button::PressedColor,
+                                  Config::ControlPanel::Button::FontColor,
+                                  Config::ControlPanel::Button::FontSize };
         buttons_[code] =
             std::move( std::make_unique<hui::Button>( wm_,
                                                       pos,
                                                       Config::ControlPanel::Button::Size,
-                                                      Config::ControlPanel::Button::DefaultColor,
-                                                      Config::ControlPanel::Button::HoveredColor,
-                                                      Config::ControlPanel::Button::PressedColor,
                                                       title,
-                                                      Config::ControlPanel::Button::FontColor,
-                                                      Config::ControlPanel::Button::FontSize ) );
+                                                      theme ) );
         buttons_[code]->setParent( this );
     }
 

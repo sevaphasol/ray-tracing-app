@@ -81,13 +81,13 @@ Thumb::updateVisuals()
 {
     if ( is_pressed_ || is_dragging_ )
     {
-        rect_->SetFillColor( detail::ScrollBar::Thumb::Color::Pressed );
+        rect_->SetFillColor( owner_->theme().thumb.pressed_color );
     } else if ( is_hovered_ )
     {
-        rect_->SetFillColor( detail::ScrollBar::Thumb::Color::Hover );
+        rect_->SetFillColor( owner_->theme().thumb.hover_color );
     } else
     {
-        rect_->SetFillColor( detail::ScrollBar::Thumb::Color::Default );
+        rect_->SetFillColor( owner_->theme().thumb.default_color );
     }
 }
 
@@ -113,7 +113,7 @@ Arrow::Arrow( hui::WindowManager* wm,
     rect_.reset( wm->getWindow()->CreateRectangle() );
 
     rect_->SetSize( size );
-    rect_->SetFillColor( detail::ScrollBar::ArrowField::Color::Default );
+    rect_->SetFillColor( owner_->theme().arrow_field.default_color );
 
     setUpTriangle();
 }
@@ -205,16 +205,16 @@ Arrow::updateVisuals()
 {
     if ( is_pressed_ )
     {
-        rect_->SetFillColor( detail::ScrollBar::ArrowField::Color::Pressed );
-        updateTriangleColor( detail::ScrollBar::ArrowField::Triangle::Color::Pressed );
+        rect_->SetFillColor( owner_->theme().arrow_field.pressed_color );
+        updateTriangleColor( owner_->theme().arrow_triangle.pressed_color );
     } else if ( is_hovered_ )
     {
-        rect_->SetFillColor( detail::ScrollBar::ArrowField::Color::Hover );
-        updateTriangleColor( detail::ScrollBar::ArrowField::Triangle::Color::Hover );
+        rect_->SetFillColor( owner_->theme().arrow_field.hover_color );
+        updateTriangleColor( owner_->theme().arrow_triangle.hover_color );
     } else
     {
-        rect_->SetFillColor( detail::ScrollBar::ArrowField::Color::Default );
-        updateTriangleColor( detail::ScrollBar::ArrowField::Triangle::Color::Default );
+        rect_->SetFillColor( owner_->theme().arrow_field.default_color );
+        updateTriangleColor( owner_->theme().arrow_triangle.default_color );
     }
 }
 
@@ -233,13 +233,22 @@ Arrow::RedrawMyTexture() const
 // window.draw( triangle_, 3, dr4::PrimitiveType::Triangles, widget_transform );
 // }
 
-ScrollBar::ScrollBar( hui::WindowManager* wm, float x, float y, float w, float h )
-    : ScrollBar( wm, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ) )
+ScrollBar::ScrollBar( hui::WindowManager* wm,
+                      float               x,
+                      float               y,
+                      float               w,
+                      float               h,
+                      const Theme&        theme )
+    : ScrollBar( wm, dr4::Vec2f( x, y ), dr4::Vec2f( w, h ), theme )
 {
 }
 
-ScrollBar::ScrollBar( hui::WindowManager* wm, const dr4::Vec2f& pos, dr4::Vec2f size )
+ScrollBar::ScrollBar( hui::WindowManager* wm,
+                      const dr4::Vec2f&   pos,
+                      dr4::Vec2f          size,
+                      const Theme&        theme )
     : hui::ContainerWidget( wm, pos, size ),
+      theme_( theme ),
       thumb_( wm,
               this,
               dr4::Vec2f( 0.0f, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
@@ -258,8 +267,8 @@ ScrollBar::ScrollBar( hui::WindowManager* wm, const dr4::Vec2f& pos, dr4::Vec2f 
     border_.reset( wm->getWindow()->CreateRectangle() );
 
     border_->SetSize( getSize() );
-    border_->SetFillColor( { 48, 48, 48, 223 } );
-    border_->SetBorderColor( { 32, 32, 32, 255 } );
+    border_->SetFillColor( theme_.border_fill );
+    border_->SetBorderColor( theme_.border_line );
     // border_->SetBorderThickness( -4.0f );
 }
 

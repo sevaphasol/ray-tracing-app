@@ -7,24 +7,30 @@
 #include "input_text.hpp"
 #include "widget.hpp"
 
-hui::InputText::InputText( hui::WindowManager* wm, float x, float y, float w, float h )
+hui::InputText::InputText( hui::WindowManager* wm,
+                           float               x,
+                           float               y,
+                           float               w,
+                           float               h,
+                           const Theme&        theme )
     : Widget( wm, x, y, w, h ),
       rect_( wm->getWindow()->CreateRectangle() ),
       text_( wm->getWindow()->CreateText() ),
       cursor_( wm->getWindow()->CreateRectangle() ),
-      selection_rect_( wm->getWindow()->CreateRectangle() )
+      selection_rect_( wm->getWindow()->CreateRectangle() ),
+      theme_( theme )
 {
-    rect_->SetBorderThickness( RectBorderThickness );
-    rect_->SetBorderColor( { 118, 185, 0, 255 } );
-    rect_->SetFillColor( { 0, 0, 0, 0 } );
+    rect_->SetBorderThickness( theme_.border_thickness );
+    rect_->SetBorderColor( theme_.border_color );
+    rect_->SetFillColor( theme_.fill_color );
 
     text_->SetFont( wm->getWindow()->GetDefaultFont() );
-    text_->SetColor( { 255, 255, 255 } );
-    text_->SetFontSize( 15 );
+    text_->SetColor( theme_.text_color );
+    text_->SetFontSize( theme_.font_size );
 
-    cursor_->SetFillColor( { 255, 255, 255 } );
+    cursor_->SetFillColor( theme_.cursor_color );
 
-    selection_rect_->SetFillColor( { 50, 100, 200, 100 } );
+    selection_rect_->SetFillColor( theme_.selection_color );
 
     updateRect();
 }

@@ -11,19 +11,44 @@ namespace hui {
 
 class Button : public hui::Widget {
   public:
+    struct Theme
+    {
+        dr4::Color default_color;
+        dr4::Color hovered_color;
+        dr4::Color pressed_color;
+        dr4::Color font_color;
+        size_t     font_size;
+    };
+
+    static const inline Theme DefaultTheme = { { 30, 30, 30 },
+                                               { 50, 70, 30 },
+                                               { 100, 150, 0 },
+                                               { 255, 255, 255 },
+                                               15 };
+
     using HoldPressCallback = std::function<void()>;
     using ClickCallback     = std::function<void()>;
 
+  private:
+    std::unique_ptr<dr4::Rectangle> background_;
+    std::unique_ptr<dr4::Text>      label_;
+
+    ClickCallback     on_click_;
+    HoldPressCallback on_hold_press_;
+
+    Theme theme_;
+
+  public:
     explicit Button( hui::WindowManager* wm,
                      const dr4::Vec2f&   pos,
                      const dr4::Vec2f&   size,
-                     const dr4::Color&   default_color,
-                     const dr4::Color&   hovered_color,
-                     const dr4::Color&   pressed_color,
                      const std::string&  title,
-                     const dr4::Color&   font_color,
-                     size_t              font_size );
+                     const Theme&        theme = DefaultTheme );
 
+    const Theme&
+    getTheme() const;
+    void
+    setTheme( const Theme& theme );
     void
     setRelPos( const dr4::Vec2f& pos ) override;
     void
@@ -54,17 +79,6 @@ class Button : public hui::Widget {
   private:
     void
     RedrawMyTexture() const override;
-
-    std::unique_ptr<dr4::Rectangle> background_;
-    const dr4::Font*                font_;
-    std::unique_ptr<dr4::Text>      label_;
-
-    dr4::Color default_color_;
-    dr4::Color hovered_color_;
-    dr4::Color pressed_color_;
-
-    ClickCallback     on_click_;
-    HoldPressCallback on_hold_press_;
 };
 
 } // namespace hui

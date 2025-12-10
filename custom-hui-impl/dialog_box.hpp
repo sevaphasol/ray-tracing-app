@@ -14,6 +14,39 @@ namespace hui {
 
 // Generic dialog panel with a top bar, title and close button.
 class DialogBox : public hui::ContainerWidget {
+  public:
+    struct Theme
+    {
+        dr4::Color      rect_fill;
+        dr4::Color      rect_border;
+        float           rect_border_thickness;
+        dr4::Color      topbar_fill;
+        dr4::Color      topbar_border;
+        float           topbar_border_thickness;
+        dr4::Color      label_color;
+        float           label_font_size;
+        dr4::Vec2f      label_padding;
+        hui::Button::Theme close_button;
+    };
+
+    static const inline Theme DefaultTheme = {
+        /*rect_fill=*/{ 32, 32, 32, 128 },
+        /*rect_border=*/{ 118, 185, 0, 255 },
+        /*rect_border_thickness=*/-2.0f,
+        /*topbar_fill=*/{ 32, 32, 32, 128 },
+        /*topbar_border=*/{ 118, 185, 0, 255 },
+        /*topbar_border_thickness=*/-2.0f,
+        /*label_color=*/{ 255, 255, 255, 255 },
+        /*label_font_size=*/12.0f,
+        /*label_padding=*/{ std::abs( -2.0f ) + 2.0f, std::abs( -2.0f ) + 2.0f },
+        /*close_button=*/
+        hui::Button::Theme{ { 128, 0, 0, 255 },
+                            { 164, 0, 0, 255 },
+                            { 96, 0, 0, 255 },
+                            { 255, 255, 255, 255 },
+                            12 }
+    };
+
   private:
     std::unique_ptr<dr4::Rectangle> rect_;
     std::unique_ptr<dr4::Rectangle> top_bar_;
@@ -25,21 +58,7 @@ class DialogBox : public hui::ContainerWidget {
 
     static constexpr float         TopBarHeight          = 25.0f;
     static constexpr float         TopBarBorderThickness = -2.0f;
-    static constexpr float         RectBorderThickness   = -2.0f;
     static constexpr float         CloseBtnSize = TopBarHeight - std::abs( TopBarBorderThickness );
-    static inline const size_t     CloseBtnFontSize     = 12;
-    static inline const dr4::Color CloseBtnDefaultColor = { 128, 0, 0, 255 };
-    static inline const dr4::Color CloseBtnHoveredColor = { 164, 0, 0, 255 };
-    static inline const dr4::Color CloseBtnPressedColor = { 96, 0, 0, 255 };
-    static inline const dr4::Color CloseBtnFontColor    = { 255, 255, 255, 255 };
-    static inline const dr4::Color RectFillColor        = { 32, 32, 32, 128 };
-    static inline const dr4::Color RectBorderColor      = { 118, 185, 0, 255 };
-    static inline const dr4::Color TopBarFillColor      = { 32, 32, 32, 128 };
-    static inline const dr4::Color TopBarBorderColor    = { 118, 185, 0, 255 };
-    static inline const dr4::Color LabelFontColor       = { 255, 255, 255, 255 };
-    static constexpr float         LabelFontSize        = 12;
-    static constexpr float         LabelPadX            = std::abs( TopBarBorderThickness ) + 2.0f;
-    static constexpr float         LabelPadY            = std::abs( TopBarBorderThickness ) + 2.0f;
 
   public:
     DialogBox( hui::WindowManager* wm,
@@ -48,7 +67,8 @@ class DialogBox : public hui::ContainerWidget {
                float               w,
                float               h,
                CloseBtnCallBack    close_call_back,
-               const std::string&  label )
+               const std::string&  label,
+               const Theme&        theme = DefaultTheme )
         : hui::ContainerWidget( wm, x, y, w, h ),
           close_btn_( wm,
                       {
@@ -56,36 +76,33 @@ class DialogBox : public hui::ContainerWidget {
                           std::abs( TopBarBorderThickness ),
                       },
                       { CloseBtnSize, CloseBtnSize },
-                      CloseBtnDefaultColor,
-                      CloseBtnHoveredColor,
-                      CloseBtnPressedColor,
                       "X",
-                      CloseBtnFontColor,
-                      CloseBtnFontSize ),
-          label_( wm, { LabelPadX, LabelPadY }, { w - CloseBtnSize, CloseBtnSize }, label )
+                      theme.close_button ),
+          label_( wm, theme.label_padding, { w - CloseBtnSize, CloseBtnSize }, label ),
+          theme_( theme )
     {
         setDraggable( true );
 
         rect_.reset( wm->getWindow()->CreateRectangle() );
         rect_->SetSize( { w, h - TopBarHeight } );
         rect_->SetPos( { 0, TopBarHeight } );
-        rect_->SetFillColor( RectFillColor );
-        rect_->SetBorderColor( RectBorderColor );
-        rect_->SetBorderThickness( RectBorderThickness );
+        rect_->SetFillColor( theme_.rect_fill );
+        rect_->SetBorderColor( theme_.rect_border );
+        rect_->SetBorderThickness( theme_.rect_border_thickness );
 
         top_bar_.reset( wm->getWindow()->CreateRectangle() );
         top_bar_->SetSize( { w, TopBarHeight + std::abs( TopBarBorderThickness ) } );
         top_bar_->SetPos( { 0, 0 } );
-        top_bar_->SetFillColor( TopBarFillColor );
-        top_bar_->SetBorderColor( TopBarBorderColor );
-        top_bar_->SetBorderThickness( TopBarBorderThickness );
+        top_bar_->SetFillColor( theme_.topbar_fill );
+        top_bar_->SetBorderColor( theme_.topbar_border );
+        top_bar_->SetBorderThickness( theme_.topbar_border_thickness );
 
         close_btn_.setParent( this );
         close_btn_.setOnClick( close_call_back );
 
         label_.setParent( this );
         label_.setText( label );
-        label_.setRelPos( LabelPadX, LabelPadY );
+        label_.setRelPos( theme_.label_padding.x, theme_.label_padding.y );
     }
 
     bool
@@ -102,6 +119,9 @@ class DialogBox : public hui::ContainerWidget {
         close_btn_.Redraw();
         label_.Redraw();
     }
+
+  private:
+    Theme theme_;
 };
 
 } // namespace hui

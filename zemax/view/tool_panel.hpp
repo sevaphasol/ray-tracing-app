@@ -80,15 +80,16 @@ ToolPanel::addTools( Tools tools )
 
     for ( size_t i = 0; i < tools->size(); ++i )
     {
+        hui::Button::Theme theme{ zemax::Config::ControlPanel::Button::DefaultColor,
+                                  zemax::Config::ControlPanel::Button::HoveredColor,
+                                  zemax::Config::ControlPanel::Button::PressedColor,
+                                  zemax::Config::ControlPanel::Button::FontColor,
+                                  zemax::Config::ControlPanel::Button::FontSize };
         auto btn = std::make_unique<hui::Button>( wm_,
                                                   dr4::Vec2f( padding_, padding_ + i * ( button_size_ + padding_ ) ),
                                                   dr4::Vec2f( button_size_, button_size_ ),
-                                                  zemax::Config::ControlPanel::Button::DefaultColor,
-                                                  zemax::Config::ControlPanel::Button::HoveredColor,
-                                                  zemax::Config::ControlPanel::Button::PressedColor,
                                                   std::string( ( *tools )[i]->Icon() ),
-                                                  zemax::Config::ControlPanel::Button::FontColor,
-                                                  zemax::Config::ControlPanel::Button::FontSize );
+                                                  theme );
 
         tools_.push_back( ( *tools )[i].get() );
 

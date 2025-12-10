@@ -8,33 +8,37 @@
 
 namespace hui {
 
-Button::Button( hui::WindowManager* wm,
-                const dr4::Vec2f&   pos,
-                const dr4::Vec2f&   size,
-                const dr4::Color&   default_color,
-                const dr4::Color&   hovered_color,
-                const dr4::Color&   pressed_color,
-                const std::string&  title,
-                const dr4::Color&   font_color,
-                size_t              font_size )
-    : Widget( wm, pos, size ),
-      default_color_( default_color ),
-      hovered_color_( hovered_color ),
-      pressed_color_( pressed_color )
+Button::Button( hui::WindowManager*  wm,
+                const dr4::Vec2f&    pos,
+                const dr4::Vec2f&    size,
+                const std::string&   title,
+                const Button::Theme& theme )
+    : Widget( wm, pos, size ), theme_( theme )
 {
     background_.reset( wm->getWindow()->CreateRectangle() );
     label_.reset( wm->getWindow()->CreateText() );
 
     background_->SetSize( size );
-    background_->SetFillColor( default_color_ );
+    background_->SetFillColor( theme.default_color );
 
-    font_ = wm->getWindow()->GetDefaultFont();
-    label_->SetFont( font_ );
+    label_->SetFont( wm->getWindow()->GetDefaultFont() );
     label_->SetText( title );
-    label_->SetFontSize( font_size );
-    label_->SetColor( font_color );
+    label_->SetFontSize( theme.font_size );
+    label_->SetColor( theme.font_color );
 
     moveInCenterOfRect( *label_, size, pos );
+}
+
+const Button::Theme&
+Button::getTheme() const
+{
+    return theme_;
+}
+
+void
+Button::setTheme( const Button::Theme& theme )
+{
+    theme_ = theme;
 }
 
 void
@@ -95,7 +99,7 @@ Button::onMousePress( const Event& event )
             parent_container->bringToFront( this );
         }
 
-        background_->SetFillColor( pressed_color_ );
+        background_->SetFillColor( theme_.pressed_color );
 
         return true;
     }
@@ -107,11 +111,11 @@ Button::onMouseMove( const Event& event )
 {
     if ( !Widget::onMouseMove( event ) || !is_hovered_ )
     {
-        background_->SetFillColor( default_color_ );
+        background_->SetFillColor( theme_.default_color );
         return false;
     }
 
-    background_->SetFillColor( hovered_color_ );
+    background_->SetFillColor( theme_.hovered_color );
     return true;
 }
 
@@ -123,7 +127,7 @@ Button::onMouseRelease( const Event& event )
         bool was_pressed = is_pressed_;
         is_pressed_      = false;
 
-        background_->SetFillColor( is_hovered_ ? hovered_color_ : default_color_ );
+        background_->SetFillColor( is_hovered_ ? theme_.hovered_color : theme_.default_color );
 
         if ( was_pressed && is_hovered_ )
         {
