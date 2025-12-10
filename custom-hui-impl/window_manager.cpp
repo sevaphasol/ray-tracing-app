@@ -40,7 +40,9 @@ hui::Widget*
 WindowManager::getTopModal() const
 {
     if ( modal_widgets_.empty() )
+    {
         return nullptr;
+    }
     return modal_widgets_.back().get();
 }
 
@@ -56,7 +58,9 @@ WindowManager::popModal()
 {
     std::cerr << __func__ << std::endl;
     if ( !modal_widgets_.empty() )
+    {
         modal_widgets_.pop_back();
+    }
 }
 
 void
@@ -67,8 +71,10 @@ WindowManager::handleEvents()
     std::optional<dr4::Event> dr4_event;
     while ( ( dr4_event = win_->PollEvent() ).has_value() )
     {
-        if ( !target_wgt )
+        if ( target_wgt == nullptr )
+        {
             break;
+        }
 
         switch ( dr4_event->type )
         {
@@ -88,11 +94,7 @@ WindowManager::handleEvents()
                 hui::MousePressEvent( *dr4_event ).apply( target_wgt );
                 break;
             case dr4::Event::Type::MOUSE_UP:
-                // std::cerr << "DEBUG IN " << __FILE__ << ':' << __LINE__ << ':' << __func__
-                // << std::endl;
                 hui::MouseReleaseEvent( *dr4_event ).apply( target_wgt );
-                // std::cerr << "DEBUG IN " << __FILE__ << ':' << __LINE__ << ':' << __func__
-                // << std::endl;
                 break;
             case dr4::Event::Type::MOUSE_MOVE:
                 hui::MouseMoveEvent( *dr4_event ).apply( target_wgt );
@@ -104,7 +106,9 @@ WindowManager::handleEvents()
 
     hui::IdleEvent().apply( &desktop_ );
     for ( auto& modal : modal_widgets_ )
+    {
         hui::IdleEvent().apply( modal.get() );
+    }
 }
 
 void
@@ -112,11 +116,8 @@ WindowManager::draw()
 {
     win_->Clear( background_color_ );
 
-    // 1. Основной desktop
     desktop_.Redraw();
     win_->Draw( *desktop_.getTexture() );
-
-    int i = 0;
 
     for ( auto& modal : modal_widgets_ )
     {

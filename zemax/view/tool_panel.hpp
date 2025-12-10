@@ -3,7 +3,6 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/window_manager.hpp"
 #include "pp/tool.hpp"
-#include "zemax/config.hpp"
 #include <optional>
 #include <vector>
 
@@ -80,11 +79,11 @@ ToolPanel::addTools( Tools tools )
 
     for ( size_t i = 0; i < tools->size(); ++i )
     {
-        hui::Button::Theme theme{ zemax::Config::ControlPanel::Button::DefaultColor,
-                                  zemax::Config::ControlPanel::Button::HoveredColor,
-                                  zemax::Config::ControlPanel::Button::PressedColor,
-                                  zemax::Config::ControlPanel::Button::FontColor,
-                                  zemax::Config::ControlPanel::Button::FontSize };
+        hui::Button::Theme theme{ { 30, 30, 30, 255 },
+                                  { 50, 70, 30, 255 },
+                                  { 100, 150, 0, 255 },
+                                  { 220, 220, 220, 255 },
+                                  15 };
         auto btn = std::make_unique<hui::Button>( wm_,
                                                   dr4::Vec2f( padding_, padding_ + i * ( button_size_ + padding_ ) ),
                                                   dr4::Vec2f( button_size_, button_size_ ),

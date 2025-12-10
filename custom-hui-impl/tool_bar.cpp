@@ -1,121 +1,3 @@
-// #include "tool_bar.hpp"
-// #include "dr4/math/vec2.hpp"
-// #include "dr4/window.hpp"
-//
-// namespace hui {
-//
-// // === MenuButton ===
-// MenuButton::MenuButton( WindowManager*     wm,
-//                         const std::string& label,
-//                         const dr4::Vec2f&  pos,
-//                         const dr4::Vec2f&  size )
-//     : Button( wm,
-//               pos,
-//               size,
-//               { 50, 50, 50, 255 }, // default
-//               { 70, 70, 70, 255 }, // hover
-//               { 30, 30, 30, 255 }, // pressed
-//               label,
-//               { 220, 220, 220, 255 },
-//               12 )
-// {
-// }
-//
-// bool
-// MenuButton::onMousePress( const Event& event )
-// {
-//     if ( is_hovered_ && event.info.mouseButton.button == dr4::MouseButtonType::LEFT )
-//     {
-//         if ( on_click_ )
-//             on_click_();
-//         return true;
-//     }
-//     return false;
-// }
-//
-// bool
-// MenuButton::onMouseRelease( const Event& event )
-// {
-//     return false;
-// }
-//
-// // === MenuPopup ===
-// MenuPopup::MenuPopup( WindowManager* wm, const dr4::Vec2f& abs_pos, const std::vector<Item>&
-// items )
-//     : VectorContainerWidget( wm, abs_pos, { 160, static_cast<float>( items.size() * 25 ) } )
-// {
-//     background_.reset( wm->getWindow()->CreateRectangle() );
-//     background_->SetSize( getSize() );
-//     background_->SetFillColor( { 40, 40, 40, 255 } );
-//     background_->SetBorderColor( { 80, 80, 80, 255 } );
-//     background_->SetBorderThickness( -1.0f );
-//
-//     float y = 0;
-//     for ( const auto& item : items )
-//     {
-//         auto btn = std::make_unique<Button>( wm,
-//                                              dr4::Vec2f( 0, y ),
-//                                              dr4::Vec2f( 160, 24 ),
-//                                              dr4::Color( 50, 50, 50, 255 ),
-//                                              dr4::Color( 70, 70, 70, 255 ),
-//                                              dr4::Color( 30, 30, 30, 255 ),
-//                                              item.label,
-//                                              dr4::Color( 220, 220, 220, 255 ),
-//                                              12 );
-//         btn->setOnClick( [this, cb = item.on_click]() {
-//             cb();
-//             wm_->popModal();
-//         } );
-//         addChild( std::move( btn ) );
-//         y += 25;
-//     }
-// }
-//
-// void
-// MenuPopup::RedrawMyTexture() const
-// {
-//     texture_->Clear( { 0, 0, 0, 0 } );
-//     texture_->Draw( *background_ );
-//     RedrawChildren();
-// }
-//
-// bool
-// MenuPopup::containsPoint( const dr4::Vec2f& pt ) const
-// {
-//     dr4::Vec2f abs = getAbsPos();
-//     dr4::Vec2f sz  = getSize();
-//     return ( pt.x >= abs.x && pt.x <= abs.x + sz.x && pt.y >= abs.y && pt.y <= abs.y + sz.y );
-// }
-//
-// bool
-// MenuPopup::onMousePress( const Event& event )
-// {
-//     fprintf( stderr, "debug in %s:%d:%s\n", __FILE__, __LINE__, __PRETTY_FUNCTION__ );
-//     dr4::Vec2f mouse = { event.info.mouseButton.pos.x, event.info.mouseButton.pos.y };
-//     if ( !containsPoint( mouse ) )
-//     {
-//         wm_->popModal();
-//         return true;
-//     }
-//     return VectorContainerWidget::onMousePress( event );
-// }
-//
-// void
-// ToolBar::addMenu( const std::string& name, std::vector<MenuPopup::Item> items )
-// {
-// }
-//
-// void
-// ToolBar::RedrawMyTexture() const
-// {
-//     texture_->Clear( { 0, 0, 0, 0 } );
-//     texture_->Draw( *background_ );
-//     RedrawChildren();
-// }
-//
-// } // namespace hui
-
-// tool_bar.cpp
 #include "tool_bar.hpp"
 #include "dr4/math/color.hpp"
 #include "dr4/window.hpp"
@@ -123,9 +5,8 @@
 
 namespace hui {
 
-// === MenuPopup ===
-MenuPopup::MenuPopup( WindowManager* wm,
-                      const dr4::Vec2f& pos,
+MenuPopup::MenuPopup( WindowManager*               wm,
+                      const dr4::Vec2f&            pos,
                       const std::vector<MenuItem>& items,
                       const Theme&                 theme )
     : Widget( wm,
@@ -169,7 +50,6 @@ MenuPopup::RedrawMyTexture() const
     texture_->Clear( { 0, 0, 0, 0 } );
     texture_->Draw( *background_ );
 
-    // Рисуем все элементы меню
     for ( const auto& text : text_elements_ )
     {
         texture_->Draw( *text );
@@ -194,25 +74,21 @@ MenuPopup::onMousePress( const Event& event )
 
     dr4::Vec2f mp( event.info.mouseButton.pos.x, event.info.mouseButton.pos.y );
 
-    // Если клик вне меню - закрываем его
     if ( !containsPoint( mp ) )
     {
         wm_->popModal();
         return true;
     }
 
-    // Определяем, по какому элементу был клик
     dr4::Vec2f local_pos = mp - getAbsPos();
     int        idx       = static_cast<int>( local_pos.y / ItemHeight );
 
     if ( idx >= 0 && idx < static_cast<int>( items_.size() ) )
     {
-        // Выполняем действие
         if ( items_[idx].on_click )
         {
             items_[idx].on_click();
         }
-        // Закрываем меню
         // wm_->popModal();
         return true;
     }
@@ -220,7 +96,6 @@ MenuPopup::onMousePress( const Event& event )
     return false;
 }
 
-// === ToolBar ===
 ToolBar::ToolBar( WindowManager* wm, float height, const Theme& theme )
     : Widget( wm, 0.0f, 0.0f, wm->getWindow()->GetSize().x, height ),
       wm_( wm ),
@@ -303,10 +178,8 @@ ToolBar::RedrawMyTexture() const
 
     const_cast<ToolBar*>( this )->createTextElements();
 
-    // Рисуем пункты меню
     for ( size_t i = 0; i < text_elements_.size(); ++i )
     {
-        // Подсветка при наведении
         if ( hovered_menu_ == static_cast<int>( i ) )
         {
             auto* highlight = wm_->getWindow()->CreateRectangle();
@@ -325,7 +198,6 @@ ToolBar::onMouseMove( const Event& event )
     dr4::Vec2f mp( event.info.mouseMove.pos.x, event.info.mouseMove.pos.y );
     dr4::Vec2f local_pos = mp - getAbsPos();
 
-    // Проверяем наведение только на топбар (не на всё окно)
     if ( local_pos.y < 0 || local_pos.y > height_ )
     {
         if ( hovered_menu_ != -1 )
@@ -336,7 +208,6 @@ ToolBar::onMouseMove( const Event& event )
         return false;
     }
 
-    // Находим, над каким пунктом меню находится курсор
     int new_hover = -1;
     for ( size_t i = 0; i < menu_defs_.size(); ++i )
     {
@@ -368,13 +239,11 @@ ToolBar::onMousePress( const Event& event )
     dr4::Vec2f mp( event.info.mouseButton.pos.x, event.info.mouseButton.pos.y );
     dr4::Vec2f local_pos = mp - getAbsPos();
 
-    // Если клик вне топбара - не обрабатываем
     if ( local_pos.y < 0 || local_pos.y > height_ )
     {
         return false;
     }
 
-    // Проверяем, по какому пункту меню был клик
     for ( size_t i = 0; i < menu_defs_.size(); ++i )
     {
         if ( local_pos.x >= menu_defs_[i].pos.x &&
@@ -403,11 +272,8 @@ ToolBar::onMouseRelease( const Event& event )
 
         if ( idx >= 0 && idx < static_cast<int>( menu_defs_.size() ) )
         {
-            // Создаем и показываем popup меню
             dr4::Vec2f popup_pos = { getAbsPos().x + menu_defs_[idx].pos.x,
                                      getAbsPos().y + height_ };
-
-            std::cerr << "popup_pos = " << popup_pos.x << " " << popup_pos.y << std::endl;
 
             auto popup = std::make_unique<MenuPopup>( wm_, popup_pos, menu_defs_[idx].items );
             wm_->pushModal( std::move( popup ) );

@@ -524,8 +524,6 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     void
     RedrawMyTexture() const override final
     {
-        // // // std::cerr << active_ << std::endl;
-
         if ( !active_ )
         {
             return;
@@ -543,8 +541,6 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         tool_panel_.Redraw();
         color_picker_.Redraw();
-
-        // // // std::cerr << "Drawing border.." << std::endl;
     }
 
   private:

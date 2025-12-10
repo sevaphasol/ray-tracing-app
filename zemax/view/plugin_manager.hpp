@@ -4,7 +4,6 @@
 #include "custom-hui-impl/scrollable_list_widget.hpp"
 #include "custom-hui-impl/file_dialog_box.hpp"
 #include "custom-hui-impl/dialog_box.hpp"
-#include "zemax/config.hpp"
 #include "zemax/view/snapshot_annotator.hpp"
 #include <functional>
 #include <memory>
@@ -26,21 +25,21 @@ class PluginItemRow : public hui::ContainerWidget {
                        dr4::Vec2f{ 0.0f, 0.0f },
                        dr4::Vec2f{ size.x - btn_w_ - gap_, size.y },
                        label,
-                       hui::Button::Theme{ active ? Config::ControlPanel::Button::PressedColor
-                                                  : Config::ControlPanel::Button::DefaultColor,
-                                           Config::ControlPanel::Button::HoveredColor,
-                                           Config::ControlPanel::Button::PressedColor,
-                                           Config::ControlPanel::Button::FontColor,
-                                           Config::ControlPanel::Button::FontSize } ),
+                       hui::Button::Theme{ active ? dr4::Color{ 100, 150, 0, 255 }
+                                                  : dr4::Color{ 30, 30, 30, 255 },
+                                           dr4::Color{ 50, 70, 30, 255 },
+                                           dr4::Color{ 100, 150, 0, 255 },
+                                           dr4::Color{ 220, 220, 220, 255 },
+                                           15 } ),
           del_btn_( wm,
                     dr4::Vec2f{ size.x - btn_w_, 0.0f },
                     dr4::Vec2f{ btn_w_ - gap_, size.y },
                     "X",
-                    hui::Button::Theme{ Config::ControlPanel::Button::DefaultColor,
-                                        Config::ControlPanel::Button::HoveredColor,
-                                        Config::ControlPanel::Button::PressedColor,
-                                        Config::ControlPanel::Button::FontColor,
-                                        Config::ControlPanel::Button::FontSize } )
+                    hui::Button::Theme{ { 30, 30, 30, 255 },
+                                        { 50, 70, 30, 255 },
+                                        { 100, 150, 0, 255 },
+                                        { 220, 220, 220, 255 },
+                                        15 } )
     {
         select_btn_.setParent( this );
         del_btn_.setParent( this );
@@ -52,8 +51,8 @@ class PluginItemRow : public hui::ContainerWidget {
     void
     setActive( bool active )
     {
-        select_btn_.setBackgroundColor( active ? Config::ControlPanel::Button::PressedColor
-                                               : Config::ControlPanel::Button::DefaultColor );
+        select_btn_.setBackgroundColor( active ? dr4::Color{ 100, 150, 0, 255 }
+                                               : dr4::Color{ 30, 30, 30, 255 } );
     }
 
     bool
@@ -154,20 +153,20 @@ class PluginPopup : public hui::DialogBox {
                     dr4::Vec2f( 10.0f, TopBarHeight + 12.0f ),
                     dr4::Vec2f( 100.0f, 32.0f ),
                     "New",
-                    hui::Button::Theme{ Config::ControlPanel::Button::DefaultColor,
-                                        Config::ControlPanel::Button::HoveredColor,
-                                        Config::ControlPanel::Button::PressedColor,
-                                        Config::ControlPanel::Button::FontColor,
-                                        Config::ControlPanel::Button::FontSize } ),
+                    hui::Button::Theme{ { 30, 30, 30, 255 },
+                                        { 50, 70, 30, 255 },
+                                        { 100, 150, 0, 255 },
+                                        { 220, 220, 220, 255 },
+                                        15 } ),
           show_btn_( wm,
                      dr4::Vec2f( 130.0f, TopBarHeight + 12.0f ),
                      dr4::Vec2f( 100.0f, 32.0f ),
                      "Show",
-                     hui::Button::Theme{ Config::ControlPanel::Button::DefaultColor,
-                                         Config::ControlPanel::Button::HoveredColor,
-                                         Config::ControlPanel::Button::PressedColor,
-                                         Config::ControlPanel::Button::FontColor,
-                                         Config::ControlPanel::Button::FontSize } )
+                     hui::Button::Theme{ { 30, 30, 30, 255 },
+                                         { 50, 70, 30, 255 },
+                                         { 100, 150, 0, 255 },
+                                         { 220, 220, 220, 255 },
+                                         15 } )
     {
         new_btn_.setParent( this );
         show_btn_.setParent( this );

@@ -1,10 +1,9 @@
 #include "cum/ifc/dr4.hpp"
 #include "cum/manager.hpp"
+#include "custom-hui-impl/file_dialog_box.hpp"
 #include "custom-hui-impl/tool_bar.hpp"
 #include "custom-hui-impl/window_manager.hpp"
 #include "dr4/math/vec2.hpp"
-#include "zemax/config.hpp"
-#include "custom-hui-impl/file_dialog_box.hpp"
 #include "zemax/view/plugin_manager.hpp"
 #include "zemax/view/zemax.hpp"
 
@@ -30,7 +29,7 @@ main()
     cum::DR4BackendPlugin* dr4_plugin = manager.GetAnyOfType<cum::DR4BackendPlugin>();
     dr4::Window*           window     = dr4_plugin->CreateWindow();
 
-    window->SetSize( { zemax::Config::Window::Width, zemax::Config::Window::Height } );
+    window->SetSize( { 2150.0f, 900.0f } );
     window->SetTitle( "Test" );
     hui::WindowManager wm( &manager, window );
 

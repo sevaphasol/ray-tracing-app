@@ -4,7 +4,6 @@
 #include "custom-hui-impl/widget.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
-#include "zemax/config.hpp"
 #include "zemax/view/camera_control_panel.hpp"
 #include "zemax/view/control_panel.hpp"
 #include "zemax/view/object_editor_panel.hpp"
@@ -18,29 +17,22 @@ namespace view {
 class Zemax : public hui::ContainerWidget {
   public:
     explicit Zemax( hui::WindowManager* wm, dr4::Window* window, float toolbar_height )
-        : hui::ContainerWidget(
-              wm,
-              { 0, toolbar_height },
-              { Config::Window::Width, Config::Window::Height - toolbar_height } ),
+        : hui::ContainerWidget( wm,
+                                { 0, toolbar_height },
+                                { window->GetSize().x, window->GetSize().y - toolbar_height } ),
           scene_( wm,
-                  Config::Scene::Position,
-                  Config::Scene::Size,
-                  Config::Scene::BackgroundColor,
-                  Config::Camera::Position ),
-          camera_panel_( wm,
-                         scene_.getModel(),
-                         Config::CameraPanel::Position,
-                         Config::CameraPanel::Size ),
-          panel_( wm,
-                  scene_.getModel(),
-                  Config::ControlPanel::Position,
-                  Config::ControlPanel::Size ),
-          snp_annotator_( wm, Config::Scene::Position, Config::Scene::Size ),
+                  { 475.0f, 50.0f },
+                  { 1200.0f, 800.0f },
+                  { 10, 10, 10, 255 },
+                  { 0.0f, 0.0f, 0.0f } ),
+          camera_panel_( wm, scene_.getModel() ),
+          panel_( wm, scene_.getModel() ),
+          snp_annotator_( wm, { 475.0f, 50.0f }, { 1200.0f, 800.0f } ),
           obj_list_(
               wm,
               1725,
-              Config::CameraPanel::Position.y,
-              Config::CameraPanel::Size.x,
+              camera_panel_.getRelPos().y,
+              camera_panel_.getSize().x,
               200,
               scene_.getModel(),
               []() { return; },
@@ -48,10 +40,7 @@ class Zemax : public hui::ContainerWidget {
                   scene_.getModel().setTargetObj( scene_.getModel().getObjects()[idx].get() );
                   editor_.setTarget( idx );
               } ),
-          editor_( wm,
-                   scene_.getModel(),
-                   { 1725.0f, 275.0f },
-                   { Config::ControlPanel::Size.x, 575.0f } )
+          editor_( wm, scene_.getModel(), { 1725.0f, 275.0f }, { 380.0f, 575.0f } )
     {
         scene_.setParent( this );
         camera_panel_.setParent( this );

@@ -5,7 +5,7 @@
 #include "dr4/window.hpp"
 #include "widget.hpp"
 #include <memory>
-#include <vector> // ← заменён stack на vector
+#include <vector>
 
 namespace hui {
 

@@ -3,7 +3,6 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/closable_panel.hpp"
 #include "custom-hui-impl/window_manager.hpp"
-#include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/model/rendering/vector3.hpp"
 #include "zemax/view/object_params_dialogs.hpp"
@@ -16,74 +15,96 @@ namespace view {
 
 class ControlPanel : public hui::ClosablePanel {
   public:
+    struct Theme
+    {
+        dr4::Vec2f         panel_pos{ 50.0f, 465.0f };
+        dr4::Vec2f         panel_size{ 380.0f, 385.0f };
+        dr4::Vec2f         button_size{ 100.0f, 50.0f };
+        hui::Button::Theme button_theme{ { 30, 30, 30, 255 },
+                                         { 50, 70, 30, 255 },
+                                         { 100, 150, 0, 255 },
+                                         { 220, 220, 220, 255 },
+                                         15 };
+        float              move_step   = 0.1f;
+        float              rotate_step = 0.03f;
+
+        dr4::Vec2f rot_yaw_left{ 30.0f, 80.0f };
+        dr4::Vec2f rot_yaw_right{ 30.0f, 140.0f };
+        dr4::Vec2f rot_pitch_up{ 140.0f, 80.0f };
+        dr4::Vec2f rot_pitch_down{ 140.0f, 140.0f };
+        dr4::Vec2f rot_roll_left{ 250.0f, 80.0f };
+        dr4::Vec2f rot_roll_right{ 250.0f, 140.0f };
+
+        dr4::Vec2f move_left{ 30.0f, 220.0f };
+        dr4::Vec2f move_right{ 30.0f, 280.0f };
+        dr4::Vec2f move_up{ 140.0f, 220.0f };
+        dr4::Vec2f move_down{ 140.0f, 280.0f };
+        dr4::Vec2f move_fwd{ 250.0f, 220.0f };
+        dr4::Vec2f move_back{ 250.0f, 280.0f };
+
+        dr4::Vec2f add_obj{ 30.0f, 300.0f };
+        dr4::Vec2f copy_obj{ 140.0f, 300.0f };
+        dr4::Vec2f edit_obj{ 250.0f, 300.0f };
+        dr4::Vec2f delete_obj{ 30.0f, 360.0f };
+
+        static Theme
+        Default()
+        {
+            return Theme();
+        }
+    };
+
     explicit ControlPanel( hui::WindowManager*         wm,
                            zemax::model::SceneManager& scene_manager,
-                           const dr4::Vec2f&           pos  = Config::ControlPanel::Position,
-                           const dr4::Vec2f&           size = Config::ControlPanel::Size )
-        : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Controls" ),
-          scene_manager_( scene_manager )
+                           const Theme&                theme = Theme::Default() )
+        : hui::ClosablePanel( wm,
+                              theme.panel_pos.x,
+                              theme.panel_pos.y,
+                              theme.panel_size.x,
+                              theme.panel_size.y,
+                              "Object Controls" ),
+          scene_manager_( scene_manager ),
+          theme_( theme )
     {
-        setupButton( ButtonCode::RotateYawLeft,
-                     Config::ControlPanel::Button::RotateObjLeft::Position,
-                     Config::ControlPanel::Button::RotateObjLeft::Title );
-        setupButton( ButtonCode::RotateYawRight,
-                     Config::ControlPanel::Button::RotateObjRight::Position,
-                     Config::ControlPanel::Button::RotateObjRight::Title );
-        setupButton( ButtonCode::RotatePitchUp,
-                     Config::ControlPanel::Button::RotateObjUp::Position,
-                     Config::ControlPanel::Button::RotateObjUp::Title );
-        setupButton( ButtonCode::RotatePitchDown,
-                     Config::ControlPanel::Button::RotateObjDown::Position,
-                     Config::ControlPanel::Button::RotateObjDown::Title );
-        setupButton( ButtonCode::RotateRollLeft,
-                     Config::ControlPanel::Button::RotateObjRollLeft::Position,
-                     Config::ControlPanel::Button::RotateObjRollLeft::Title );
-        setupButton( ButtonCode::RotateRollRight,
-                     Config::ControlPanel::Button::RotateObjRollRight::Position,
-                     Config::ControlPanel::Button::RotateObjRollRight::Title );
-        setupButton( ButtonCode::MoveObjLeft,
-                     Config::ControlPanel::Button::MoveObjLeft::Position,
-                     Config::ControlPanel::Button::MoveObjLeft::Title );
-        setupButton( ButtonCode::MoveObjRight,
-                     Config::ControlPanel::Button::MoveObjRight::Position,
-                     Config::ControlPanel::Button::MoveObjRight::Title );
-        setupButton( ButtonCode::MoveObjUp,
-                     Config::ControlPanel::Button::MoveObjUp::Position,
-                     Config::ControlPanel::Button::MoveObjUp::Title );
-        setupButton( ButtonCode::MoveObjDown,
-                     Config::ControlPanel::Button::MoveObjDown::Position,
-                     Config::ControlPanel::Button::MoveObjDown::Title );
-        setupButton( ButtonCode::MoveObjForward,
-                     Config::ControlPanel::Button::MoveObjForward::Position,
-                     Config::ControlPanel::Button::MoveObjForward::Title );
-        setupButton( ButtonCode::MoveObjBackward,
-                     Config::ControlPanel::Button::MoveObjBackward::Position,
-                     Config::ControlPanel::Button::MoveObjBackward::Title );
+        auto& t = theme_.button_theme;
+        setupButton( ButtonCode::RotateYawLeft, theme_.rot_yaw_left, "Y-", t );
+        setupButton( ButtonCode::RotateYawRight, theme_.rot_yaw_right, "Y+", t );
+        setupButton( ButtonCode::RotatePitchUp, theme_.rot_pitch_up, "X+", t );
+        setupButton( ButtonCode::RotatePitchDown, theme_.rot_pitch_down, "X-", t );
+        setupButton( ButtonCode::RotateRollLeft, theme_.rot_roll_left, "Z-", t );
+        setupButton( ButtonCode::RotateRollRight, theme_.rot_roll_right, "Z+", t );
+        setupButton( ButtonCode::MoveObjLeft, theme_.move_left, "left", t );
+        setupButton( ButtonCode::MoveObjRight, theme_.move_right, "right", t );
+        setupButton( ButtonCode::MoveObjUp, theme_.move_up, "up", t );
+        setupButton( ButtonCode::MoveObjDown, theme_.move_down, "down", t );
+        setupButton( ButtonCode::MoveObjForward, theme_.move_fwd, "fwd", t );
+        setupButton( ButtonCode::MoveObjBackward, theme_.move_back, "bwd", t );
 
         buttons_[MoveObjLeft]->setOnHoldPress(
-            [this]() { moveTarget( { -Config::Camera::ObjMoveFactor, 0.0f, 0.0f } ); } );
+            [this]() { moveTarget( { -theme_.move_step, 0.0f, 0.0f } ); } );
         buttons_[MoveObjRight]->setOnHoldPress(
-            [this]() { moveTarget( { Config::Camera::ObjMoveFactor, 0.0f, 0.0f } ); } );
+            [this]() { moveTarget( { theme_.move_step, 0.0f, 0.0f } ); } );
         buttons_[MoveObjUp]->setOnHoldPress(
-            [this]() { moveTarget( { 0.0f, Config::Camera::ObjMoveFactor, 0.0f } ); } );
+            [this]() { moveTarget( { 0.0f, theme_.move_step, 0.0f } ); } );
         buttons_[MoveObjDown]->setOnHoldPress(
-            [this]() { moveTarget( { 0.0f, -Config::Camera::ObjMoveFactor, 0.0f } ); } );
+            [this]() { moveTarget( { 0.0f, -theme_.move_step, 0.0f } ); } );
         buttons_[MoveObjForward]->setOnHoldPress(
-            [this]() { moveTarget( { 0.0f, 0.0f, -Config::Camera::ObjMoveFactor } ); } );
+            [this]() { moveTarget( { 0.0f, 0.0f, -theme_.move_step } ); } );
         buttons_[MoveObjBackward]->setOnHoldPress(
-            [this]() { moveTarget( { 0.0f, 0.0f, Config::Camera::ObjMoveFactor } ); } );
+            [this]() { moveTarget( { 0.0f, 0.0f, theme_.move_step } ); } );
+
         buttons_[RotateYawLeft]->setOnHoldPress(
-            [this]() { rotateTarget( { 0.0f, 1.0f, 0.0f }, -Config::Camera::RotateFactor ); } );
+            [this]() { rotateTarget( { 0.0f, 1.0f, 0.0f }, -theme_.rotate_step ); } );
         buttons_[RotateYawRight]->setOnHoldPress(
-            [this]() { rotateTarget( { 0.0f, 1.0f, 0.0f }, Config::Camera::RotateFactor ); } );
+            [this]() { rotateTarget( { 0.0f, 1.0f, 0.0f }, theme_.rotate_step ); } );
         buttons_[RotatePitchUp]->setOnHoldPress(
-            [this]() { rotateTarget( { 1.0f, 0.0f, 0.0f }, Config::Camera::RotateFactor ); } );
+            [this]() { rotateTarget( { 1.0f, 0.0f, 0.0f }, theme_.rotate_step ); } );
         buttons_[RotatePitchDown]->setOnHoldPress(
-            [this]() { rotateTarget( { 1.0f, 0.0f, 0.0f }, -Config::Camera::RotateFactor ); } );
+            [this]() { rotateTarget( { 1.0f, 0.0f, 0.0f }, -theme_.rotate_step ); } );
         buttons_[RotateRollLeft]->setOnHoldPress(
-            [this]() { rotateTarget( { 0.0f, 0.0f, 1.0f }, -Config::Camera::RotateFactor ); } );
+            [this]() { rotateTarget( { 0.0f, 0.0f, 1.0f }, -theme_.rotate_step ); } );
         buttons_[RotateRollRight]->setOnHoldPress(
-            [this]() { rotateTarget( { 0.0f, 0.0f, 1.0f }, Config::Camera::RotateFactor ); } );
+            [this]() { rotateTarget( { 0.0f, 0.0f, 1.0f }, theme_.rotate_step ); } );
     }
 
     bool
@@ -151,21 +172,16 @@ class ControlPanel : public hui::ClosablePanel {
     };
 
     std::unique_ptr<hui::Button> buttons_[ButtonCount];
+    Theme                        theme_;
 
     void
-    setupButton( ButtonCode code, const dr4::Vec2f& pos, const char* title )
+    setupButton( ButtonCode                code,
+                 const dr4::Vec2f&         pos,
+                 const char*               title,
+                 const hui::Button::Theme& theme )
     {
-        hui::Button::Theme theme{ Config::ControlPanel::Button::DefaultColor,
-                                  Config::ControlPanel::Button::HoveredColor,
-                                  Config::ControlPanel::Button::PressedColor,
-                                  Config::ControlPanel::Button::FontColor,
-                                  Config::ControlPanel::Button::FontSize };
         buttons_[code] =
-            std::move( std::make_unique<hui::Button>( wm_,
-                                                      pos,
-                                                      Config::ControlPanel::Button::Size,
-                                                      title,
-                                                      theme ) );
+            std::make_unique<hui::Button>( wm_, pos, theme_.button_size, title, theme );
         buttons_[code]->setParent( this );
     }
 

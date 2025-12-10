@@ -1,145 +1,8 @@
-// #pragma once
-//
-// #include "custom-hui-impl/button.hpp"
-// #include "custom-hui-impl/label.hpp"
-// #include "custom-hui-impl/scrollable_list_widget.hpp"
-// #include "obj_info_box.hpp"
-// #include "zemax/model/rendering/scene_manager.hpp"
-// #include <functional>
-// #include <memory>
-// #include <string>
-// #include <vector>
-//
-// namespace zemax {
-// namespace view {
-//
-// class SceneObjectsListModal : public ObjInfoBox {
-//   public:
-//     using CloseCb = std::function<void()>;
-//
-//     SceneObjectsListModal( hui::WindowManager*  wm,
-//                            float                x,
-//                            float                y,
-//                            float                w,
-//                            float                h,
-//                            model::SceneManager& scene_manager,
-//                            CloseCb              close_cb )
-//         : ObjInfoBox( wm, x, y, w, h, close_cb, "Objects list" ),
-//           scene_manager_( scene_manager ),
-//           close_cb_( std::move( close_cb ) )
-//     {
-//         const float inner_x = 12.0f;
-//         const float inner_y = TopBarHeight + 12.0f;
-//         const float inner_w = w - inner_x - 12.0f;
-//         const float inner_h = h - ( inner_y + 12.0f );
-//
-//         const float scrollbar_width = 12.0f;
-//
-//         // Создаём ScrollableListWidget и делаем его ребёнком модалки
-//         list_ = std::make_unique<hui::ScrollableListWidget>(
-//             wm,
-//             dr4::Vec2f{ inner_x, inner_y },
-//             dr4::Vec2f{ inner_w - scrollbar_width, inner_h },
-//             scrollbar_width );
-//         list_->setParent( this );
-//
-//         rebuildListItems();
-//     }
-//
-//     void
-//     refresh()
-//     {
-//         rebuildListItems();
-//     }
-//
-//     bool
-//     propagateEventToChildren( const hui::Event& event ) override
-//     {
-//         if ( event.apply( list_.get() ) )
-//         {
-//             return true;
-//         }
-//
-//         return ObjInfoBox::propagateEventToChildren( event );
-//     }
-//
-//     void
-//     RedrawMyTexture() const override
-//     {
-//         ObjInfoBox::RedrawMyTexture();
-//
-//         if ( list_ )
-//         {
-//             list_->Redraw();
-//         }
-//     }
-//
-//   private:
-//     void
-//     rebuildListItems()
-//     {
-//         if ( !list_ )
-//         {
-//             return;
-//         }
-//
-//         // Пересоздаём список заново — это простой и безопасный способ очистки старых элементов.
-//         const float inner_x         = 12.0f;
-//         const float inner_y         = TopBarHeight + 12.0f;
-//         const float inner_w         = size_.x - inner_x - 12.0f;
-//         const float inner_h         = size_.y - ( inner_y + 12.0f );
-//         const float scrollbar_width = 12.0f;
-//
-//         list_.reset(
-//             new hui::ScrollableListWidget( wm_,
-//                                            dr4::Vec2f{ inner_x, inner_y },
-//                                            dr4::Vec2f{ inner_w - scrollbar_width, inner_h },
-//                                            scrollbar_width ) );
-//         list_->setParent( this );
-//
-//         std::vector<std::string> names;
-//         for ( size_t i = 0; i < scene_manager_.getObjectsCount(); ++i )
-//         {
-//             names.push_back( scene_manager_.getObjectInfo( i ).type_name );
-//         }
-//
-//         std::cerr << "names.size(): " << names.size() << std::endl;
-//         for ( const auto& name : names )
-//         {
-//             std::cerr << name << std::endl;
-//         }
-//
-//         const float item_h = 22.0f;
-//         const float item_w = inner_w - scrollbar_width - 8.0f;
-//
-//         for ( const auto& n : names )
-//         {
-//             auto lbl = std::make_unique<hui::LabelWidget>( wm_,
-//                                                            dr4::Vec2f{ 0.0f, 0.0f },
-//                                                            dr4::Vec2f{ item_w, item_h },
-//                                                            n,
-//                                                            13 );
-//             list_->addItem( std::move( lbl ) );
-//         }
-//
-//         list_->rebuildLayout();
-//     }
-//
-//   private:
-//     model::SceneManager&                       scene_manager_;
-//     CloseCb                                    close_cb_;
-//     std::unique_ptr<hui::ScrollableListWidget> list_;
-// };
-//
-// } // namespace view
-// } // namespace zemax
-
-// zemax/view/scene_objects_list.hpp
 #pragma once
 #include "custom-hui-impl/button.hpp"
+#include "custom-hui-impl/dialog_box.hpp"
 #include "custom-hui-impl/label.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
-#include "custom-hui-impl/dialog_box.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/plane.hpp"
 #include "zemax/model/primitives/impls/sphere.hpp"
@@ -156,27 +19,28 @@ namespace view {
 class SceneObjectsListModal : public hui::DialogBox {
   public:
     using CloseCb = std::function<void()>;
-    SceneObjectsListModal( hui::WindowManager*         wm,
-                           float                       x,
-                           float                       y,
-                           float                       w,
-                           float                       h,
-                           model::SceneManager&        scene_manager,
-                           CloseCb                     close_cb,
-                           std::function<void(size_t)> on_select )
-        : hui::DialogBox( wm,
-                          x,
-                          y,
-                          w,
-                          h,
-                          [this, close_cb]() {
-                              this->hide();
-                              if ( close_cb )
-                              {
-                                  close_cb();
-                              }
-                          },
-                          "Objects list" ),
+    SceneObjectsListModal( hui::WindowManager*           wm,
+                           float                         x,
+                           float                         y,
+                           float                         w,
+                           float                         h,
+                           model::SceneManager&          scene_manager,
+                           CloseCb                       close_cb,
+                           std::function<void( size_t )> on_select )
+        : hui::DialogBox(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              [this, close_cb]() {
+                  this->hide();
+                  if ( close_cb )
+                  {
+                      close_cb();
+                  }
+              },
+              "Objects list" ),
           scene_manager_( scene_manager ),
           close_cb_( std::move( close_cb ) ),
           on_select_( std::move( on_select ) )
@@ -284,7 +148,7 @@ class SceneObjectsListModal : public hui::DialogBox {
         std::vector<size_t>      object_indices;
         for ( size_t i = 0; i < scene_manager_.getObjectsCount(); ++i )
         {
-            auto info = scene_manager_.getObjectInfo( i );
+            auto        info  = scene_manager_.getObjectInfo( i );
             std::string label = info.display_name.empty() ? info.type_name : info.display_name;
             names.push_back( label + " (" + std::to_string( i ) + ")" );
             object_indices.push_back( info.objects_idx );
@@ -296,14 +160,17 @@ class SceneObjectsListModal : public hui::DialogBox {
         // Create buttons instead of labels
         for ( size_t i = 0; i < names.size(); ++i )
         {
-            auto item_idx = object_indices[i]; // Capture the actual object index
+            auto               item_idx = object_indices[i]; // Capture the actual object index
             hui::Button::Theme theme{ dr4::Color{ 50, 50, 50, 255 },
                                       dr4::Color{ 70, 70, 70, 255 },
                                       dr4::Color{ 30, 30, 30, 255 },
                                       dr4::Color{ 220, 220, 220, 255 },
                                       13 };
-            auto btn = std::make_unique<hui::Button>(
-                wm_, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ item_w, item_h }, names[i], theme );
+            auto               btn = std::make_unique<hui::Button>( wm_,
+                                                      dr4::Vec2f{ 0.0f, 0.0f },
+                                                      dr4::Vec2f{ item_w, item_h },
+                                                      names[i],
+                                                      theme );
 
             btn->setOnClick( [this, item_idx]() {
                 if ( on_select_ )
@@ -322,7 +189,7 @@ class SceneObjectsListModal : public hui::DialogBox {
     model::SceneManager&                       scene_manager_;
     CloseCb                                    close_cb_;
     std::unique_ptr<hui::ScrollableListWidget> list_;
-    std::function<void(size_t)>                on_select_;
+    std::function<void( size_t )>              on_select_;
     bool                                       visible_ = true;
 };
 

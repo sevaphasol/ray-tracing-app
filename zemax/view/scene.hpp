@@ -9,7 +9,6 @@
 #include "custom-hui-impl/window_manager.hpp"
 
 #include "custom-hui-impl/closable_panel.hpp"
-#include "zemax/config.hpp"
 #include "zemax/model/primitives/material.hpp"
 #include "zemax/model/primitives/primitive.hpp"
 #include "zemax/model/rendering/camera.hpp"
@@ -36,7 +35,7 @@ class Scene : public hui::ClosablePanel {
                     const dr4::Color&             background_color,
                     const zemax::model::Vector3f& camera_pos )
         : ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Scene" ),
-          model_( zemax::Config::Camera::Position, size.x, size.y ),
+          model_( camera_pos, size.x, size.y ),
           background_color_( background_color )
     {
         setDraggable( true );
@@ -117,26 +116,6 @@ class Scene : public hui::ClosablePanel {
         // ),
         //                 zemax::model::Vector3f( 0, -1, -8 ),
         //                 { 1.5, 0.5, 1.5 } );
-
-        // 1) CappedCylinder
-        model_.addCappedCylinder(
-            zemax::model::Material( zemax::model::Color( 200, 180, 80 ), 0.3f ),
-            zemax::model::Vector3f( -3.0f, -0.5f, -13.0f ),
-            3.0f,   // height
-            0.8f ); // radius
-
-        // 2) CappedCone
-        model_.addCappedCone( zemax::model::Material( zemax::model::Color( 200, 80, 180 ), 0.3f ),
-                              zemax::model::Vector3f( 3.0f, -0.5f, -13.5f ),
-                              3.0f,   // height
-                              1.0f,   // ra (низ)
-                              0.2f ); // rb (верх)
-
-        // 3) Wedge
-        // half_size задаёт размеры коробки [-s,+s] в локале клина
-        model_.addWedge( zemax::model::Material( zemax::model::Color( 80, 160, 200 ), 0.2f ),
-                         zemax::model::Vector3f( 0.0f, -0.8f, -11.0f ),
-                         zemax::model::Vector3f( 1.8f, 1.2f, 1.8f ) );
 
         model_.addAABB( model::Material( zemax::model::Color( 118, 185, 0 ), 0.95f ),
                         zemax::model::Vector3f( -4, 0, -12 ),

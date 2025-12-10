@@ -1,26 +1,25 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
+#include "custom-hui-impl/closable_panel.hpp"
+#include "custom-hui-impl/dialog_box.hpp"
 #include "custom-hui-impl/input_text.hpp"
 #include "custom-hui-impl/label.hpp"
-#include "custom-hui-impl/closable_panel.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
-#include "custom-hui-impl/dialog_box.hpp"
-#include "zemax/config.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
-#include "zemax/model/primitives/impls/hex_prism.hpp"
-#include "zemax/model/primitives/impls/sphere.hpp"
-#include "zemax/model/primitives/impls/torus.hpp"
-#include "zemax/model/primitives/impls/goursat.hpp"
-#include "zemax/model/primitives/impls/rounded_box.hpp"
-#include "zemax/model/primitives/impls/ellipsoid.hpp"
-#include "zemax/model/primitives/impls/capsule.hpp"
-#include "zemax/model/primitives/impls/rounded_cone.hpp"
 #include "zemax/model/primitives/impls/capped_cone.hpp"
 #include "zemax/model/primitives/impls/capped_cylinder.hpp"
-#include "zemax/model/primitives/impls/wedge.hpp"
+#include "zemax/model/primitives/impls/capsule.hpp"
 #include "zemax/model/primitives/impls/ellipse.hpp"
+#include "zemax/model/primitives/impls/ellipsoid.hpp"
+#include "zemax/model/primitives/impls/goursat.hpp"
+#include "zemax/model/primitives/impls/hex_prism.hpp"
+#include "zemax/model/primitives/impls/rounded_box.hpp"
+#include "zemax/model/primitives/impls/rounded_cone.hpp"
+#include "zemax/model/primitives/impls/sphere.hpp"
+#include "zemax/model/primitives/impls/torus.hpp"
 #include "zemax/model/primitives/impls/triangle.hpp"
+#include "zemax/model/primitives/impls/wedge.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include <iomanip>
 #include <memory>
@@ -77,11 +76,11 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     void
     setTarget( std::optional<size_t> idx )
     {
-        target_idx_ = idx;
+        target_idx_   = idx;
         editing_mode_ = idx.has_value();
-        auto info   = idx.has_value() ? std::optional<model::SceneManager::ObjectInfo>(
+        auto info     = idx.has_value() ? std::optional<model::SceneManager::ObjectInfo>(
                                           scene_manager_.getObjectInfo( idx.value() ) )
-                                      : std::nullopt;
+                                        : std::nullopt;
 
         if ( info.has_value() )
         {
@@ -166,7 +165,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         label_text_->SetFont( font );
         label_text_->SetFontSize( 14 );
         label_text_->SetColor( { 220, 220, 220, 255 } );
-        label_text_->SetText( editing_mode_ ? "Editing" : ("Adding " + typeName( current_type_ )) );
+        label_text_->SetText( editing_mode_ ? "Editing"
+                                            : ( "Adding " + typeName( current_type_ ) ) );
         label_text_->SetPos( { 12.0f, TopBarHeight + 4.0f } );
         label_text_->DrawOn( *texture_ );
     }
@@ -369,8 +369,10 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                                            field_h );
             input->setParent( this );
 
-            form_fields_.push_back(
-                { d.key, std::unique_ptr<dr4::Text>( t ), std::move( input ), { margin_x, cur_y } } );
+            form_fields_.push_back( { d.key,
+                                      std::unique_ptr<dr4::Text>( t ),
+                                      std::move( input ),
+                                      { margin_x, cur_y } } );
             cur_y += line_h;
         }
     }
@@ -465,18 +467,18 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 f->input->setString( fmt2( r.z ) );
         } else if ( auto* cap = dynamic_cast<model::Capsule*>( obj.get() ) )
         {
-            auto pa = cap->getPaLocal();
-            auto pb = cap->getPbLocal();
-            float h = std::abs( ( pb - pa ).y );
+            auto  pa = cap->getPaLocal();
+            auto  pb = cap->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
             if ( auto* f = findField( "p2" ) )
                 f->input->setString( fmt2( cap->getRadius() ) );
         } else if ( auto* rc = dynamic_cast<model::RoundedCone*>( obj.get() ) )
         {
-            auto pa = rc->getPaLocal();
-            auto pb = rc->getPbLocal();
-            float h = std::abs( ( pb - pa ).y );
+            auto  pa = rc->getPaLocal();
+            auto  pb = rc->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
             if ( auto* f = findField( "p2" ) )
@@ -485,9 +487,9 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 f->input->setString( fmt2( rc->getRadiusB() ) );
         } else if ( auto* cc = dynamic_cast<model::CappedCone*>( obj.get() ) )
         {
-            auto pa = cc->getPaLocal();
-            auto pb = cc->getPbLocal();
-            float h = std::abs( ( pb - pa ).y );
+            auto  pa = cc->getPaLocal();
+            auto  pb = cc->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
             if ( auto* f = findField( "p2" ) )
@@ -496,8 +498,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 f->input->setString( fmt2( cc->getRadiusB() ) );
         } else if ( auto* cyl = dynamic_cast<model::CappedCylinder*>( obj.get() ) )
         {
-            auto a = cyl->getALocal();
-            auto b = cyl->getBLocal();
+            auto  a = cyl->getALocal();
+            auto  b = cyl->getBLocal();
             float h = std::abs( ( b - a ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
@@ -530,9 +532,9 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 f->input->setString( fmt2( v.z ) );
         } else if ( auto* t = dynamic_cast<model::Triangle*>( obj.get() ) )
         {
-            auto v0 = t->getV0();
-            auto v1 = t->getV1();
-            auto v2 = t->getV2();
+            auto v0  = t->getV0();
+            auto v1  = t->getV1();
+            auto v2  = t->getV2();
             auto set = [&]( const char* key, const model::Vector3f& v, int idx ) {
                 if ( auto* f = findField( key ) )
                 {
@@ -589,13 +591,13 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         auto* fre    = findField( "refract" );
         auto* feta   = findField( "eta" );
 
-        auto vx = parse( fx, []( double ) { return true; } );
-        auto vy = parse( fy, []( double ) { return true; } );
-        auto vz = parse( fz, []( double ) { return true; } );
-        auto vr = parse( fr, []( double v ) { return v >= 0 && v <= 255; } );
-        auto vg = parse( fg, []( double v ) { return v >= 0 && v <= 255; } );
-        auto vb = parse( fb, []( double v ) { return v >= 0 && v <= 255; } );
-        auto vf = parse( ff, []( double ) { return true; } );
+        auto vx   = parse( fx, []( double ) { return true; } );
+        auto vy   = parse( fy, []( double ) { return true; } );
+        auto vz   = parse( fz, []( double ) { return true; } );
+        auto vr   = parse( fr, []( double v ) { return v >= 0 && v <= 255; } );
+        auto vg   = parse( fg, []( double v ) { return v >= 0 && v <= 255; } );
+        auto vb   = parse( fb, []( double v ) { return v >= 0 && v <= 255; } );
+        auto vf   = parse( ff, []( double ) { return true; } );
         auto vref = parse( fre, []( double v ) { return v >= 0.0 && v <= 1.0; } );
         auto veta = parse( feta, []( double v ) { return v > 0.0; } );
 
@@ -605,7 +607,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         }
 
         CommonFields res{ f_name ? std::string( f_name->input->getString().value_or( "" ) )
-                                  : std::string(),
+                                 : std::string(),
                           model::Vector3f( static_cast<float>( *vx ),
                                            static_cast<float>( *vy ),
                                            static_cast<float>( *vz ) ),
@@ -614,200 +616,222 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                                          static_cast<std::uint8_t>( *vb ),
                                                          255 ),
                                            static_cast<float>( *vf ),
-                                          static_cast<float>( *vref ),
-                                          static_cast<float>( *veta ) ) };
+                                           static_cast<float>( *vref ),
+                                           static_cast<float>( *veta ) ) };
         return res;
     }
 
     std::unique_ptr<model::Primitive>
     buildObject( Type type, const CommonFields& common )
     {
-        auto read = [&]( const char* key, auto validator ) { return parse( findField( key ), validator ); };
+        auto read = [&]( const char* key, auto validator ) {
+            return parse( findField( key ), validator );
+        };
 
         switch ( type )
         {
-            case Type::Sphere: {
-                auto r = read( "p1", []( double v ) { return v > 0; } );
-                if ( !r )
-                    return nullptr;
-                return std::make_unique<model::Sphere>( common.material,
-                                                        common.origin,
-                                                        static_cast<float>( *r ) );
-            }
-            case Type::AABB: {
-                auto p1 = read( "p1", []( double v ) { return v > 0; } );
-                auto p2 = read( "p2", []( double v ) { return v > 0; } );
-                auto p3 = read( "p3", []( double v ) { return v > 0; } );
-                if ( !p1 || !p2 || !p3 )
-                    return nullptr;
-                return std::make_unique<model::AABB>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f( static_cast<float>( *p1 ),
-                                     static_cast<float>( *p2 ),
-                                     static_cast<float>( *p3 ) ) );
-            }
-            case Type::Torus: {
-                auto maj = read( "p1", []( double v ) { return v > 0; } );
-                auto min = read( "p2", []( double v ) { return v > 0; } );
-                if ( !maj || !min )
-                    return nullptr;
-                return std::make_unique<model::Torus>(
-                    common.material,
-                    common.origin,
-                    static_cast<float>( *maj ),
-                    static_cast<float>( *min ) );
-            }
-            case Type::HexPrism: {
-                auto r = read( "p1", []( double v ) { return v > 0; } );
-                auto h = read( "p2", []( double v ) { return v > 0; } );
-                if ( !r || !h )
-                    return nullptr;
-                return std::make_unique<model::HexPrism>(
-                    common.material, common.origin, static_cast<float>( *r ), static_cast<float>( *h ) );
-            }
-            case Type::Goursat: {
-                auto ka = read( "ka", []( double v ) { return v > 0; } );
-                auto kb = read( "kb", []( double v ) { return v > 0; } );
-                if ( !ka || !kb )
-                    return nullptr;
-                return std::make_unique<model::Goursat>(
-                    common.material, common.origin, static_cast<float>( *ka ), static_cast<float>( *kb ) );
-            }
-            case Type::RoundedBox: {
-                auto p1 = read( "p1", []( double v ) { return v > 0; } );
-                auto p2 = read( "p2", []( double v ) { return v > 0; } );
-                auto p3 = read( "p3", []( double v ) { return v > 0; } );
-                auto p4 = read( "p4", []( double v ) { return v > 0; } );
-                if ( !p1 || !p2 || !p3 || !p4 )
-                    return nullptr;
-                return std::make_unique<model::RoundedBox>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f( static_cast<float>( *p1 ),
-                                     static_cast<float>( *p2 ),
-                                     static_cast<float>( *p3 ) ),
-                    static_cast<float>( *p4 ) );
-            }
-            case Type::Ellipsoid: {
-                auto p1 = read( "p1", []( double v ) { return v > 0; } );
-                auto p2 = read( "p2", []( double v ) { return v > 0; } );
-                auto p3 = read( "p3", []( double v ) { return v > 0; } );
-                if ( !p1 || !p2 || !p3 )
-                    return nullptr;
-                return std::make_unique<model::Ellipsoid>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f( static_cast<float>( *p1 ),
-                                     static_cast<float>( *p2 ),
-                                     static_cast<float>( *p3 ) ) );
-            }
-            case Type::Capsule: {
-                auto h = read( "p1", []( double v ) { return v > 0; } );
-                auto r = read( "p2", []( double v ) { return v > 0; } );
-                if ( !h || !r )
-                    return nullptr;
-                float fh = static_cast<float>( *h );
-                return std::make_unique<model::Capsule>( common.material,
-                                                         common.origin,
-                                                         model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
-                                                         model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
-                                                         static_cast<float>( *r ) );
-            }
-            case Type::RoundedCone: {
-                auto h = read( "p1", []( double v ) { return v > 0; } );
-                auto ra = read( "p2", []( double v ) { return v > 0; } );
-                auto rb = read( "p3", []( double v ) { return v > 0; } );
-                if ( !h || !ra || !rb )
-                    return nullptr;
-                float fh = static_cast<float>( *h );
-                return std::make_unique<model::RoundedCone>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
-                    model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
-                    static_cast<float>( *ra ),
-                    static_cast<float>( *rb ) );
-            }
-            case Type::CappedCone: {
-                auto h = read( "p1", []( double v ) { return v > 0; } );
-                auto ra = read( "p2", []( double v ) { return v > 0; } );
-                auto rb = read( "p3", []( double v ) { return v > 0; } );
-                if ( !h || !ra || !rb )
-                    return nullptr;
-                float fh = static_cast<float>( *h );
-                return std::make_unique<model::CappedCone>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
-                    model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
-                    static_cast<float>( *ra ),
-                    static_cast<float>( *rb ) );
-            }
-            case Type::CappedCylinder: {
-                auto h = read( "p1", []( double v ) { return v > 0; } );
-                auto r = read( "p2", []( double v ) { return v > 0; } );
-                if ( !h || !r )
-                    return nullptr;
-                float fh = static_cast<float>( *h );
-                return std::make_unique<model::CappedCylinder>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
-                    model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
-                    static_cast<float>( *r ) );
-            }
-            case Type::Wedge: {
-                auto p1 = read( "p1", []( double v ) { return v > 0; } );
-                auto p2 = read( "p2", []( double v ) { return v > 0; } );
-                auto p3 = read( "p3", []( double v ) { return v > 0; } );
-                if ( !p1 || !p2 || !p3 )
-                    return nullptr;
-                return std::make_unique<model::Wedge>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f( static_cast<float>( *p1 ),
-                                     static_cast<float>( *p2 ),
-                                     static_cast<float>( *p3 ) ) );
-            }
-            case Type::Ellipse: {
-                auto ux = read( "ux", []( double ) { return true; } );
-                auto uy = read( "uy", []( double ) { return true; } );
-                auto uz = read( "uz", []( double ) { return true; } );
-                auto vx = read( "vx", []( double ) { return true; } );
-                auto vy = read( "vy", []( double ) { return true; } );
-                auto vz = read( "vz", []( double ) { return true; } );
-                if ( !ux || !uy || !uz || !vx || !vy || !vz )
-                    return nullptr;
-                return std::make_unique<model::Ellipse>(
-                    common.material,
-                    common.origin,
-                    model::Vector3f( static_cast<float>( *ux ),
-                                     static_cast<float>( *uy ),
-                                     static_cast<float>( *uz ) ),
-                    model::Vector3f( static_cast<float>( *vx ),
-                                     static_cast<float>( *vy ),
-                                     static_cast<float>( *vz ) ) );
-            }
-            case Type::Triangle: {
-                auto fetch = [&]( const char* key ) { return read( key, []( double ) { return true; } ); };
-                auto v0x = fetch( "v0x" ), v0y = fetch( "v0y" ), v0z = fetch( "v0z" );
-                auto v1x = fetch( "v1x" ), v1y = fetch( "v1y" ), v1z = fetch( "v1z" );
-                auto v2x = fetch( "v2x" ), v2y = fetch( "v2y" ), v2z = fetch( "v2z" );
-                if ( !v0x || !v0y || !v0z || !v1x || !v1y || !v1z || !v2x || !v2y || !v2z )
-                    return nullptr;
-                return std::make_unique<model::Triangle>(
-                    common.material,
-                    model::Vector3f( static_cast<float>( *v0x ),
-                                     static_cast<float>( *v0y ),
-                                     static_cast<float>( *v0z ) ),
-                    model::Vector3f( static_cast<float>( *v1x ),
-                                     static_cast<float>( *v1y ),
-                                     static_cast<float>( *v1z ) ),
-                    model::Vector3f( static_cast<float>( *v2x ),
-                                     static_cast<float>( *v2y ),
-                                     static_cast<float>( *v2z ) ) );
-            }
+            case Type::Sphere:
+                {
+                    auto r = read( "p1", []( double v ) { return v > 0; } );
+                    if ( !r )
+                        return nullptr;
+                    return std::make_unique<model::Sphere>( common.material,
+                                                            common.origin,
+                                                            static_cast<float>( *r ) );
+                }
+            case Type::AABB:
+                {
+                    auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                    auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                    auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                    if ( !p1 || !p2 || !p3 )
+                        return nullptr;
+                    return std::make_unique<model::AABB>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f( static_cast<float>( *p1 ),
+                                         static_cast<float>( *p2 ),
+                                         static_cast<float>( *p3 ) ) );
+                }
+            case Type::Torus:
+                {
+                    auto maj = read( "p1", []( double v ) { return v > 0; } );
+                    auto min = read( "p2", []( double v ) { return v > 0; } );
+                    if ( !maj || !min )
+                        return nullptr;
+                    return std::make_unique<model::Torus>( common.material,
+                                                           common.origin,
+                                                           static_cast<float>( *maj ),
+                                                           static_cast<float>( *min ) );
+                }
+            case Type::HexPrism:
+                {
+                    auto r = read( "p1", []( double v ) { return v > 0; } );
+                    auto h = read( "p2", []( double v ) { return v > 0; } );
+                    if ( !r || !h )
+                        return nullptr;
+                    return std::make_unique<model::HexPrism>( common.material,
+                                                              common.origin,
+                                                              static_cast<float>( *r ),
+                                                              static_cast<float>( *h ) );
+                }
+            case Type::Goursat:
+                {
+                    auto ka = read( "ka", []( double v ) { return v > 0; } );
+                    auto kb = read( "kb", []( double v ) { return v > 0; } );
+                    if ( !ka || !kb )
+                        return nullptr;
+                    return std::make_unique<model::Goursat>( common.material,
+                                                             common.origin,
+                                                             static_cast<float>( *ka ),
+                                                             static_cast<float>( *kb ) );
+                }
+            case Type::RoundedBox:
+                {
+                    auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                    auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                    auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                    auto p4 = read( "p4", []( double v ) { return v > 0; } );
+                    if ( !p1 || !p2 || !p3 || !p4 )
+                        return nullptr;
+                    return std::make_unique<model::RoundedBox>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f( static_cast<float>( *p1 ),
+                                         static_cast<float>( *p2 ),
+                                         static_cast<float>( *p3 ) ),
+                        static_cast<float>( *p4 ) );
+                }
+            case Type::Ellipsoid:
+                {
+                    auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                    auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                    auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                    if ( !p1 || !p2 || !p3 )
+                        return nullptr;
+                    return std::make_unique<model::Ellipsoid>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f( static_cast<float>( *p1 ),
+                                         static_cast<float>( *p2 ),
+                                         static_cast<float>( *p3 ) ) );
+                }
+            case Type::Capsule:
+                {
+                    auto h = read( "p1", []( double v ) { return v > 0; } );
+                    auto r = read( "p2", []( double v ) { return v > 0; } );
+                    if ( !h || !r )
+                        return nullptr;
+                    float fh = static_cast<float>( *h );
+                    return std::make_unique<model::Capsule>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                        model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                        static_cast<float>( *r ) );
+                }
+            case Type::RoundedCone:
+                {
+                    auto h  = read( "p1", []( double v ) { return v > 0; } );
+                    auto ra = read( "p2", []( double v ) { return v > 0; } );
+                    auto rb = read( "p3", []( double v ) { return v > 0; } );
+                    if ( !h || !ra || !rb )
+                        return nullptr;
+                    float fh = static_cast<float>( *h );
+                    return std::make_unique<model::RoundedCone>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                        model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                        static_cast<float>( *ra ),
+                        static_cast<float>( *rb ) );
+                }
+            case Type::CappedCone:
+                {
+                    auto h  = read( "p1", []( double v ) { return v > 0; } );
+                    auto ra = read( "p2", []( double v ) { return v > 0; } );
+                    auto rb = read( "p3", []( double v ) { return v > 0; } );
+                    if ( !h || !ra || !rb )
+                        return nullptr;
+                    float fh = static_cast<float>( *h );
+                    return std::make_unique<model::CappedCone>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                        model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                        static_cast<float>( *ra ),
+                        static_cast<float>( *rb ) );
+                }
+            case Type::CappedCylinder:
+                {
+                    auto h = read( "p1", []( double v ) { return v > 0; } );
+                    auto r = read( "p2", []( double v ) { return v > 0; } );
+                    if ( !h || !r )
+                        return nullptr;
+                    float fh = static_cast<float>( *h );
+                    return std::make_unique<model::CappedCylinder>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f{ 0.0f, -0.5f * fh, 0.0f },
+                        model::Vector3f{ 0.0f, 0.5f * fh, 0.0f },
+                        static_cast<float>( *r ) );
+                }
+            case Type::Wedge:
+                {
+                    auto p1 = read( "p1", []( double v ) { return v > 0; } );
+                    auto p2 = read( "p2", []( double v ) { return v > 0; } );
+                    auto p3 = read( "p3", []( double v ) { return v > 0; } );
+                    if ( !p1 || !p2 || !p3 )
+                        return nullptr;
+                    return std::make_unique<model::Wedge>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f( static_cast<float>( *p1 ),
+                                         static_cast<float>( *p2 ),
+                                         static_cast<float>( *p3 ) ) );
+                }
+            case Type::Ellipse:
+                {
+                    auto ux = read( "ux", []( double ) { return true; } );
+                    auto uy = read( "uy", []( double ) { return true; } );
+                    auto uz = read( "uz", []( double ) { return true; } );
+                    auto vx = read( "vx", []( double ) { return true; } );
+                    auto vy = read( "vy", []( double ) { return true; } );
+                    auto vz = read( "vz", []( double ) { return true; } );
+                    if ( !ux || !uy || !uz || !vx || !vy || !vz )
+                        return nullptr;
+                    return std::make_unique<model::Ellipse>(
+                        common.material,
+                        common.origin,
+                        model::Vector3f( static_cast<float>( *ux ),
+                                         static_cast<float>( *uy ),
+                                         static_cast<float>( *uz ) ),
+                        model::Vector3f( static_cast<float>( *vx ),
+                                         static_cast<float>( *vy ),
+                                         static_cast<float>( *vz ) ) );
+                }
+            case Type::Triangle:
+                {
+                    auto fetch = [&]( const char* key ) {
+                        return read( key, []( double ) { return true; } );
+                    };
+                    auto v0x = fetch( "v0x" ), v0y = fetch( "v0y" ), v0z = fetch( "v0z" );
+                    auto v1x = fetch( "v1x" ), v1y = fetch( "v1y" ), v1z = fetch( "v1z" );
+                    auto v2x = fetch( "v2x" ), v2y = fetch( "v2y" ), v2z = fetch( "v2z" );
+                    if ( !v0x || !v0y || !v0z || !v1x || !v1y || !v1z || !v2x || !v2y || !v2z )
+                        return nullptr;
+                    return std::make_unique<model::Triangle>(
+                        common.material,
+                        model::Vector3f( static_cast<float>( *v0x ),
+                                         static_cast<float>( *v0y ),
+                                         static_cast<float>( *v0z ) ),
+                        model::Vector3f( static_cast<float>( *v1x ),
+                                         static_cast<float>( *v1y ),
+                                         static_cast<float>( *v1z ) ),
+                        model::Vector3f( static_cast<float>( *v2x ),
+                                         static_cast<float>( *v2y ),
+                                         static_cast<float>( *v2z ) ) );
+                }
         }
 
         return nullptr;
@@ -1021,23 +1045,25 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 if ( auto* f = findField( "vz" ) )
                     f->input->setString( "0.00" );
                 break;
-            case Type::Triangle: {
-                std::vector<std::pair<const char*, const char*>> defaults = { { "v0x", "0.0" },
-                                                                               { "v0y", "0.0" },
-                                                                               { "v0z", "0.0" },
-                                                                               { "v1x", "1.0" },
-                                                                               { "v1y", "0.0" },
-                                                                               { "v1z", "0.0" },
-                                                                               { "v2x", "0.0" },
-                                                                               { "v2y", "1.0" },
-                                                                               { "v2z", "0.0" } };
-                for ( auto& p : defaults )
+            case Type::Triangle:
                 {
-                    if ( auto* f = findField( p.first ) )
-                        f->input->setString( p.second );
+                    std::vector<std::pair<const char*, const char*>> defaults = {
+                        { "v0x", "0.0" },
+                        { "v0y", "0.0" },
+                        { "v0z", "0.0" },
+                        { "v1x", "1.0" },
+                        { "v1y", "0.0" },
+                        { "v1z", "0.0" },
+                        { "v2x", "0.0" },
+                        { "v2y", "1.0" },
+                        { "v2z", "0.0" } };
+                    for ( auto& p : defaults )
+                    {
+                        if ( auto* f = findField( p.first ) )
+                            f->input->setString( p.second );
+                    }
+                    break;
                 }
-                break;
-            }
         }
     }
 
@@ -1105,7 +1131,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         if ( !target )
             return;
         auto  origin = target->getOrigin();
-        float dx     = Config::Camera::ObjMoveFactor * 2.0f;
+        float dx     = 0.2f;
         scene_manager_.copyTargetObj( origin.x + dx, origin.y, origin.z );
         target_idx_ = scene_manager_.getObjects().size() - 1;
         scene_manager_.setTargetObj( scene_manager_.getObjects().back().get() );
@@ -1132,12 +1158,12 @@ class ObjectEditorPanel : public hui::ClosablePanel {
 
     class TypePickerDialog : public hui::DialogBox {
       public:
-        TypePickerDialog( hui::WindowManager* wm,
-                          float               x,
-                          float               y,
-                          Type                initial,
-                          std::function<void(Type)> on_ok,
-                          std::function<void()>     on_cancel )
+        TypePickerDialog( hui::WindowManager*         wm,
+                          float                       x,
+                          float                       y,
+                          Type                        initial,
+                          std::function<void( Type )> on_ok,
+                          std::function<void()>       on_cancel )
             : DialogBox( wm, x, y, 220.0f, 260.0f, on_cancel, "Choose Type" ),
               list_( wm, { 10.0f, TopBarHeight + 10.0f }, { 200.0f, 180.0f }, 10.0f ),
               ok_( wm, { 20.0f, 210.0f }, { 80.0f, 26.0f } ),
@@ -1191,17 +1217,17 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         {
             list_.clearItems();
             auto add = [&]( const std::string& label, Type t ) {
-                auto btn = std::make_unique<hui::Button>( wm_,
-                                                          dr4::Vec2f{ 0, 0 },
-                                                          dr4::Vec2f{ 180.0f, 32.0f },
-                                                          label,
-                                                          t == selected_
-                                                              ? hui::Button::Theme{ hui::Button::DefaultTheme.pressed_color,
-                                                                                    hui::Button::DefaultTheme.hovered_color,
-                                                                                    hui::Button::DefaultTheme.pressed_color,
-                                                                                    hui::Button::DefaultTheme.font_color,
-                                                                                    hui::Button::DefaultTheme.font_size }
-                                                              : hui::Button::DefaultTheme );
+                auto btn = std::make_unique<hui::Button>(
+                    wm_,
+                    dr4::Vec2f{ 0, 0 },
+                    dr4::Vec2f{ 180.0f, 32.0f },
+                    label,
+                    t == selected_ ? hui::Button::Theme{ hui::Button::DefaultTheme.pressed_color,
+                                                         hui::Button::DefaultTheme.hovered_color,
+                                                         hui::Button::DefaultTheme.pressed_color,
+                                                         hui::Button::DefaultTheme.font_color,
+                                                         hui::Button::DefaultTheme.font_size }
+                                   : hui::Button::DefaultTheme );
                 btn->setOnClick( [this, t]() {
                     selected_ = t;
                     buildItems();
@@ -1226,12 +1252,12 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         }
 
       private:
-        hui::ScrollableListWidget    list_;
-        hui::ButtonOk                ok_;
-        hui::ButtonCancel            cancel_;
-        std::function<void(Type)>    on_ok_;
-        std::function<void()>        on_cancel_;
-        Type                         selected_ = Type::Sphere;
+        hui::ScrollableListWidget   list_;
+        hui::ButtonOk               ok_;
+        hui::ButtonCancel           cancel_;
+        std::function<void( Type )> on_ok_;
+        std::function<void()>       on_cancel_;
+        Type                        selected_ = Type::Sphere;
     };
 
     void
@@ -1272,21 +1298,21 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     }
 
   private:
-    model::SceneManager&  scene_manager_;
-    std::optional<size_t> target_idx_;
-    std::vector<FieldRef> form_fields_;
-    Type                        current_type_    = Type::Sphere;
-    Type                        creation_type_   = Type::Sphere;
-    const float                 type_row_height_ = 28.0f;
-    bool                        copy_visible_    = false;
-    bool                        del_visible_     = false;
-    bool                        editing_mode_    = false;
-    hui::Button                 type_btn_;
-    hui::Button                 add_btn_;
-    hui::Button                 copy_btn_;
-    hui::Button                 del_btn_;
-    hui::Button                 apply_btn_;
-    std::unique_ptr<dr4::Text>  label_text_;
+    model::SceneManager&       scene_manager_;
+    std::optional<size_t>      target_idx_;
+    std::vector<FieldRef>      form_fields_;
+    Type                       current_type_    = Type::Sphere;
+    Type                       creation_type_   = Type::Sphere;
+    const float                type_row_height_ = 28.0f;
+    bool                       copy_visible_    = false;
+    bool                       del_visible_     = false;
+    bool                       editing_mode_    = false;
+    hui::Button                type_btn_;
+    hui::Button                add_btn_;
+    hui::Button                copy_btn_;
+    hui::Button                del_btn_;
+    hui::Button                apply_btn_;
+    std::unique_ptr<dr4::Text> label_text_;
 };
 
 } // namespace view

@@ -192,10 +192,6 @@ Widget::pointInside( const dr4::Vec2f& point ) const
     dr4::Vec2f abs_pos = getAbsPos();
     dr4::Vec2f sz      = getSize();
 
-    // std::cerr << "px, py = " << point.x << " " << point.y << std::endl;
-    // std::cerr << "ax, ay = " << abs_pos.x << " " << abs_pos.y << std::endl;
-    // std::cerr << "sx, sy = " << sz.x << " " << sz.y << std::endl;
-
     return ( ( point.x >= abs_pos.x && point.x <= abs_pos.x + sz.x ) &&
              ( point.y >= abs_pos.y && point.y <= abs_pos.y + sz.y ) );
 }

@@ -1,5 +1,4 @@
 #include "zemax/model/rendering/camera.hpp"
-#include "zemax/config.hpp"
 #include "zemax/model/rendering/vector2.hpp"
 #include <optional>
 
