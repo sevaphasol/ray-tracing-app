@@ -30,6 +30,8 @@ class ToolPanel : public hui::ContainerWidget {
     float                  button_size_;
     float                  padding_;
     std::vector<std::unique_ptr<hui::Button>> buttons_;
+    std::unique_ptr<dr4::Font> icon_font_;
+    bool                        icon_font_loaded_ = false;
 
     bool
     propagateEventToChildren( const hui::Event& event ) override
@@ -61,6 +63,15 @@ ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float visible_he
       padding_( 10.0f )
 {
     setDraggable( true );
+    icon_font_.reset( wm->getWindow()->CreateFont() );
+    try
+    {
+        icon_font_->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
+        icon_font_loaded_ = true;
+    } catch ( ... )
+    {
+        icon_font_loaded_ = false;
+    }
 }
 
 void
@@ -89,6 +100,10 @@ ToolPanel::addTools( Tools tools )
                                                   dr4::Vec2f( button_size_, button_size_ ),
                                                   std::string( ( *tools )[i]->Icon() ),
                                                   theme );
+        if ( icon_font_loaded_ )
+        {
+            btn->setFont( icon_font_.get() );
+        }
 
         tools_.push_back( ( *tools )[i].get() );
 

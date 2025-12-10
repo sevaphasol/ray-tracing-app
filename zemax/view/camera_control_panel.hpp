@@ -21,9 +21,9 @@ class CameraControlPanel : public ControlPanelBase {
                                          { 100, 150, 0, 255 },
                                          { 220, 220, 220, 255 },
                                          15 };
-        float move_step   = 0.1f;
-        float rotate_step = 0.03f;
-        float scale_step  = 0.03f;
+        float              move_step   = 0.1f;
+        float              rotate_step = 0.03f;
+        float              scale_step  = 0.03f;
 
         dr4::Vec2f mv_l{ 30.0f, 50.0f };
         dr4::Vec2f mv_r{ 30.0f, 110.0f };
@@ -38,13 +38,21 @@ class CameraControlPanel : public ControlPanelBase {
         dr4::Vec2f sc_up{ 250.0f, 200.0f };
         dr4::Vec2f sc_down{ 250.0f, 260.0f };
 
-        static Theme Default() { return Theme(); }
+        static Theme
+        Default()
+        {
+            return Theme();
+        }
     };
 
     explicit CameraControlPanel( hui::WindowManager*         wm,
                                  zemax::model::SceneManager& scene_manager,
                                  const Theme&                theme = Theme::Default() )
-        : ControlPanelBase( wm, theme.panel_pos, theme.panel_size, theme.button_size, "Camera Controls" ),
+        : ControlPanelBase( wm,
+                            theme.panel_pos,
+                            theme.panel_size,
+                            theme.button_size,
+                            "Camera Controls" ),
           scene_manager_( scene_manager ),
           theme_( theme )
     {

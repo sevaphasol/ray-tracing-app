@@ -39,7 +39,8 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
           color_picker_( wm,
                          { 80.0f, 20.0f },
                          theme_.shapeBorderColor,
-                         [this]( const dr4::Color& color ) { updateThemeColor( color ); } )
+                         [this]( const dr4::Color& color ) { updateThemeColor( color ); } ),
+          color_picker_visible_( false )
     {
         setDraggable( false );
         refreshPlugins();
@@ -169,6 +170,18 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         return active_;
     }
 
+    bool
+    isColorPickerVisible() const
+    {
+        return color_picker_visible_;
+    }
+
+    void
+    setColorPickerVisible( bool visible )
+    {
+        color_picker_visible_ = visible;
+    }
+
     void
     setSize( const dr4::Vec2f& size ) override
     {
@@ -227,8 +240,14 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         {
             return false;
         }
-        event.apply( &tool_panel_ );
-        event.apply( &color_picker_ );
+        if ( hasTools() )
+        {
+            event.apply( &tool_panel_ );
+        }
+        if ( color_picker_visible_ )
+        {
+            event.apply( &color_picker_ );
+        }
 
         return false;
     }
@@ -303,7 +322,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         // // std::cerr << "Giving to tool_panel" << std::endl;
 
-        if ( event.apply( &tool_panel_ ) )
+        if ( hasTools() && event.apply( &tool_panel_ ) )
         {
             // if ( tool_panel_.getActiveToolIdx().has_value() )
             // {
@@ -317,7 +336,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return true;
         }
 
-        if ( event.apply( &color_picker_ ) )
+        if ( color_picker_visible_ && event.apply( &color_picker_ ) )
         {
             return true;
         }
@@ -413,12 +432,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return false;
         }
 
-        if ( event.apply( &tool_panel_ ) )
+        if ( hasTools() && event.apply( &tool_panel_ ) )
         {
             return true;
         }
 
-        if ( event.apply( &color_picker_ ) )
+        if ( color_picker_visible_ && event.apply( &color_picker_ ) )
         {
             return true;
         }
@@ -459,12 +478,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return false;
         }
 
-        if ( event.apply( &tool_panel_ ) )
+        if ( hasTools() && event.apply( &tool_panel_ ) )
         {
             return true;
         }
 
-        if ( event.apply( &color_picker_ ) )
+        if ( color_picker_visible_ && event.apply( &color_picker_ ) )
         {
             return true;
         }
@@ -505,6 +524,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         theme_.shapeFillColor   = color;
     }
 
+    bool
+    hasTools() const
+    {
+        return active_tools_ && !active_tools_->empty();
+    }
+
     void
     rebuildToolPanel()
     {
@@ -516,6 +541,11 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
                 active_tools_ = &entry.tools;
                 break;
             }
+        }
+
+        if ( active_tools_ && active_tools_->empty() )
+        {
+            active_tools_ = nullptr;
         }
 
         tool_panel_.addTools( active_tools_ );
@@ -539,8 +569,14 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             shape.DrawOn( *texture_ );
         }
 
-        tool_panel_.Redraw();
-        color_picker_.Redraw();
+        if ( hasTools() )
+        {
+            tool_panel_.Redraw();
+        }
+        if ( color_picker_visible_ )
+        {
+            color_picker_.Redraw();
+        }
     }
 
   private:
@@ -567,6 +603,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     pp::ControlsTheme theme_;
 
     RGBPicker color_picker_;
+    bool      color_picker_visible_;
 
     pp::Shape* selected_shape_ = nullptr;
 };

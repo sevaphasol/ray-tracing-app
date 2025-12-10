@@ -68,6 +68,17 @@ void
 Button::setLabelText( const std::string& text )
 {
     label_->SetText( text );
+    centerLabel( *label_, size_, pos_ );
+}
+
+void
+Button::setFont( const dr4::Font* font )
+{
+    if ( font )
+    {
+        label_->SetFont( font );
+        centerLabel( *label_, size_, pos_ );
+    }
 }
 
 void

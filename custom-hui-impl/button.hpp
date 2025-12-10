@@ -57,6 +57,8 @@ class Button : public hui::Widget {
     void
     setLabelText( const std::string& text );
     void
+    setFont( const dr4::Font* font );
+    void
     setBackgroundColor( const dr4::Color& color );
 
     bool

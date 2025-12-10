@@ -40,7 +40,11 @@ class Zemax : public hui::ContainerWidget {
                   scene_.getModel().setTargetObj( scene_.getModel().getObjects()[idx].get() );
                   editor_.setTarget( idx );
               } ),
-          editor_( wm, scene_.getModel(), { 1725.0f, 275.0f }, { 380.0f, 575.0f } )
+          editor_( wm,
+                   scene_.getModel(),
+                   { 1725.0f, 275.0f },
+                   { 380.0f, 575.0f },
+                   [this]() { obj_list_.refresh(); } )
     {
         scene_.setParent( this );
         camera_panel_.setParent( this );

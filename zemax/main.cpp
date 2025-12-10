@@ -90,20 +90,33 @@ main()
                           { "Exit", [&]() { wm.getWindow()->Close(); } },
                       } );
 
-    toolbar->addMenu( "Edit", { { "Plugins", [&wm, zemax_ptr]() {
-                                     // Open a small popup to the right of the Edit button
-                                     float x = 120.0f;
-                                     float y = 30.0f;
-                                     wm.pushModal( std::make_unique<zemax::view::PluginPopup>(
-                                         &wm,
-                                         x,
-                                         y,
-                                         &zemax_ptr->annotator() ) );
-                                 } } } );
-
     auto fmt_label = []( bool visible, const char* title ) {
         return std::string( visible ? "[x] " : "[ ] " ) + title;
     };
+
+    toolbar->addMenu( "Annotator",
+                      { { "Plugins",
+                          [&wm, zemax_ptr]() {
+                              float x = 120.0f;
+                              float y = 30.0f;
+                              wm.pushModal( std::make_unique<zemax::view::PluginManagerDialog>(
+                                  &wm,
+                                  x,
+                                  y,
+                                  340.0f,
+                                  320.0f,
+                                  &zemax_ptr->annotator() ) );
+                          } },
+                        { fmt_label( zemax_ptr->annotator().isColorPickerVisible(), "RGB Picker" ),
+                          [&, toolbar_ptr]() {
+                              if ( !zemax_ptr->annotator().isVisible() )
+                                  return;
+                              bool new_state = !zemax_ptr->annotator().isColorPickerVisible();
+                              zemax_ptr->annotator().setColorPickerVisible( new_state );
+                              toolbar_ptr->setMenuItemLabel( "Annotator",
+                                                             1,
+                                                             fmt_label( new_state, "RGB Picker" ) );
+                          } } } );
 
     toolbar->addMenu(
         "View",

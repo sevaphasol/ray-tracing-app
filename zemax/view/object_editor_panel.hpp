@@ -37,9 +37,11 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     explicit ObjectEditorPanel( hui::WindowManager*  wm,
                                 model::SceneManager& scene_manager,
                                 const dr4::Vec2f&    pos,
-                                const dr4::Vec2f&    size )
+                                const dr4::Vec2f&    size,
+                                std::function<void()> objects_changed_cb = nullptr )
         : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Editor" ),
           scene_manager_( scene_manager ),
+          objects_changed_cb_( std::move( objects_changed_cb ) ),
           label_text_( wm->getWindow()->CreateText() ),
           type_btn_( wm,
                      { 12.0f, size.y - 34.0f },
@@ -599,7 +601,12 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         auto vb   = parse( fb, []( double v ) { return v >= 0 && v <= 255; } );
         auto vf   = parse( ff, []( double ) { return true; } );
         auto vref = parse( fre, []( double v ) { return v >= 0.0 && v <= 1.0; } );
-        auto veta = parse( feta, []( double v ) { return v > 0.0; } );
+        auto veta = parse( feta, [vref]( double v ) {
+            // Eta can be zero only when refraction is disabled.
+            if ( vref && *vref == 0.0 )
+                return v >= 0.0;
+            return v > 0.0;
+        } );
 
         if ( !vx || !vy || !vz || !vr || !vg || !vb || !vf || !vref || !veta )
         {
@@ -873,6 +880,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         scene_manager_.getObjects()[*target_idx_] = std::move( obj );
         scene_manager_.setTargetObj( scene_manager_.getObjects()[*target_idx_].get() );
         scene_manager_.needUpdate() = true;
+        if ( objects_changed_cb_ )
+            objects_changed_cb_();
     }
 
     void
@@ -1118,6 +1127,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         target_idx_ = scene_manager_.getObjects().size() - 1;
         scene_manager_.setTargetObj( scene_manager_.getObjects().back().get() );
         scene_manager_.needUpdate() = true;
+        if ( objects_changed_cb_ )
+            objects_changed_cb_();
         prefill( target_idx_.value(), scene_manager_.getObjectInfo( target_idx_.value() ) );
         updateTypeButtons();
     }
@@ -1154,6 +1165,8 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         buildForm( current_type_ );
         updateTypeButtons();
         prefillDefaults();
+        if ( objects_changed_cb_ )
+            objects_changed_cb_();
     }
 
     class TypePickerDialog : public hui::DialogBox {
@@ -1307,6 +1320,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     bool                       copy_visible_    = false;
     bool                       del_visible_     = false;
     bool                       editing_mode_    = false;
+    std::function<void()>      objects_changed_cb_;
     hui::Button                type_btn_;
     hui::Button                add_btn_;
     hui::Button                copy_btn_;
