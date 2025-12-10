@@ -1,8 +1,8 @@
 #pragma once
 
 #include "custom-hui-impl/button.hpp"
-#include "custom-hui-impl/window_manager.hpp"
 #include "custom-hui-impl/closable_panel.hpp"
+#include "custom-hui-impl/window_manager.hpp"
 #include "zemax/config.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/model/rendering/vector3.hpp"
@@ -23,6 +23,24 @@ class ControlPanel : public hui::ClosablePanel {
         : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Controls" ),
           scene_manager_( scene_manager )
     {
+        setupButton( ButtonCode::RotateYawLeft,
+                     Config::ControlPanel::Button::RotateObjLeft::Position,
+                     Config::ControlPanel::Button::RotateObjLeft::Title );
+        setupButton( ButtonCode::RotateYawRight,
+                     Config::ControlPanel::Button::RotateObjRight::Position,
+                     Config::ControlPanel::Button::RotateObjRight::Title );
+        setupButton( ButtonCode::RotatePitchUp,
+                     Config::ControlPanel::Button::RotateObjUp::Position,
+                     Config::ControlPanel::Button::RotateObjUp::Title );
+        setupButton( ButtonCode::RotatePitchDown,
+                     Config::ControlPanel::Button::RotateObjDown::Position,
+                     Config::ControlPanel::Button::RotateObjDown::Title );
+        setupButton( ButtonCode::RotateRollLeft,
+                     Config::ControlPanel::Button::RotateObjRollLeft::Position,
+                     Config::ControlPanel::Button::RotateObjRollLeft::Title );
+        setupButton( ButtonCode::RotateRollRight,
+                     Config::ControlPanel::Button::RotateObjRollRight::Position,
+                     Config::ControlPanel::Button::RotateObjRollRight::Title );
         setupButton( ButtonCode::MoveObjLeft,
                      Config::ControlPanel::Button::MoveObjLeft::Position,
                      Config::ControlPanel::Button::MoveObjLeft::Title );
@@ -54,6 +72,18 @@ class ControlPanel : public hui::ClosablePanel {
             [this]() { moveTarget( { 0.0f, 0.0f, -Config::Camera::ObjMoveFactor } ); } );
         buttons_[MoveObjBackward]->setOnHoldPress(
             [this]() { moveTarget( { 0.0f, 0.0f, Config::Camera::ObjMoveFactor } ); } );
+        buttons_[RotateYawLeft]->setOnHoldPress(
+            [this]() { rotateTarget( { 0.0f, 1.0f, 0.0f }, -Config::Camera::RotateFactor ); } );
+        buttons_[RotateYawRight]->setOnHoldPress(
+            [this]() { rotateTarget( { 0.0f, 1.0f, 0.0f }, Config::Camera::RotateFactor ); } );
+        buttons_[RotatePitchUp]->setOnHoldPress(
+            [this]() { rotateTarget( { 1.0f, 0.0f, 0.0f }, Config::Camera::RotateFactor ); } );
+        buttons_[RotatePitchDown]->setOnHoldPress(
+            [this]() { rotateTarget( { 1.0f, 0.0f, 0.0f }, -Config::Camera::RotateFactor ); } );
+        buttons_[RotateRollLeft]->setOnHoldPress(
+            [this]() { rotateTarget( { 0.0f, 0.0f, 1.0f }, -Config::Camera::RotateFactor ); } );
+        buttons_[RotateRollRight]->setOnHoldPress(
+            [this]() { rotateTarget( { 0.0f, 0.0f, 1.0f }, Config::Camera::RotateFactor ); } );
     }
 
     bool
@@ -105,6 +135,12 @@ class ControlPanel : public hui::ClosablePanel {
 
   private:
     enum ButtonCode {
+        RotateYawLeft,
+        RotateYawRight,
+        RotatePitchUp,
+        RotatePitchDown,
+        RotateRollLeft,
+        RotateRollRight,
         MoveObjLeft,
         MoveObjRight,
         MoveObjUp,
@@ -143,6 +179,19 @@ class ControlPanel : public hui::ClosablePanel {
         }
 
         target->move( delta );
+        scene_manager_.needUpdate() = true;
+    }
+
+    void
+    rotateTarget( const zemax::model::Vector3f& axis_world, float angle )
+    {
+        auto* target = scene_manager_.getTargetObj();
+        if ( target == nullptr )
+        {
+            return;
+        }
+
+        target->rotateAroundWorldAxis( axis_world, angle );
         scene_manager_.needUpdate() = true;
     }
 

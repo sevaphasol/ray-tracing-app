@@ -1,11 +1,19 @@
 /*
+    Ray–Torus intersection (robust numeric version)
 
-Spizheno s https://iquilezles.org/articles/intersectors/
+    Имплицитная поверхность тора (ось Z, центр в начале координат):
+    F(x,y,z) = (x^2 + y^2 + z^2 + Ra^2 - ra^2)^2 - 4*Ra^2*(x^2 + y^2) = 0
 
+    Мы НЕ решаем квартетик аналитически (это и даёт артефакты),
+    а ищем корень F(ro + t*rd) = 0 вдоль луча:
+    1) пересекаем луч с bounding-сферой радиуса (Ra+ra),
+    2) по отрезку [tEnter, tExit] ищем первый sign-change F(t_prev)*F(t_cur) <= 0
+    3) внутри найденного интервала гоняем бисекцию.
 */
 
 #include "zemax/model/primitives/impls/torus.hpp"
 #include "zemax/model/rendering/vector3.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -23,140 +31,132 @@ Torus::Torus( const Material& material,
 
 namespace {
 
-float
-solveQuadratic( float a, float b, float c )
+// Имплицитная функция тора (ось Z).
+// F(p) > 0 — снаружи, F(p) < 0 — внутри (по сути не важно, нам важен лишь знак и ноль).
+inline float
+torusImplicit( const Vector3f& p, float Ra, float ra )
 {
-    if ( std::abs( a ) < 1e-6f )
-    {
-        if ( std::abs( b ) < 1e-6f )
-            return std::numeric_limits<float>::max();
-        return ( -c / b > 0.0f ) ? ( -c / b ) : std::numeric_limits<float>::max();
-    }
-    float disc = b * b - 4.0f * a * c;
-    if ( disc < 0.0f )
-        return std::numeric_limits<float>::max();
-    float sqrt_disc = std::sqrt( disc );
-    float t1        = ( -b - sqrt_disc ) / ( 2.0f * a );
-    float t2        = ( -b + sqrt_disc ) / ( 2.0f * a );
-    float t         = std::numeric_limits<float>::max();
-    if ( t1 > 1e-4f )
-        t = t1;
-    if ( t2 > 1e-4f && t2 < t )
-        t = t2;
-    return t;
+    float Ra2  = Ra * Ra;
+    float ra2  = ra * ra;
+    float len2 = scalarMul( p, p ); // x^2 + y^2 + z^2
+    float s    = len2 + Ra2 - ra2;
+    float xy2  = p.x * p.x + p.y * p.y;
+    return s * s - 4.0f * Ra2 * xy2;
 }
 
+// Численное пересечение луча с тором.
+// Возвращает t > 0 либо max() если хита нет.
 float
-torIntersect( const Vector3f& ro, const Vector3f& rd, float Ra, float ra )
+torusIntersectNumeric( const Vector3f& ro, const Vector3f& rd, float Ra, float ra )
 {
-    const float Ra2 = Ra * Ra;
-    const float ra2 = ra * ra;
+    constexpr float INF      = std::numeric_limits<float>::max();
+    constexpr float EPS_T    = 1e-4f;
+    constexpr int   STEPS    = 128; // сколько шагов по bounding-сфере
+    constexpr int   BISECT_N = 16;  // итераций бисекции внутри одного интервала
 
-    const float m = scalarMul( ro, ro );
-    const float n = scalarMul( ro, rd );
-    const float k = ( m + Ra2 - ra2 ) * 0.5f;
-
-    float k3 = n;
-    float k2 = n * n - Ra2 * ( rd.x * rd.x + rd.y * rd.y ) + k;
-    float k1 = n * k - Ra2 * ( rd.x * ro.x + rd.y * ro.y );
-    float k0 = k * k - Ra2 * ( ro.x * ro.x + ro.y * ro.y );
-
-    float po = 1.0f;
-    float t0 = std::numeric_limits<float>::max();
-
-    if ( std::abs( k3 * ( k3 * k3 - k2 ) + k1 ) < 0.01f )
+    // 1) Пересечение с bounding-сферой радиуса (Ra+ra)
+    float Rb   = Ra + ra;
+    float Rb2  = Rb * Rb;
+    float b    = scalarMul( ro, rd );       // n
+    float c    = scalarMul( ro, ro ) - Rb2; // m - Rb^2
+    float disc = b * b - c;
+    if ( disc < 0.0f )
     {
-        po = -1.0f;
-        std::swap( k1, k3 );
-        if ( std::abs( k0 ) < 1e-6f )
-            return t0;
-        float inv_k0 = 1.0f / k0;
-        k1 *= inv_k0;
-        k2 *= inv_k0;
-        k3 *= inv_k0;
-        k0 = 1.0f;
+        return INF; // луч сферы не касается -> точно мимо тора
     }
 
-    const float c2 = ( 2.0f * k2 - 3.0f * k3 * k3 ) / 3.0f;
-    const float c1 = 2.0f * ( k3 * ( k3 * k3 - k2 ) + k1 );
-    const float c0 = ( k3 * ( k3 * ( c2 * 3.0f + 2.0f * k2 ) - 8.0f * k1 ) + 4.0f * k0 ) / 3.0f;
+    float sqrt_disc = std::sqrt( disc );
+    float tEnter    = -b - sqrt_disc;
+    float tExit     = -b + sqrt_disc;
 
-    const float Q = c2 * c2 + c0;
-    const float R = c2 * c2 * c2 - 3.0f * c2 * c0 + c1 * c1 * 0.25f;
-    const float h = R * R - Q * Q * Q;
-
-    if ( h >= 0.0f )
+    if ( tExit < 0.0f )
     {
-        const float sqrt_h = std::sqrt( h );
-        auto        cbrt   = []( float x ) -> float {
-            return ( x > 0.0f ) ? std::cbrt( x ) : -std::cbrt( -x );
-        };
-        const float v = cbrt( R + sqrt_h );
-        const float u = cbrt( R - sqrt_h );
-        const float y =
-            std::sqrt( 0.5f * ( std::sqrt( ( v + u + 4.0f * c2 ) * ( v + u + 4.0f * c2 ) +
-                                           3.0f * ( v - u ) * ( v - u ) ) +
-                                ( v + u + 4.0f * c2 ) ) );
-        const float x     = ( y > 1e-6f ) ? ( 0.5f * std::sqrt( 3.0f ) * ( v - u ) / y ) : 0.0f;
-        const float r_val = ( x * x + y * y > 1e-6f ) ? ( 2.0f * c1 / ( x * x + y * y ) ) : 0.0f;
+        return INF; // всё за камерой
+    }
+    if ( tEnter < 0.0f )
+    {
+        tEnter = 0.0f;
+    }
 
-        float t1 = x - r_val - k3;
-        float t2 = -x - r_val - k3;
-        if ( po < 0.0f )
+    // 2) По отрезку [tEnter, tExit] делаем дискретные шаги и ищем первый sign-change
+    auto F = [&]( float t ) -> float {
+        Vector3f p = ro + rd * t;
+        return torusImplicit( p, Ra, ra );
+    };
+
+    float tPrev = tEnter;
+    float fPrev = F( tPrev );
+
+    // размер шага — либо делим интервал, либо ориентируемся на толщину тора
+    float totalLen = tExit - tEnter;
+    if ( totalLen <= 0.0f )
+    {
+        return INF;
+    }
+    float step = totalLen / static_cast<float>( STEPS );
+    // чтобы не проскочить слишком толстый тор, ограничим шаг сверху
+    step = std::min( step, ra * 0.25f );
+
+    for ( int i = 0; i < STEPS && tPrev < tExit; ++i )
+    {
+        float tCur = tPrev + step;
+        if ( tCur > tExit )
+            tCur = tExit;
+
+        float fCur = F( tCur );
+
+        // Ищем переход через ноль: F меняет знак или один из концов почти ноль
+        bool sign_change =
+            ( fPrev == 0.0f ) || ( fCur == 0.0f ) || ( ( fPrev > 0.0f ) != ( fCur > 0.0f ) );
+
+        if ( sign_change )
         {
-            if ( std::abs( t1 ) > 1e-6f )
-                t1 = 2.0f / t1;
-            if ( std::abs( t2 ) > 1e-6f )
-                t2 = 2.0f / t2;
+            // 3) Бисекция на [tPrev, tCur]
+            float a  = tPrev;
+            float b2 = tCur;
+            float fa = fPrev;
+            float fb = fCur;
+
+            for ( int it = 0; it < BISECT_N; ++it )
+            {
+                float mid = 0.5f * ( a + b2 );
+                float fm  = F( mid );
+
+                // если один конец почти попал ровно в поверхность — сдвигаем интервал
+                if ( std::fabs( fm ) < 1e-6f )
+                {
+                    a  = mid;
+                    fa = fm;
+                    break;
+                }
+
+                bool same_sign = ( fa > 0.0f ) == ( fm > 0.0f );
+                if ( same_sign )
+                {
+                    a  = mid;
+                    fa = fm;
+                } else
+                {
+                    b2 = mid;
+                    fb = fm;
+                }
+            }
+
+            float tHit = 0.5f * ( a + b2 );
+
+            if ( tHit > EPS_T )
+            {
+                return tHit; // первый найденный хит — и есть ближняя поверхность тора
+            }
+            // если tHit совсем близко к нулю — мы почти стартуем с поверхности;
+            // продолжаем поиск дальше, чтобы не ловить самих себя
         }
-        if ( t1 > 1e-4f )
-            t0 = t1;
-        if ( t2 > 1e-4f && t2 < t0 )
-            t0 = t2;
-        return t0;
+
+        tPrev = tCur;
+        fPrev = fCur;
     }
 
-    if ( Q < 0.0f )
-        return t0;
-    const float sQ    = std::sqrt( Q );
-    const float theta = std::acos( std::clamp( -R / ( sQ * Q ), -1.0f, 1.0f ) ) / 3.0f;
-    const float w     = sQ * std::cos( theta );
-    const float d2    = -( w + c2 );
-    if ( d2 < 0.0f )
-        return t0;
-    const float d1 = std::sqrt( d2 );
-    const float h1 =
-        ( w - 2.0f * c2 + c1 / d1 >= 0.0f ) ? std::sqrt( w - 2.0f * c2 + c1 / d1 ) : 0.0f;
-    const float h2 =
-        ( w - 2.0f * c2 - c1 / d1 >= 0.0f ) ? std::sqrt( w - 2.0f * c2 - c1 / d1 ) : 0.0f;
-
-    float t1 = -d1 - h1 - k3;
-    float t2 = -d1 + h1 - k3;
-    float t3 = d1 - h2 - k3;
-    float t4 = d1 + h2 - k3;
-
-    if ( po < 0.0f )
-    {
-        if ( std::abs( t1 ) > 1e-6f )
-            t1 = 2.0f / t1;
-        if ( std::abs( t2 ) > 1e-6f )
-            t2 = 2.0f / t2;
-        if ( std::abs( t3 ) > 1e-6f )
-            t3 = 2.0f / t3;
-        if ( std::abs( t4 ) > 1e-6f )
-            t4 = 2.0f / t4;
-    }
-
-    float t = std::numeric_limits<float>::max();
-    if ( t1 > 1e-4f )
-        t = t1;
-    if ( t2 > 1e-4f && t2 < t )
-        t = t2;
-    if ( t3 > 1e-4f && t3 < t )
-        t = t3;
-    if ( t4 > 1e-4f && t4 < t )
-        t = t4;
-    return t;
+    return INF;
 }
 
 } // anonymous namespace
@@ -164,10 +164,11 @@ torIntersect( const Vector3f& ro, const Vector3f& rd, float Ra, float ra )
 std::optional<Primitive::IntersectionInfo>
 Torus::calcRayIntersection( const Ray& ray ) const
 {
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir();
+    // локальное пространство тора (центр в getOrigin(), ось вокруг Z)
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() ); // Ray уже нормализует dir_ в конструкторе
 
-    float t = torIntersect( ro, rd, major_radius_, minor_radius_ );
+    float t = torusIntersectNumeric( ro, rd, major_radius_, minor_radius_ );
 
     if ( t >= std::numeric_limits<float>::max() || t < 0.0f )
     {
@@ -178,38 +179,52 @@ Torus::calcRayIntersection( const Ray& ray ) const
     info.close_distance = t;
     info.far_distance   = t;
     info.inside_object  = false;
-    info.normal         = std::nullopt;
+    info.normal         = std::nullopt; // нормаль посчитаем через calcNormal()
     return info;
 }
 
 Vector3f
 Torus::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 {
-    Vector3f p    = point - getOrigin();
-    float    Ra2  = major_radius_ * major_radius_;
-    float    ra2  = minor_radius_ * minor_radius_;
-    float    len2 = scalarMul( p, p );
-    Vector3f grad = p * ( len2 - ra2 - Ra2 ) + Vector3f( -Ra2 * p.x, -Ra2 * p.y, Ra2 * p.z );
-    return grad.normalize();
+    // Имплицитная поверхность тора (ось Z):
+    // F(x,y,z) = (x^2 + y^2 + z^2 + Ra^2 - ra^2)^2 - 4*Ra^2*(x^2 + y^2) = 0
+    // ∇F ~ ( x*(s - 2*Ra^2), y*(s - 2*Ra^2), z*s ), где s = x^2 + y^2 + z^2 + Ra^2 - ra^2
+
+    Vector3f p   = worldToLocalPoint( point );
+    float    Ra2 = major_radius_ * major_radius_;
+    float    ra2 = minor_radius_ * minor_radius_;
+
+    float len2 = scalarMul( p, p );
+    float s    = len2 + Ra2 - ra2;
+
+    Vector3f grad( p.x * ( s - 2.0f * Ra2 ), p.y * ( s - 2.0f * Ra2 ), p.z * s );
+
+    grad.normalize();
+    return localToWorldNormal( grad );
 }
 
 std::array<Vector3f, 8>
 Torus::getCircumscribedAABB() const
 {
-    auto c = getOrigin();
-
     float dx = major_radius_ + minor_radius_;
     float dy = major_radius_ + minor_radius_;
     float dz = minor_radius_;
 
-    return { { { c.x - dx, c.y - dy, c.z - dz },
-               { c.x + dx, c.y - dy, c.z - dz },
-               { c.x - dx, c.y + dy, c.z - dz },
-               { c.x + dx, c.y + dy, c.z - dz },
-               { c.x - dx, c.y - dy, c.z + dz },
-               { c.x + dx, c.y - dy, c.z + dz },
-               { c.x - dx, c.y + dy, c.z + dz },
-               { c.x + dx, c.y + dy, c.z + dz } } };
+    std::array<Vector3f, 8> corners_local = { { { -dx, -dy, -dz },
+                                                { dx, -dy, -dz },
+                                                { -dx, dy, -dz },
+                                                { dx, dy, -dz },
+                                                { -dx, -dy, dz },
+                                                { dx, -dy, dz },
+                                                { -dx, dy, dz },
+                                                { dx, dy, dz } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

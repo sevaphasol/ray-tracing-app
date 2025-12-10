@@ -10,14 +10,15 @@
 #include "pp/canvas.hpp"
 #include "pp/shape.hpp"
 #include "pp/tool.hpp"
+#include "zemax/view/rgb_picker.hpp"
 #include "zemax/view/tool_panel.hpp"
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <string>
 
 namespace zemax {
 namespace view {
@@ -28,11 +29,22 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         : hui::Widget( wm, x, y, w, h ),
           pp::Canvas(),
           active_( false ),
-          tool_panel_( wm, 10, 100, 200 )
+          tool_panel_( wm, 10, 100, 200 ),
+          theme_( { { 0, 0, 0, 0 },
+                    { 0, 118, 185, 255 },
+                    { 118, 0, 0, 255 },
+                    { 255, 255, 255, 255 },
+                    18,
+                    { 128, 128, 128, 255 } } ),
+          color_picker_( wm,
+                         { 80.0f, 20.0f },
+                         theme_.shapeBorderColor,
+                         [this]( const dr4::Color& color ) { updateThemeColor( color ); } )
     {
         setDraggable( false );
         refreshPlugins();
         tool_panel_.setParent( this );
+        color_picker_.setParent( this );
 
         border_.reset( wm->getWindow()->CreateRectangle() );
 
@@ -40,13 +52,6 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         border_->SetBorderThickness( -2 );
         border_->SetFillColor( { 0, 0, 0, 128 } );
         border_->SetSize( { w, h } );
-
-        theme_ = { { 0, 0, 0, 0 },
-                   { 0, 118, 185, 255 },
-                   { 118, 0, 0, 255 },
-                   { 255, 255, 255, 255 },
-                   18,
-                   { 128, 128, 128, 255 } };
     }
 
     SnapshotAnnotator( hui::WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size )
@@ -72,7 +77,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     refreshPlugins()
     {
         plugin_tools_.clear();
-        active_tools_  = nullptr;
+        active_tools_             = nullptr;
         bool active_still_present = false;
 
         for ( auto* plg : wm_->getPluginManager()->GetAllOfType<cum::PPToolPlugin>() )
@@ -223,6 +228,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return false;
         }
         event.apply( &tool_panel_ );
+        event.apply( &color_picker_ );
 
         return false;
     }
@@ -308,6 +314,11 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             // // std::cerr << "ActiveToolIdx = " << "None" << std::endl;
             // }
 
+            return true;
+        }
+
+        if ( event.apply( &color_picker_ ) )
+        {
             return true;
         }
 
@@ -407,6 +418,11 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return true;
         }
 
+        if ( event.apply( &color_picker_ ) )
+        {
+            return true;
+        }
+
         dr4::Event::MouseButton evt = { event.info.mouseButton.button,
                                         { event.info.mouseButton.pos.x - getAbsPos().x,
                                           event.info.mouseButton.pos.y - getAbsPos().y } };
@@ -448,6 +464,11 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             return true;
         }
 
+        if ( event.apply( &color_picker_ ) )
+        {
+            return true;
+        }
+
         dr4::Event::MouseMove evt = { { event.info.mouseMove.pos.x - getAbsPos().x,
                                         event.info.mouseMove.pos.y - getAbsPos().y },
                                       event.info.mouseMove.rel };
@@ -477,6 +498,13 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     }
 
   private:
+    void
+    updateThemeColor( const dr4::Color& color )
+    {
+        theme_.shapeBorderColor = color;
+        theme_.shapeFillColor   = color;
+    }
+
     void
     rebuildToolPanel()
     {
@@ -514,6 +542,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         }
 
         tool_panel_.Redraw();
+        color_picker_.Redraw();
 
         // // // std::cerr << "Drawing border.." << std::endl;
     }
@@ -525,9 +554,9 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         std::vector<std::unique_ptr<pp::Tool>> tools;
     };
 
-    std::vector<PluginTools>                 plugin_tools_;
-    std::vector<std::unique_ptr<pp::Tool>>*  active_tools_  = nullptr;
-    cum::PPToolPlugin*                       active_plugin_ = nullptr;
+    std::vector<PluginTools>                plugin_tools_;
+    std::vector<std::unique_ptr<pp::Tool>>* active_tools_  = nullptr;
+    cum::PPToolPlugin*                      active_plugin_ = nullptr;
 
     bool active_ = false;
 
@@ -540,6 +569,8 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     std::unordered_map<pp::Shape*, std::unique_ptr<pp::Shape>> shapes_;
 
     pp::ControlsTheme theme_;
+
+    RGBPicker color_picker_;
 
     pp::Shape* selected_shape_ = nullptr;
 };

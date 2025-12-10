@@ -70,8 +70,8 @@ capIntersect( const Vector3f& ro,
 std::optional<Primitive::IntersectionInfo>
 Capsule::calcRayIntersection( const Ray& ray ) const
 {
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir();
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     float t = capIntersect( ro, rd, pa_local_, pb_local_, radius_ );
 
@@ -90,7 +90,7 @@ Capsule::calcRayIntersection( const Ray& ray ) const
 Vector3f
 Capsule::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    Vector3f p_local = point - getOrigin();
+    Vector3f p_local = worldToLocalPoint( point );
     Vector3f pa      = pa_local_;
     Vector3f pb      = pb_local_;
     Vector3f ba      = pb - pa;
@@ -129,7 +129,7 @@ Capsule::calcNormal( const Vector3f& point, bool inside_object ) const
     if ( inside_object )
         n_local = -n_local;
 
-    return n_local;
+    return localToWorldNormal( n_local );
 }
 
 std::array<Vector3f, 8>
@@ -146,16 +146,21 @@ Capsule::getCircumscribedAABB() const
                         std::max( pa.y, pb.y ) + radius_,
                         std::max( pa.z, pb.z ) + radius_ };
 
-    Vector3f c = getOrigin();
+    std::array<Vector3f, 8> corners_local = { { { min_local.x, min_local.y, min_local.z },
+                                                { max_local.x, min_local.y, min_local.z },
+                                                { min_local.x, max_local.y, min_local.z },
+                                                { max_local.x, max_local.y, min_local.z },
+                                                { min_local.x, min_local.y, max_local.z },
+                                                { max_local.x, min_local.y, max_local.z },
+                                                { min_local.x, max_local.y, max_local.z },
+                                                { max_local.x, max_local.y, max_local.z } } };
 
-    return { { { c.x + min_local.x, c.y + min_local.y, c.z + min_local.z },
-               { c.x + max_local.x, c.y + min_local.y, c.z + min_local.z },
-               { c.x + min_local.x, c.y + max_local.y, c.z + min_local.z },
-               { c.x + max_local.x, c.y + max_local.y, c.z + min_local.z },
-               { c.x + min_local.x, c.y + min_local.y, c.z + max_local.z },
-               { c.x + max_local.x, c.y + min_local.y, c.z + max_local.z },
-               { c.x + min_local.x, c.y + max_local.y, c.z + max_local.z },
-               { c.x + max_local.x, c.y + max_local.y, c.z + max_local.z } } };
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

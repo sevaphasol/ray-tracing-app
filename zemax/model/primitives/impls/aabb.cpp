@@ -14,8 +14,8 @@ AABB::AABB( const Material& material, const Vector3f& center, const Vector3f& ha
 std::optional<Primitive::IntersectionInfo>
 AABB::calcRayIntersection( const Ray& ray ) const
 {
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir();
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     Vector3f m;
     m.x = ( std::abs( rd.x ) > 1e-6f ) ? 1.0f / rd.x : std::numeric_limits<float>::max();
@@ -43,7 +43,6 @@ AABB::calcRayIntersection( const Ray& ray ) const
     info.far_distance   = t_f;
     info.inside_object  = ( t_n <= 0.0f );
 
-    Vector3f normal_axis;
     if ( !info.inside_object )
     {
         info.normal = step( Vector3f{ t_n, t_n, t_n }, t1 );
@@ -52,7 +51,7 @@ AABB::calcRayIntersection( const Ray& ray ) const
         info.normal = step( t2, Vector3f{ t_f, t_f, t_f } );
     }
 
-    info.normal = info.normal.value() * sign( rd );
+    info.normal = localToWorldNormal( info.normal.value() * sign( rd ) );
 
     return info;
 }
@@ -60,34 +59,40 @@ AABB::calcRayIntersection( const Ray& ray ) const
 Vector3f
 AABB::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    Vector3f local     = point - getOrigin();
+    Vector3f local     = worldToLocalPoint( point );
     Vector3f abs_local = { std::abs( local.x ), std::abs( local.y ), std::abs( local.z ) };
 
     if ( abs_local.x >= abs_local.y && abs_local.x >= abs_local.z )
     {
-        return Vector3f{ ( local.x >= 0.0f ) ? 1.0f : -1.0f, 0.0f, 0.0f };
+        return localToWorldNormal( { ( local.x >= 0.0f ) ? 1.0f : -1.0f, 0.0f, 0.0f } );
     }
     if ( abs_local.y >= abs_local.z )
     {
-        return Vector3f{ 0.0f, ( local.y >= 0.0f ) ? 1.0f : -1.0f, 0.0f };
+        return localToWorldNormal( { 0.0f, ( local.y >= 0.0f ) ? 1.0f : -1.0f, 0.0f } );
     }
-    return Vector3f{ 0.0f, 0.0f, ( local.z >= 0.0f ) ? 1.0f : -1.0f };
+    return localToWorldNormal( { 0.0f, 0.0f, ( local.z >= 0.0f ) ? 1.0f : -1.0f } );
 }
 
 std::array<Vector3f, 8>
 AABB::getCircumscribedAABB() const
 {
-    Vector3f c = getOrigin();
     Vector3f h = half_size_;
 
-    return { { { c.x - h.x, c.y - h.y, c.z - h.z },
-               { c.x + h.x, c.y - h.y, c.z - h.z },
-               { c.x - h.x, c.y + h.y, c.z - h.z },
-               { c.x + h.x, c.y + h.y, c.z - h.z },
-               { c.x - h.x, c.y - h.y, c.z + h.z },
-               { c.x + h.x, c.y - h.y, c.z + h.z },
-               { c.x - h.x, c.y + h.y, c.z + h.z },
-               { c.x + h.x, c.y + h.y, c.z + h.z } } };
+    std::array<Vector3f, 8> corners_local = { { { -h.x, -h.y, -h.z },
+                                                { h.x, -h.y, -h.z },
+                                                { -h.x, h.y, -h.z },
+                                                { h.x, h.y, -h.z },
+                                                { -h.x, -h.y, h.z },
+                                                { h.x, -h.y, h.z },
+                                                { -h.x, h.y, h.z },
+                                                { h.x, h.y, h.z } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

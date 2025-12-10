@@ -34,8 +34,8 @@ Wedge::calcRayIntersection( const Ray& ray ) const
 {
     constexpr float INF = std::numeric_limits<float>::max();
 
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir();
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     // intersect plane box (axis-aligned box [-s,+s])
     Vector3f    m;
@@ -82,7 +82,7 @@ Wedge::calcRayIntersection( const Ray& ray ) const
         info.close_distance = tn;
         info.far_distance   = tn;
         info.inside_object  = false;
-        info.normal         = n_box;
+        info.normal         = localToWorldNormal( n_box );
 
         return info;
     }
@@ -108,7 +108,7 @@ Wedge::calcRayIntersection( const Ray& ray ) const
         info.close_distance = tn;
         info.far_distance   = tn;
         info.inside_object  = false;
-        info.normal         = n_box;
+        info.normal         = localToWorldNormal( n_box );
 
         return info;
     }
@@ -123,7 +123,7 @@ Wedge::calcRayIntersection( const Ray& ray ) const
         info.close_distance = tp;
         info.far_distance   = tp;
         info.inside_object  = false;
-        info.normal         = n_plane;
+        info.normal         = localToWorldNormal( n_plane );
 
         return info;
     }
@@ -137,7 +137,7 @@ Wedge::calcNormal( const Vector3f& point, bool inside_object ) const
     // Нормаль уже кладём в IntersectionInfo, так что здесь — fallback:
     // heuristics: если точка ближе к плоскости — возвращаем её нормаль, иначе нормаль бокса.
 
-    Vector3f p_local = point - getOrigin();
+    Vector3f p_local = worldToLocalPoint( point );
 
     // плоскость клина: s.y * x - s.x * y = 0
     float d_plane    = s_.y * p_local.x - s_.x * p_local.y;
@@ -170,23 +170,29 @@ Wedge::calcNormal( const Vector3f& point, bool inside_object ) const
 
     if ( inside_object )
         n = -n;
-    return n;
+    return localToWorldNormal( n );
 }
 
 std::array<Vector3f, 8>
 Wedge::getCircumscribedAABB() const
 {
-    Vector3f c = getOrigin();
     Vector3f s = s_;
 
-    return { { { c.x - s.x, c.y - s.y, c.z - s.z },
-               { c.x + s.x, c.y - s.y, c.z - s.z },
-               { c.x - s.x, c.y + s.y, c.z - s.z },
-               { c.x + s.x, c.y + s.y, c.z - s.z },
-               { c.x - s.x, c.y - s.y, c.z + s.z },
-               { c.x + s.x, c.y - s.y, c.z + s.z },
-               { c.x - s.x, c.y + s.y, c.z + s.z },
-               { c.x + s.x, c.y + s.y, c.z + s.z } } };
+    std::array<Vector3f, 8> corners_local = { { { -s.x, -s.y, -s.z },
+                                                { s.x, -s.y, -s.z },
+                                                { -s.x, s.y, -s.z },
+                                                { s.x, s.y, -s.z },
+                                                { -s.x, -s.y, s.z },
+                                                { s.x, -s.y, s.z },
+                                                { -s.x, s.y, s.z },
+                                                { s.x, s.y, s.z } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

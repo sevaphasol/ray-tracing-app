@@ -13,19 +13,18 @@ Plane::Plane( const Material& material, const Vector3f& base_point, const Vector
 std::optional<Primitive::IntersectionInfo>
 Plane::calcRayIntersection( const Ray& ray ) const
 {
-    auto r0 = ray.getBasePoint();
-    auto a  = ray.getDir();
-    auto rp = getOrigin();
-    auto n  = normal_;
+    Vector3f r0_local = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f a        = worldToLocalDir( ray.getDir() );
+    auto     n_local  = normal_;
 
-    auto a_pr = scalarMul( a, n );
+    auto a_pr = scalarMul( a, n_local );
 
     if ( a_pr == 0 )
     {
         return std::nullopt;
     }
 
-    float t = scalarMul( rp - r0, n ) / a_pr;
+    float t = scalarMul( -r0_local, n_local ) / a_pr;
 
     if ( t < 0.0f )
     {
@@ -37,7 +36,7 @@ Plane::calcRayIntersection( const Ray& ray ) const
     info.close_distance = t;
     info.far_distance   = t;
     info.inside_object  = false;
-    info.normal         = normal_;
+    info.normal         = localToWorldNormal( n_local );
 
     return info;
 }
@@ -45,24 +44,30 @@ Plane::calcRayIntersection( const Ray& ray ) const
 Vector3f
 Plane::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    return normal_;
+    Vector3f n = normal_;
+    return localToWorldNormal( n );
 }
 
 std::array<Vector3f, 8>
 Plane::getCircumscribedAABB() const
 {
-    Vector3f c = getOrigin();
-
     float h = 1.0f;
 
-    return { { { c.x - h, c.y - h, c.z - h },
-               { c.x + h, c.y - h, c.z - h },
-               { c.x - h, c.y + h, c.z - h },
-               { c.x + h, c.y + h, c.z - h },
-               { c.x - h, c.y - h, c.z + h },
-               { c.x + h, c.y - h, c.z + h },
-               { c.x - h, c.y + h, c.z + h },
-               { c.x + h, c.y + h, c.z + h } } };
+    std::array<Vector3f, 8> corners_local = { { { -h, -h, -h },
+                                                { h, -h, -h },
+                                                { -h, h, -h },
+                                                { h, h, -h },
+                                                { -h, -h, h },
+                                                { h, -h, h },
+                                                { -h, h, h },
+                                                { h, h, h } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

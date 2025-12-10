@@ -23,7 +23,7 @@ Thumb::Thumb( hui::WindowManager* wm,
     setDraggable( true );
 
     rect_->SetSize( size );
-    rect_->SetFillColor( detail::ScrollBar::Thumb::Color::Default );
+    rect_->SetFillColor( owner_->theme().thumb.default_color );
 }
 
 bool
@@ -129,7 +129,7 @@ Arrow::onIdle( const Event& event )
 void
 Arrow::setUpTriangle()
 {
-    updateTriangleColor( detail::ScrollBar::ArrowField::Triangle::Color::Default );
+    updateTriangleColor( owner_->theme().arrow_triangle.default_color );
     updateTrianglePosition();
 }
 
@@ -251,17 +251,17 @@ ScrollBar::ScrollBar( hui::WindowManager* wm,
       theme_( theme ),
       thumb_( wm,
               this,
-              dr4::Vec2f( 0.0f, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
-              dr4::Vec2f( size.x, size.y * detail::ScrollBar::Thumb::SizeCoef ) ),
+              dr4::Vec2f( 0.0f, size.y * ArrowHeightFactor ),
+              dr4::Vec2f( size.x, size.y * ThumbHeightFactor ) ),
       up_arrow_( wm,
                  this,
                  dr4::Vec2f( 0.0f, 0.0f ),
-                 dr4::Vec2f( size.x, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
+                 dr4::Vec2f( size.x, size.y * ArrowHeightFactor ),
                  true ),
       down_arrow_( wm,
                    this,
-                   dr4::Vec2f( 0.0f, size.y * ( 1 - detail::ScrollBar::ArrowField::SizeCoef ) ),
-                   dr4::Vec2f( size.x, size.y * detail::ScrollBar::ArrowField::SizeCoef ),
+                   dr4::Vec2f( 0.0f, size.y * ( 1 - ArrowHeightFactor ) ),
+                   dr4::Vec2f( size.x, size.y * ArrowHeightFactor ),
                    false )
 {
     border_.reset( wm->getWindow()->CreateRectangle() );

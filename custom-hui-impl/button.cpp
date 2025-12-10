@@ -3,10 +3,18 @@
 #include "dr4/math/color.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
-#include "text_expand.hpp"
 #include "window_manager.hpp"
 
 namespace hui {
+
+namespace {
+void
+centerLabel( dr4::Text& text, const dr4::Vec2f& rect_size, const dr4::Vec2f& /*rect_pos*/ )
+{
+    const auto& bounds = text.GetBounds();
+    text.SetPos( rect_size.x * 0.5f - bounds.x * 0.5f, rect_size.y * 0.5f - bounds.y * 0.5f );
+}
+} // namespace
 
 Button::Button( hui::WindowManager*  wm,
                 const dr4::Vec2f&    pos,
@@ -26,7 +34,7 @@ Button::Button( hui::WindowManager*  wm,
     label_->SetFontSize( theme.font_size );
     label_->SetColor( theme.font_color );
 
-    moveInCenterOfRect( *label_, size, pos );
+    centerLabel( *label_, size, pos );
 }
 
 const Button::Theme&
@@ -45,7 +53,7 @@ void
 Button::setRelPos( const dr4::Vec2f& pos )
 {
     Widget::setRelPos( pos );
-    moveInCenterOfRect( *label_, size_, pos_ );
+    centerLabel( *label_, size_, pos_ );
 }
 
 void
@@ -53,7 +61,7 @@ Button::setSize( const dr4::Vec2f& size )
 {
     Widget::setSize( size );
     background_->SetSize( size );
-    moveInCenterOfRect( *label_, size_, pos_ );
+    centerLabel( *label_, size_, pos_ );
 }
 
 void

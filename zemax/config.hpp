@@ -30,7 +30,7 @@ struct Config
     struct CameraPanel
     {
         static inline const dr4::Vec2f Position        = { 50.0f, 50.0f };
-        static inline const dr4::Vec2f Size            = { 380.0f, 320.0f };
+        static inline const dr4::Vec2f Size            = { 380.0f, 385.0f };
         static inline const dr4::Color BackgroundColor = { 18, 18, 18, 255 };
         static inline const dr4::Color BorderColor     = { 118, 185, 0, 255 };
         static inline const float      BorderThickness = 2.0f;
@@ -49,82 +49,82 @@ struct Config
 
             struct MvL
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 50.0f };
-                static inline const char* const Title    = "Move left";
+                static inline const dr4::Vec2f  Position = { 30.0f, 80.0f };
+                static inline const char* const Title    = "left";
             };
 
             struct MvR
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 110.0f };
-                static inline const char* const Title    = "Move right";
+                static inline const dr4::Vec2f  Position = { 30.0f, 140.0f };
+                static inline const char* const Title    = "right";
             };
 
             struct MvU
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 50.0f };
-                static inline const char* const Title    = "Move up";
+                static inline const dr4::Vec2f  Position = { 140.0f, 80.0f };
+                static inline const char* const Title    = "up";
             };
 
             struct MvD
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 110.0f };
-                static inline const char* const Title    = "Move down";
+                static inline const dr4::Vec2f  Position = { 140.0f, 140.0f };
+                static inline const char* const Title    = "down";
             };
 
             struct MvF
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 50.0f };
-                static inline const char* const Title    = "Move forward";
+                static inline const dr4::Vec2f  Position = { 250.0f, 80.0f };
+                static inline const char* const Title    = "fwd";
             };
 
             struct MvB
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 110.0f };
-                static inline const char* const Title    = "Move Backward";
+                static inline const dr4::Vec2f  Position = { 250.0f, 140.0f };
+                static inline const char* const Title    = "bwd";
             };
 
             struct RtL
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 200.0f };
-                static inline const char* const Title    = "Rotate left";
+                static inline const dr4::Vec2f  Position = { 30.0f, 220.0f };
+                static inline const char* const Title    = "rot left";
             };
 
             struct RtR
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 260.0f };
-                static inline const char* const Title    = "Rotate right";
+                static inline const dr4::Vec2f  Position = { 30.0f, 280.0f };
+                static inline const char* const Title    = "rot right";
             };
 
             struct RtU
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 200.0f };
-                static inline const char* const Title    = "Rotate up";
+                static inline const dr4::Vec2f  Position = { 140.0f, 220.0f };
+                static inline const char* const Title    = "rot up";
             };
 
             struct RtD
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 260.0f };
-                static inline const char* const Title    = "Rotate down";
+                static inline const dr4::Vec2f  Position = { 140.0f, 280.0f };
+                static inline const char* const Title    = "rot down";
             };
 
             struct ScaleUp
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 200.0f };
-                static inline const char* const Title    = "Scale up";
+                static inline const dr4::Vec2f  Position = { 250.0f, 220.0f };
+                static inline const char* const Title    = "scale up";
             };
 
             struct ScaleDown
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 260.0f };
-                static inline const char* const Title    = "Scale down";
+                static inline const dr4::Vec2f  Position = { 250.0f, 280.0f };
+                static inline const char* const Title    = "scale down";
             };
         };
     };
 
     struct ControlPanel
     {
-        static inline const dr4::Vec2f Position        = { 50.0f, 400.0f };
-        static inline const dr4::Vec2f Size            = { 380.0f, 340.0f };
+        static inline const dr4::Vec2f Position        = { 50.0f, 465.0f };
+        static inline const dr4::Vec2f Size            = { 380.0f, 385.0f };
         static inline const dr4::Color BackgroundColor = { 18, 18, 18, 255 };
         static inline const dr4::Color BorderColor     = { 118, 185, 0, 255 };
         static inline const float      BorderThickness = 2.0f;
@@ -141,63 +141,99 @@ struct Config
             static inline const dr4::Color  FontColor = { 220, 220, 220, 255 };
             static inline const size_t      FontSize  = 15;
 
-            struct MoveObjLeft
+            struct RotateObjLeft
             {
                 static inline const dr4::Vec2f  Position = { 30.0f, 80.0f };
-                static inline const char* const Title    = "Move obj left";
+                static inline const char* const Title    = "Y-";
+            };
+
+            struct RotateObjRight
+            {
+                static inline const dr4::Vec2f  Position = { 30.0f, 140.0f };
+                static inline const char* const Title    = "Y+";
+            };
+
+            struct RotateObjUp
+            {
+                static inline const dr4::Vec2f  Position = { 140.0f, 80.0f };
+                static inline const char* const Title    = "X+";
+            };
+
+            struct RotateObjDown
+            {
+                static inline const dr4::Vec2f  Position = { 140.0f, 140.0f };
+                static inline const char* const Title    = "X-";
+            };
+
+            struct RotateObjRollLeft
+            {
+                static inline const dr4::Vec2f  Position = { 250.0f, 80.0f };
+                static inline const char* const Title    = "Z-";
+            };
+
+            struct RotateObjRollRight
+            {
+                static inline const dr4::Vec2f  Position = { 250.0f, 140.0f };
+                static inline const char* const Title    = "Z+";
+            };
+
+            struct MoveObjLeft
+            {
+                static inline const dr4::Vec2f  Position = { 30.0f, 220.0f };
+                static inline const char* const Title    = "left";
             };
 
             struct MoveObjRight
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 140.0f };
-                static inline const char* const Title    = "Move obj right";
+                static inline const dr4::Vec2f  Position = { 30.0f, 280.0f };
+                static inline const char* const Title    = "right";
             };
 
             struct MoveObjUp
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 80.0f };
-                static inline const char* const Title    = "Move obj up";
+                static inline const dr4::Vec2f  Position = { 140.0f, 220.0f };
+                static inline const char* const Title    = "up";
             };
 
             struct MoveObjDown
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 140.0f };
-                static inline const char* const Title    = "Move obj down";
+                static inline const dr4::Vec2f  Position = { 140.0f, 280.0f };
+                static inline const char* const Title    = "down";
             };
 
             struct MoveObjForward
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 80.0f };
-                static inline const char* const Title    = "Move obj fwd";
+                static inline const dr4::Vec2f  Position = { 250.0f, 220.0f };
+                static inline const char* const Title    = "fwd";
             };
 
             struct MoveObjBackward
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 140.0f };
-                static inline const char* const Title    = "Move obj bwd";
+                static inline const dr4::Vec2f  Position = { 250.0f, 280.0f };
+                static inline const char* const Title    = "bwd";
             };
 
             struct AddObj
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 210.0f };
+                static inline const dr4::Vec2f  Position = { 30.0f, 300.0f };
                 static inline const char* const Title    = "Add obj";
             };
 
             struct CopyObj
             {
-                static inline const dr4::Vec2f  Position = { 140.0f, 210.0f };
+                static inline const dr4::Vec2f  Position = { 140.0f, 300.0f };
                 static inline const char* const Title    = "Copy obj";
             };
 
             struct EditObj
             {
-                static inline const dr4::Vec2f  Position = { 250.0f, 210.0f };
+                static inline const dr4::Vec2f  Position = { 250.0f, 300.0f };
                 static inline const char* const Title    = "Edit obj";
             };
 
             struct DeleteObj
             {
-                static inline const dr4::Vec2f  Position = { 30.0f, 270.0f };
+                static inline const dr4::Vec2f  Position = { 30.0f, 360.0f };
                 static inline const char* const Title    = "Delete obj";
             };
         };
@@ -205,7 +241,7 @@ struct Config
 
     struct Scene
     {
-        static inline const dr4::Vec2f Position        = { 500.0f, 50.0f };
+        static inline const dr4::Vec2f Position        = { 475.0f, 50.0f };
         static inline const dr4::Vec2f Size            = { 1200.0f, 800.0f };
         static inline const dr4::Color BackgroundColor = { 10, 10, 10, 255 };
 

@@ -31,8 +31,8 @@ std::optional<Primitive::IntersectionInfo>
 Triangle::calcRayIntersection( const Ray& ray ) const
 {
     // Переводим луч в локальное пространство треугольника:
-    const Vector3f ro = ray.getBasePoint() - getOrigin();
-    const Vector3f rd = ray.getDir();
+    const Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    const Vector3f rd = worldToLocalDir( ray.getDir() );
 
     const Vector3f& v0 = v0_local_;
     const Vector3f& v1 = v1_local_;
@@ -68,7 +68,7 @@ Triangle::calcRayIntersection( const Ray& ray ) const
     info.inside_object  = false;
 
     Vector3f nrm = n.normalize();
-    info.normal  = nrm; // нормаль в локале = нормали в мире, т.к. нет вращения/скейла
+    info.normal  = localToWorldNormal( nrm );
 
     return info;
 }
@@ -79,17 +79,16 @@ Triangle::calcNormal( const Vector3f& /*point*/, bool inside_object ) const
     Vector3f n = cross( v1_local_ - v0_local_, v2_local_ - v0_local_ ).normalize();
     if ( inside_object )
         n = -n;
-    return n;
+    return localToWorldNormal( n );
 }
 
 std::array<Vector3f, 8>
 Triangle::getCircumscribedAABB() const
 {
     // AABB считаем в МИРОВЫХ координатах
-    Vector3f o  = getOrigin();
-    Vector3f w0 = o + v0_local_;
-    Vector3f w1 = o + v1_local_;
-    Vector3f w2 = o + v2_local_;
+    Vector3f w0 = localToWorldPoint( v0_local_ );
+    Vector3f w1 = localToWorldPoint( v1_local_ );
+    Vector3f w2 = localToWorldPoint( v2_local_ );
 
     float min_x = std::min( { w0.x, w1.x, w2.x } );
     float max_x = std::max( { w0.x, w1.x, w2.x } );

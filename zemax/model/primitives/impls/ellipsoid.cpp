@@ -44,8 +44,8 @@ eliIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& ra )
 std::optional<Primitive::IntersectionInfo>
 Ellipsoid::calcRayIntersection( const Ray& ray ) const
 {
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir();
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     auto [t1, t2] = eliIntersect( ro, rd, radii_ );
     if ( t1 == std::numeric_limits<float>::max() )
@@ -68,7 +68,7 @@ Ellipsoid::calcRayIntersection( const Ray& ray ) const
 Vector3f
 Ellipsoid::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    Vector3f p = point - getOrigin();
+    Vector3f p = worldToLocalPoint( point );
 
     Vector3f n{ p.x / ( radii_.x * radii_.x ),
                 p.y / ( radii_.y * radii_.y ),
@@ -79,23 +79,29 @@ Ellipsoid::calcNormal( const Vector3f& point, bool inside_object ) const
     if ( inside_object )
         n = -n;
 
-    return n;
+    return localToWorldNormal( n );
 }
 
 std::array<Vector3f, 8>
 Ellipsoid::getCircumscribedAABB() const
 {
-    Vector3f c = getOrigin();
     Vector3f r = radii_;
 
-    return { { { c.x - r.x, c.y - r.y, c.z - r.z },
-               { c.x + r.x, c.y - r.y, c.z - r.z },
-               { c.x - r.x, c.y + r.y, c.z - r.z },
-               { c.x + r.x, c.y + r.y, c.z - r.z },
-               { c.x - r.x, c.y - r.y, c.z + r.z },
-               { c.x + r.x, c.y - r.y, c.z + r.z },
-               { c.x - r.x, c.y + r.y, c.z + r.z },
-               { c.x + r.x, c.y + r.y, c.z + r.z } } };
+    std::array<Vector3f, 8> corners_local = { { { -r.x, -r.y, -r.z },
+                                                { r.x, -r.y, -r.z },
+                                                { -r.x, r.y, -r.z },
+                                                { r.x, r.y, -r.z },
+                                                { -r.x, -r.y, r.z },
+                                                { r.x, -r.y, r.z },
+                                                { -r.x, r.y, r.z },
+                                                { r.x, r.y, r.z } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

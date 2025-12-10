@@ -28,8 +28,8 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
     Vector3f n3( -0.5f, 0.0f, ks3 );
     Vector3f n4( 0.0f, 1.0f, 0.0f );
 
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir();
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     auto slabIntersect = []( float           d,
                              const Vector3f& n,
@@ -90,7 +90,7 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
     info.close_distance = t;
     info.far_distance   = tFar;
     info.inside_object  = ( tNear <= 0.0f );
-    info.normal         = normal;
+    info.normal         = localToWorldNormal( normal );
     return info;
 }
 
@@ -100,7 +100,7 @@ HexPrism::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
     // Для простоты используем нормаль из пересечения
     // (в реальности можно пересчитать, но в вашем движке normal берётся из IntersectionInfo)
     // Поэтому этот метод редко вызывается — оставим заглушку
-    Vector3f    local = point - getOrigin();
+    Vector3f    local = worldToLocalPoint( point );
     const float ks3   = 0.8660254037844386f;
 
     // Нормали граней
@@ -130,25 +130,31 @@ HexPrism::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
         }
     }
 
-    return bestNormal;
+    return localToWorldNormal( bestNormal );
 }
 
 std::array<Vector3f, 8>
 HexPrism::getCircumscribedAABB() const
 {
-    auto  c  = getOrigin();
     float dx = radius_; // ra
     float dy = height_; // he
     float dz = radius_; // ra
 
-    return { { { c.x - dx, c.y - dy, c.z - dz },
-               { c.x + dx, c.y - dy, c.z - dz },
-               { c.x - dx, c.y + dy, c.z - dz },
-               { c.x + dx, c.y + dy, c.z - dz },
-               { c.x - dx, c.y - dy, c.z + dz },
-               { c.x + dx, c.y - dy, c.z + dz },
-               { c.x - dx, c.y + dy, c.z + dz },
-               { c.x + dx, c.y + dy, c.z + dz } } };
+    std::array<Vector3f, 8> corners_local = { { { -dx, -dy, -dz },
+                                                { dx, -dy, -dz },
+                                                { -dx, dy, -dz },
+                                                { dx, dy, -dz },
+                                                { -dx, -dy, dz },
+                                                { dx, -dy, dz },
+                                                { -dx, dy, dz },
+                                                { dx, dy, dz } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

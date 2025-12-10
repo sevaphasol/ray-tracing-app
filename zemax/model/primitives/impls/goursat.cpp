@@ -273,8 +273,8 @@ std::optional<Primitive::IntersectionInfo>
 Goursat::calcRayIntersection( const Ray& ray ) const
 {
     // локальные координаты: центр в getOrigin()
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir(); // НЕ нормализуем, как и для остальных примитивов
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() ); // НЕ нормализуем, как и для остальных примитивов
 
     float t = gouIntersect( ro, rd, ka_, kb_ );
 
@@ -297,7 +297,7 @@ Goursat::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 {
     // gouNormal( pos ) = normalize( 4.0*pos^3 - 2.0*pos*kb )
     // pos^3 и pos*kb — поэлементно
-    Vector3f p = point - getOrigin();
+    Vector3f p = worldToLocalPoint( point );
 
     Vector3f p2( p.x * p.x, p.y * p.y, p.z * p.z );
     Vector3f p3( p2.x * p.x, p2.y * p.y, p2.z * p.z );
@@ -306,26 +306,33 @@ Goursat::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
                    4.0f * p3.y - 2.0f * p.y * kb_,
                    4.0f * p3.z - 2.0f * p.z * kb_ );
 
-    return grad.normalize();
+    grad.normalize();
+    return localToWorldNormal( grad );
 }
 
 std::array<Vector3f, 8>
 Goursat::getCircumscribedAABB() const
 {
-    auto  c  = getOrigin();
     float R  = computeBoundingRadius( ka_, kb_ );
     float dx = R;
     float dy = R;
     float dz = R;
 
-    return { { { c.x - dx, c.y - dy, c.z - dz },
-               { c.x + dx, c.y - dy, c.z - dz },
-               { c.x - dx, c.y + dy, c.z - dz },
-               { c.x + dx, c.y + dy, c.z - dz },
-               { c.x - dx, c.y - dy, c.z + dz },
-               { c.x + dx, c.y - dy, c.z + dz },
-               { c.x - dx, c.y + dy, c.z + dz },
-               { c.x + dx, c.y + dy, c.z + dz } } };
+    std::array<Vector3f, 8> corners_local = { { { -dx, -dy, -dz },
+                                                { dx, -dy, -dz },
+                                                { -dx, dy, -dz },
+                                                { dx, dy, -dz },
+                                                { -dx, -dy, dz },
+                                                { dx, -dy, dz },
+                                                { -dx, dy, dz },
+                                                { dx, dy, dz } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model

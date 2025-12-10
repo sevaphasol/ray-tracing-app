@@ -124,17 +124,21 @@
 namespace hui {
 
 // === MenuPopup ===
-MenuPopup::MenuPopup( WindowManager* wm, const dr4::Vec2f& pos, const std::vector<MenuItem>& items )
+MenuPopup::MenuPopup( WindowManager* wm,
+                      const dr4::Vec2f& pos,
+                      const std::vector<MenuItem>& items,
+                      const Theme&                 theme )
     : Widget( wm,
               pos,
               { 160.0f, 24.0f * static_cast<float>( std::max<size_t>( 1, items.size() ) ) } ),
-      items_( items )
+      items_( items ),
+      theme_( theme )
 {
     background_.reset( wm->getWindow()->CreateRectangle() );
     background_->SetSize( getSize() );
-    background_->SetFillColor( { 40, 40, 40, 255 } );
-    background_->SetBorderColor( { 80, 80, 80, 255 } );
-    background_->SetBorderThickness( -1.0f );
+    background_->SetFillColor( theme_.background );
+    background_->SetBorderColor( theme_.border );
+    background_->SetBorderThickness( theme_.border_thickness );
 
     createTextElements();
 }
@@ -150,10 +154,11 @@ MenuPopup::createTextElements()
     {
         auto* text = wm_->getWindow()->CreateText();
         text->SetFont( font );
-        text->SetFontSize( 15 );
+        text->SetFontSize( theme_.font_size );
         text->SetText( items_[i].label );
-        text->SetColor( { 220, 220, 220, 255 } );
-        text->SetPos( { 4.0f, static_cast<float>( i ) * ItemHeight + 4.0f } );
+        text->SetColor( theme_.text_color );
+        text->SetPos(
+            { theme_.padding_x, static_cast<float>( i ) * ItemHeight + theme_.padding_y } );
         text_elements_.push_back( std::unique_ptr<dr4::Text>( text ) );
     }
 }
@@ -165,9 +170,9 @@ MenuPopup::RedrawMyTexture() const
     texture_->Draw( *background_ );
 
     // Рисуем все элементы меню
-    for ( size_t i = 0; i < text_elements_.size(); ++i )
+    for ( const auto& text : text_elements_ )
     {
-        texture_->Draw( *text_elements_[i] );
+        texture_->Draw( *text );
     }
 }
 
@@ -216,13 +221,16 @@ MenuPopup::onMousePress( const Event& event )
 }
 
 // === ToolBar ===
-ToolBar::ToolBar( WindowManager* wm, float height )
-    : Widget( wm, 0.0f, 0.0f, wm->getWindow()->GetSize().x, height ), wm_( wm ), height_( height )
+ToolBar::ToolBar( WindowManager* wm, float height, const Theme& theme )
+    : Widget( wm, 0.0f, 0.0f, wm->getWindow()->GetSize().x, height ),
+      wm_( wm ),
+      height_( height ),
+      theme_( theme )
 {
     background_.reset( wm->getWindow()->CreateRectangle() );
     background_->SetPos( { 0, 0 } );
     background_->SetSize( { getSize().x, height_ } );
-    background_->SetFillColor( { 45, 45, 45, 255 } );
+    background_->SetFillColor( theme_.background_color );
 
     item_x_ = 10.0f;
 }
@@ -279,10 +287,10 @@ ToolBar::createTextElements()
     {
         auto* text = wm_->getWindow()->CreateText();
         text->SetFont( font );
-        text->SetFontSize( 15 );
+        text->SetFontSize( theme_.font_size );
         text->SetText( menu_defs_[i].name );
-        text->SetColor( { 220, 220, 220, 255 } );
-        text->SetPos( { menu_defs_[i].pos.x + 6.0f, 6.0f } );
+        text->SetColor( theme_.font_color );
+        text->SetPos( { menu_defs_[i].pos.x + theme_.padding, theme_.padding } );
         text_elements_.push_back( std::unique_ptr<dr4::Text>( text ) );
     }
 }
@@ -304,7 +312,7 @@ ToolBar::RedrawMyTexture() const
             auto* highlight = wm_->getWindow()->CreateRectangle();
             highlight->SetPos( menu_defs_[i].pos );
             highlight->SetSize( menu_defs_[i].size );
-            highlight->SetFillColor( { 60, 60, 60, 255 } );
+            highlight->SetFillColor( theme_.hover_color );
             texture_->Draw( *highlight );
         }
         texture_->Draw( *text_elements_[i] );

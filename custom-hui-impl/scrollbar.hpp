@@ -8,81 +8,6 @@
 
 namespace hui {
 
-namespace detail {
-
-struct ScrollBar
-{
-    static inline const dr4::Vec2f Size = { 15.0f, 110.0f };
-
-    struct ArrowField
-    {
-        static constexpr float SizeCoef = 0.1;
-
-        static inline const dr4::Vec2f Size = { ScrollBar::Size.x, ScrollBar::Size.y* SizeCoef };
-
-        struct Color
-        {
-            static const inline dr4::Color Default = { 96 + 32, 96 + 32, 96 + 32, 255 };
-            static const inline dr4::Color Hover   = { 64 + 32, 64 + 32, 64 + 32, 255 };
-            static const inline dr4::Color Pressed = { 32 + 32, 32 + 32, 32 + 32, 255 };
-        };
-
-        struct Triangle
-        {
-            struct Color
-            {
-                static const inline dr4::Color Default = { 96, 96, 96, 255 };
-                static const inline dr4::Color Hover   = { 64, 64, 64, 255 };
-                static const inline dr4::Color Pressed = { 32, 32, 32, 255 };
-            };
-
-            struct Up
-            {
-                static inline const dr4::Vec2f Pos = { 0.0f, 0.0f };
-
-                static inline const dr4::Vec2f Triangle[] = {
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 2,
-                                ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 3,
-                                2 * ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( 2 * ScrollBar::ArrowField::Size.x / 3,
-                                2 * ScrollBar::ArrowField::Size.y / 3 ) };
-            };
-
-            struct Down
-            {
-                static inline const dr4::Vec2f Pos = { 0.0f, ScrollBar::Size.y * ( 1 - SizeCoef ) };
-
-                static inline const dr4::Vec2f Triangle[] = {
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 2,
-                                2 * ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( ScrollBar::ArrowField::Size.x / 3,
-                                ScrollBar::ArrowField::Size.y / 3 ),
-                    dr4::Vec2f( 2 * ScrollBar::ArrowField::Size.x / 3,
-                                ScrollBar::ArrowField::Size.y / 3 ) };
-            };
-        };
-    };
-
-    struct Thumb
-    {
-        static constexpr float SizeCoef = 0.3;
-
-        struct Color
-        {
-            static const inline dr4::Color Default = { 48 + 32, 48 + 32, 48 + 32, 170 };
-            static const inline dr4::Color Hover   = { 64 + 32, 64 + 32, 64 + 32, 230 };
-            static const inline dr4::Color Pressed = { 32 + 32, 32 + 32, 32 + 32, 175 };
-        };
-
-        static inline const dr4::Vec2f Size = { ScrollBar::Size.x, ScrollBar::Size.y* SizeCoef };
-
-        static inline const dr4::Vec2f StartPos = { 0.0f, ArrowField::Size.y };
-    };
-};
-
-} // namespace detail
-
 class ScrollBar;
 
 class Thumb : public hui::Widget {
@@ -191,13 +116,13 @@ class ScrollBar : public hui::ContainerWidget {
 
     ScrollBar( hui::WindowManager* wm,
                const dr4::Vec2f&   pos,
-               dr4::Vec2f          size = detail::ScrollBar::Size,
+               dr4::Vec2f          size = { DefaultWidth, DefaultHeight },
                const Theme&        theme = DefaultTheme );
     ScrollBar( hui::WindowManager* wm,
                float               x,
                float               y,
-               float               w = detail::ScrollBar::Size.x,
-               float               h = detail::ScrollBar::Size.y,
+               float               w = DefaultWidth,
+               float               h = DefaultHeight,
                const Theme&        theme = DefaultTheme );
 
     void
@@ -236,6 +161,11 @@ class ScrollBar : public hui::ContainerWidget {
     updateThumbPosition();
 
   private:
+    static constexpr float DefaultWidth      = 15.0f;
+    static constexpr float DefaultHeight     = 110.0f;
+    static constexpr float ArrowHeightFactor = 0.1f;
+    static constexpr float ThumbHeightFactor = 0.3f;
+
     bool   is_scrolled_   = false;
     double scroll_factor_ = 0.0;
     Theme  theme_;

@@ -144,8 +144,8 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
 std::optional<Primitive::IntersectionInfo>
 RoundedBox::calcRayIntersection( const Ray& ray ) const
 {
-    Vector3f ro = ray.getBasePoint() - getOrigin();
-    Vector3f rd = ray.getDir(); // уже нормализован
+    Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
+    Vector3f rd = worldToLocalDir( ray.getDir() ); // уже нормализован
 
     float t = roundedboxIntersect( ro, rd, half_size_, radius_ );
 
@@ -164,7 +164,7 @@ Vector3f
 RoundedBox::calcNormal( const Vector3f& point, bool inside_object ) const
 {
     // Шейдер-труд: sign(pos)*normalize(max(abs(pos)-siz,0.0))
-    Vector3f p_local = point - getOrigin();
+    Vector3f p_local = worldToLocalPoint( point );
     Vector3f s       = sign( p_local );
     Vector3f ap      = abs( p_local );
 
@@ -192,23 +192,29 @@ RoundedBox::calcNormal( const Vector3f& point, bool inside_object ) const
     if ( inside_object )
         n = -n;
 
-    return n;
+    return localToWorldNormal( n );
 }
 
 std::array<Vector3f, 8>
 RoundedBox::getCircumscribedAABB() const
 {
-    Vector3f c   = getOrigin();
     Vector3f ext = half_size_ + Vector3f{ radius_, radius_, radius_ };
 
-    return { { { c.x - ext.x, c.y - ext.y, c.z - ext.z },
-               { c.x + ext.x, c.y - ext.y, c.z - ext.z },
-               { c.x - ext.x, c.y + ext.y, c.z - ext.z },
-               { c.x + ext.x, c.y + ext.y, c.z - ext.z },
-               { c.x - ext.x, c.y - ext.y, c.z + ext.z },
-               { c.x + ext.x, c.y - ext.y, c.z + ext.z },
-               { c.x - ext.x, c.y + ext.y, c.z + ext.z },
-               { c.x + ext.x, c.y + ext.y, c.z + ext.z } } };
+    std::array<Vector3f, 8> corners_local = { { { -ext.x, -ext.y, -ext.z },
+                                                { ext.x, -ext.y, -ext.z },
+                                                { -ext.x, ext.y, -ext.z },
+                                                { ext.x, ext.y, -ext.z },
+                                                { -ext.x, -ext.y, ext.z },
+                                                { ext.x, -ext.y, ext.z },
+                                                { -ext.x, ext.y, ext.z },
+                                                { ext.x, ext.y, ext.z } } };
+
+    for ( auto& c : corners_local )
+    {
+        c = localToWorldPoint( c );
+    }
+
+    return corners_local;
 }
 
 } // namespace model
