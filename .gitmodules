@@ -1,7 +1,7 @@
 [submodule "gfxlib"]
 	path   = gfxlib
 	url    = git@github.com:sevaphasol/gfxlib.git
-	branch = for_zemax
+	branch = for_rta
 [submodule "3rd_party/dr4hui-backend"]
 	path   = 3rd_party/dr4hui-backend
 	url    = git@github.com:sevaphasol/dr4hui-backend

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./build/zemax
+./build/rta

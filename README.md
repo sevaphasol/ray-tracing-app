@@ -1,6 +1,6 @@
 clone
 ```shell
-git clone https://github.com/sevaphasol/zemax.git --recurse-submodules
+git clone https://github.com/sevaphasol/rta.git --recurse-submodules
 ```
 
 build
