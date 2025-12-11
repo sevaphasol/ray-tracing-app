@@ -6,6 +6,7 @@
 #include "custom-hui-impl/input_text.hpp"
 #include "custom-hui-impl/label.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
+#include "custom-hui-impl/slider.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
 #include "zemax/model/primitives/impls/capped_cone.hpp"
 #include "zemax/model/primitives/impls/capped_cylinder.hpp"
@@ -21,6 +22,8 @@
 #include "zemax/model/primitives/impls/triangle.hpp"
 #include "zemax/model/primitives/impls/wedge.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
+#include "zemax/view/rgb_picker.hpp"
+#include <algorithm>
 #include <iomanip>
 #include <memory>
 #include <optional>
@@ -34,10 +37,10 @@ namespace view {
 // Single editor for objects: create when none selected, edit/copy/delete when selected.
 class ObjectEditorPanel : public hui::ClosablePanel {
   public:
-    explicit ObjectEditorPanel( hui::WindowManager*  wm,
-                                model::SceneManager& scene_manager,
-                                const dr4::Vec2f&    pos,
-                                const dr4::Vec2f&    size,
+    explicit ObjectEditorPanel( hui::WindowManager*   wm,
+                                model::SceneManager&  scene_manager,
+                                const dr4::Vec2f&     pos,
+                                const dr4::Vec2f&     size,
                                 std::function<void()> objects_changed_cb = nullptr )
         : hui::ClosablePanel( wm, pos.x, pos.y, size.x, size.y, "Object Editor" ),
           scene_manager_( scene_manager ),
@@ -67,9 +70,46 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                       { size.x - 100.0f, size.y - 34.0f },
                       { 88.0f, 24.0f },
                       "Apply",
-                      hui::Button::DefaultTheme )
+                      hui::Button::DefaultTheme ),
+          color_picker_( wm,
+                         { 20.0f, TopBarHeight + 350.0f },
+                         dr4::Color{ 118, 185, 0, 255 },
+                         [this]( const dr4::Color& c ) { current_color_ = c; } ),
+          slider_reflection_( wm, { 0, 0 }, { size.x - 150.0f, 14.0f } ),
+          slider_refraction_( wm, { 0, 0 }, { size.x - 150.0f, 14.0f } ),
+          slider_eta_( wm, { 0, 0 }, { size.x - 150.0f, 14.0f } )
     {
         setDraggable( true );
+        color_picker_.setParent( this );
+        color_label_.reset( wm->getWindow()->CreateText() );
+        color_label_->SetFont( wm->getWindow()->GetDefaultFont() );
+        color_label_->SetFontSize( 13 );
+        color_label_->SetColor( { 220, 220, 220, 255 } );
+        color_label_->SetText( "Color" );
+        color_label_->SetPos( { size.x - 180.0f, TopBarHeight - 2.0f } );
+        slider_reflection_.setParent( this );
+        slider_refraction_.setParent( this );
+        slider_eta_.setParent( this );
+        slider_reflection_.setOnChange( [this]( float ) { updateSliderLabels(); } );
+        slider_refraction_.setOnChange( [this]( float ) { updateSliderLabels(); } );
+        slider_eta_.setOnChange( [this]( float ) { updateSliderLabels(); } );
+
+        auto mkText = [wm]() {
+            auto* t = wm->getWindow()->CreateText();
+            t->SetFont( wm->getWindow()->GetDefaultFont() );
+            t->SetFontSize( 13 );
+            t->SetColor( { 220, 220, 220, 255 } );
+            return std::unique_ptr<dr4::Text>( t );
+        };
+        reflection_label_ = mkText();
+        refraction_label_ = mkText();
+        eta_label_        = mkText();
+        reflection_value_ = mkText();
+        refraction_value_ = mkText();
+        eta_value_        = mkText();
+        reflection_label_->SetText( "Reflection" );
+        refraction_label_->SetText( "Refraction" );
+        eta_label_->SetText( "Eta" );
         buildForm( current_type_ );
         prefillDefaults();
         wireButtons();
@@ -126,6 +166,15 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             if ( event.apply( f.input.get() ) )
                 return true;
         }
+        if ( event.apply( &slider_reflection_ ) )
+            return true;
+        if ( event.apply( &slider_refraction_ ) )
+            return true;
+        if ( event.apply( &slider_eta_ ) )
+            return true;
+
+        if ( event.apply( &color_picker_ ) )
+            return true;
 
         if ( event.apply( &apply_btn_ ) )
         {
@@ -151,6 +200,9 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             f.label->DrawOn( *texture_ );
             f.input->Redraw();
         }
+        if ( color_label_ )
+            color_label_->DrawOn( *texture_ );
+        color_picker_.Redraw();
 
         if ( editing_mode_ )
         {
@@ -171,6 +223,20 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                             : ( "Adding " + typeName( current_type_ ) ) );
         label_text_->SetPos( { 12.0f, TopBarHeight + 4.0f } );
         label_text_->DrawOn( *texture_ );
+
+        if ( reflection_label_ )
+        {
+            reflection_label_->DrawOn( *texture_ );
+            refraction_label_->DrawOn( *texture_ );
+            eta_label_->DrawOn( *texture_ );
+            reflection_value_->DrawOn( *texture_ );
+            refraction_value_->DrawOn( *texture_ );
+            eta_value_->DrawOn( *texture_ );
+        }
+
+        slider_reflection_.Redraw();
+        slider_refraction_.Redraw();
+        slider_eta_.Redraw();
     }
 
   private:
@@ -205,6 +271,16 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         std::ostringstream ss;
         ss << std::fixed << std::setprecision( 2 ) << v;
         return ss.str();
+    }
+
+    static float
+    clamp01( float v )
+    {
+        if ( v < 0.0f )
+            return 0.0f;
+        if ( v > 1.0f )
+            return 1.0f;
+        return v;
     }
 
     static std::string
@@ -342,12 +418,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 defs.push_back( { "V2.z", "v2z" } );
                 break;
         }
-        defs.push_back( { "R", "r" } );
-        defs.push_back( { "G", "g" } );
-        defs.push_back( { "B", "b" } );
-        defs.push_back( { "Reflection", "f" } );
-        defs.push_back( { "Refraction", "refract" } );
-        defs.push_back( { "Eta", "eta" } );
+        // reflection / refraction / eta now use sliders
 
         auto* win  = wm_->getWindow();
         auto* font = win->GetDefaultFont();
@@ -377,6 +448,9 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                                       { margin_x, cur_y } } );
             cur_y += line_h;
         }
+
+        slider_origin_y_ = cur_y + 6.0f;
+        layoutSliders();
     }
 
     FieldRef*
@@ -402,18 +476,17 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             f->input->setString( fmt2( info.pos.y ) );
         if ( auto* f = findField( "z" ) )
             f->input->setString( fmt2( info.pos.z ) );
-        if ( auto* f = findField( "r" ) )
-            f->input->setString( std::to_string( info.material.color.r ) );
-        if ( auto* f = findField( "g" ) )
-            f->input->setString( std::to_string( info.material.color.g ) );
-        if ( auto* f = findField( "b" ) )
-            f->input->setString( std::to_string( info.material.color.b ) );
-        if ( auto* f = findField( "f" ) )
-            f->input->setString( fmt2( info.material.reflection_factor ) );
-        if ( auto* f = findField( "refract" ) )
-            f->input->setString( fmt2( info.material.refraction_factor ) );
-        if ( auto* f = findField( "eta" ) )
-            f->input->setString( fmt2( info.material.refraction_eta ) );
+        dr4::Color c{ info.material.color.r,
+                      info.material.color.g,
+                      info.material.color.b,
+                      info.material.color.a };
+        color_picker_.setColor( c );
+        current_color_ = c;
+        slider_reflection_.setFactor( clamp01( info.material.reflection_factor ) );
+        slider_refraction_.setFactor( clamp01( info.material.refraction_factor ) );
+        slider_eta_.setFactor(
+            clamp01( ( info.material.refraction_eta - eta_min_ ) / ( eta_max_ - eta_min_ ) ) );
+        updateSliderLabels();
 
         auto& obj = scene_manager_.getObjects()[idx];
         if ( auto* sphere = dynamic_cast<model::Sphere*>( obj.get() ) )
@@ -572,6 +645,75 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         return *val;
     }
 
+    float
+    sliderReflectionValue() const
+    {
+        return slider_reflection_.getFactor();
+    }
+
+    float
+    sliderRefractionValue() const
+    {
+        return slider_refraction_.getFactor();
+    }
+
+    float
+    sliderEtaValue() const
+    {
+        float t = slider_eta_.getFactor();
+        return eta_min_ + t * ( eta_max_ - eta_min_ );
+    }
+
+    void
+    setSliderDefaults()
+    {
+        slider_reflection_.setFactor( 0.5f );
+        slider_refraction_.setFactor( 0.0f );
+        slider_eta_.setFactor( 0.0f );
+        updateSliderLabels();
+    }
+
+    void
+    updateSliderLabels()
+    {
+        auto fmtv = []( float v ) {
+            std::ostringstream ss;
+            ss << std::fixed << std::setprecision( 2 ) << v;
+            return ss.str();
+        };
+        reflection_value_->SetText( fmtv( sliderReflectionValue() ) );
+        refraction_value_->SetText( fmtv( sliderRefractionValue() ) );
+        eta_value_->SetText( fmtv( sliderEtaValue() ) );
+    }
+
+    void
+    layoutSliders()
+    {
+        const float label_w   = 90.0f;
+        const float value_w   = 48.0f;
+        const float row_h     = 26.0f;
+        const float start_x   = 12.0f;
+        const float slider_w  = size_.x - start_x - label_w - value_w - 20.0f;
+        const float slider_h  = 20.0f;
+        const float slider_up = 4.0f;
+        float       cur_y     = slider_origin_y_;
+
+        auto place = [&]( dr4::Text* label, dr4::Text* value, hui::Slider& slider ) {
+            if ( label )
+                label->SetPos( { start_x, cur_y } );
+            if ( value )
+                value->SetPos( { start_x + label_w + slider_w + 8.0f, cur_y } );
+            slider.setSize( { slider_w, slider_h } );
+            slider.setRelPos( { start_x + label_w, cur_y - slider_up } );
+            cur_y += row_h;
+        };
+
+        place( reflection_label_.get(), reflection_value_.get(), slider_reflection_ );
+        place( refraction_label_.get(), refraction_value_.get(), slider_refraction_ );
+        place( eta_label_.get(), eta_value_.get(), slider_eta_ );
+        updateSliderLabels();
+    }
+
     struct CommonFields
     {
         std::string     name;
@@ -586,45 +728,34 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         auto* fx     = findField( "x" );
         auto* fy     = findField( "y" );
         auto* fz     = findField( "z" );
-        auto* fr     = findField( "r" );
-        auto* fg     = findField( "g" );
-        auto* fb     = findField( "b" );
-        auto* ff     = findField( "f" );
-        auto* fre    = findField( "refract" );
-        auto* feta   = findField( "eta" );
 
-        auto vx   = parse( fx, []( double ) { return true; } );
-        auto vy   = parse( fy, []( double ) { return true; } );
-        auto vz   = parse( fz, []( double ) { return true; } );
-        auto vr   = parse( fr, []( double v ) { return v >= 0 && v <= 255; } );
-        auto vg   = parse( fg, []( double v ) { return v >= 0 && v <= 255; } );
-        auto vb   = parse( fb, []( double v ) { return v >= 0 && v <= 255; } );
-        auto vf   = parse( ff, []( double ) { return true; } );
-        auto vref = parse( fre, []( double v ) { return v >= 0.0 && v <= 1.0; } );
-        auto veta = parse( feta, [vref]( double v ) {
-            // Eta can be zero only when refraction is disabled.
-            if ( vref && *vref == 0.0 )
-                return v >= 0.0;
-            return v > 0.0;
-        } );
-
-        if ( !vx || !vy || !vz || !vr || !vg || !vb || !vf || !vref || !veta )
+        auto vx = parse( fx, []( double ) { return true; } );
+        auto vy = parse( fy, []( double ) { return true; } );
+        auto vz = parse( fz, []( double ) { return true; } );
+        if ( !vx || !vy || !vz )
         {
             return std::nullopt;
         }
 
-        CommonFields res{ f_name ? std::string( f_name->input->getString().value_or( "" ) )
-                                 : std::string(),
-                          model::Vector3f( static_cast<float>( *vx ),
-                                           static_cast<float>( *vy ),
-                                           static_cast<float>( *vz ) ),
-                          model::Material( model::Color( static_cast<std::uint8_t>( *vr ),
-                                                         static_cast<std::uint8_t>( *vg ),
-                                                         static_cast<std::uint8_t>( *vb ),
-                                                         255 ),
-                                           static_cast<float>( *vf ),
-                                           static_cast<float>( *vref ),
-                                           static_cast<float>( *veta ) ) };
+        auto  color = color_picker_.currentColor();
+        float vf    = sliderReflectionValue();
+        float vref  = sliderRefractionValue();
+        float veta  = sliderEtaValue();
+        if ( vref == 0.0f )
+        {
+            // eta allowed to be zero if refraction disabled
+            veta = std::max( veta, 0.0f );
+        } else if ( veta <= 0.0f )
+        {
+            return std::nullopt;
+        }
+
+        CommonFields res{
+            f_name ? std::string( f_name->input->getString().value_or( "" ) ) : std::string(),
+            model::Vector3f( static_cast<float>( *vx ),
+                             static_cast<float>( *vy ),
+                             static_cast<float>( *vz ) ),
+            model::Material( model::Color( color.r, color.g, color.b, color.a ), vf, vref, veta ) };
         return res;
     }
 
@@ -941,18 +1072,9 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             f->input->setString( "0.00" );
         if ( auto* f = findField( "z" ) )
             f->input->setString( "-10.00" );
-        if ( auto* f = findField( "r" ) )
-            f->input->setString( "118" );
-        if ( auto* f = findField( "g" ) )
-            f->input->setString( "185" );
-        if ( auto* f = findField( "b" ) )
-            f->input->setString( "0" );
-        if ( auto* f = findField( "f" ) )
-            f->input->setString( "0.50" );
-        if ( auto* f = findField( "refract" ) )
-            f->input->setString( "0.00" );
-        if ( auto* f = findField( "eta" ) )
-            f->input->setString( "1.00" );
+        color_picker_.setColor( { 118, 185, 0, 255 } );
+        current_color_ = { 118, 185, 0, 255 };
+        setSliderDefaults();
 
         switch ( current_type_ )
         {
@@ -1314,6 +1436,21 @@ class ObjectEditorPanel : public hui::ClosablePanel {
     model::SceneManager&       scene_manager_;
     std::optional<size_t>      target_idx_;
     std::vector<FieldRef>      form_fields_;
+    RGBPicker                  color_picker_;
+    std::unique_ptr<dr4::Text> color_label_;
+    dr4::Color                 current_color_{ 118, 185, 0, 255 };
+    std::unique_ptr<dr4::Text> reflection_label_;
+    std::unique_ptr<dr4::Text> refraction_label_;
+    std::unique_ptr<dr4::Text> eta_label_;
+    std::unique_ptr<dr4::Text> reflection_value_;
+    std::unique_ptr<dr4::Text> refraction_value_;
+    std::unique_ptr<dr4::Text> eta_value_;
+    hui::Slider                slider_reflection_;
+    hui::Slider                slider_refraction_;
+    hui::Slider                slider_eta_;
+    float                      slider_origin_y_ = 0.0f;
+    const float                eta_min_         = 1.0f;
+    const float                eta_max_         = 3.0f;
     Type                       current_type_    = Type::Sphere;
     Type                       creation_type_   = Type::Sphere;
     const float                type_row_height_ = 28.0f;

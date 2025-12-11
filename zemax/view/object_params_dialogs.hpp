@@ -2,19 +2,19 @@
 
 #include "custom-hui-impl/dialog_box.hpp"
 #include "zemax/model/primitives/impls/aabb.hpp"
-#include "zemax/model/primitives/impls/sphere.hpp"
-#include "zemax/model/primitives/impls/torus.hpp"
-#include "zemax/model/primitives/impls/hex_prism.hpp"
-#include "zemax/model/primitives/impls/goursat.hpp"
-#include "zemax/model/primitives/impls/rounded_box.hpp"
-#include "zemax/model/primitives/impls/ellipsoid.hpp"
-#include "zemax/model/primitives/impls/capsule.hpp"
-#include "zemax/model/primitives/impls/rounded_cone.hpp"
 #include "zemax/model/primitives/impls/capped_cone.hpp"
 #include "zemax/model/primitives/impls/capped_cylinder.hpp"
-#include "zemax/model/primitives/impls/wedge.hpp"
+#include "zemax/model/primitives/impls/capsule.hpp"
 #include "zemax/model/primitives/impls/ellipse.hpp"
+#include "zemax/model/primitives/impls/ellipsoid.hpp"
+#include "zemax/model/primitives/impls/goursat.hpp"
+#include "zemax/model/primitives/impls/hex_prism.hpp"
+#include "zemax/model/primitives/impls/rounded_box.hpp"
+#include "zemax/model/primitives/impls/rounded_cone.hpp"
+#include "zemax/model/primitives/impls/sphere.hpp"
+#include "zemax/model/primitives/impls/torus.hpp"
 #include "zemax/model/primitives/impls/triangle.hpp"
+#include "zemax/model/primitives/impls/wedge.hpp"
 #include "zemax/model/rendering/scene_manager.hpp"
 #include "zemax/view/optical_obj_params_dialog.hpp"
 #include <functional>
@@ -141,19 +141,18 @@ class AABBParamsDialog : public OpticalObjParamsDialog {
                       float                       h,
                       zemax::model::SceneManager& scene_manager,
                       CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Add AABB",
-                                  scene_manager,
-                                  Mode::Create,
-                                  std::nullopt,
-                                  { { "Half size X", "p1" },
-                                    { "Half size Y", "p2" },
-                                    { "Half size Z", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Add AABB",
+              scene_manager,
+              Mode::Create,
+              std::nullopt,
+              { { "Half size X", "p1" }, { "Half size Y", "p2" }, { "Half size Z", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         prefillCommonDefaults();
@@ -168,19 +167,18 @@ class AABBParamsDialog : public OpticalObjParamsDialog {
                       zemax::model::SceneManager& scene_manager,
                       size_t                      obj_idx,
                       CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Edit AABB",
-                                  scene_manager,
-                                  Mode::Edit,
-                                  obj_idx,
-                                  { { "Half size X", "p1" },
-                                    { "Half size Y", "p2" },
-                                    { "Half size Z", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Edit AABB",
+              scene_manager,
+              Mode::Edit,
+              obj_idx,
+              { { "Half size X", "p1" }, { "Half size Y", "p2" }, { "Half size Z", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         auto info = scene_manager_.getObjectInfo( obj_idx );
@@ -588,8 +586,11 @@ class GoursatParamsDialog : public OpticalObjParamsDialog {
             scene_manager_.setTargetObj( created );
         } else if ( obj_idx_.has_value() )
         {
-            scene_manager_.getObjects()[*obj_idx_] = std::make_unique<model::Goursat>(
-                common.material, common.pos, static_cast<float>( *ka ), static_cast<float>( *kb ) );
+            scene_manager_.getObjects()[*obj_idx_] =
+                std::make_unique<model::Goursat>( common.material,
+                                                  common.pos,
+                                                  static_cast<float>( *ka ),
+                                                  static_cast<float>( *kb ) );
             scene_manager_.setTargetObj( scene_manager_.getObjects()[*obj_idx_].get() );
             scene_manager_.getObjects()[*obj_idx_]->setDisplayName( common.name );
         }
@@ -742,17 +743,18 @@ class EllipsoidParamsDialog : public OpticalObjParamsDialog {
                            float                       h,
                            zemax::model::SceneManager& scene_manager,
                            CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Add Ellipsoid",
-                                  scene_manager,
-                                  Mode::Create,
-                                  std::nullopt,
-                                  { { "Radius X", "p1" }, { "Radius Y", "p2" }, { "Radius Z", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Add Ellipsoid",
+              scene_manager,
+              Mode::Create,
+              std::nullopt,
+              { { "Radius X", "p1" }, { "Radius Y", "p2" }, { "Radius Z", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         prefillCommonDefaults();
@@ -767,17 +769,18 @@ class EllipsoidParamsDialog : public OpticalObjParamsDialog {
                            zemax::model::SceneManager& scene_manager,
                            size_t                      obj_idx,
                            CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Edit Ellipsoid",
-                                  scene_manager,
-                                  Mode::Edit,
-                                  obj_idx,
-                                  { { "Radius X", "p1" }, { "Radius Y", "p2" }, { "Radius Z", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Edit Ellipsoid",
+              scene_manager,
+              Mode::Edit,
+              obj_idx,
+              { { "Radius X", "p1" }, { "Radius Y", "p2" }, { "Radius Z", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         auto info = scene_manager_.getObjectInfo( obj_idx );
@@ -825,8 +828,9 @@ class EllipsoidParamsDialog : public OpticalObjParamsDialog {
             return false;
 
         auto make_obj = [&]() {
-            return std::make_unique<model::Ellipsoid>(
-                common.material, common.pos, model::Vector3f( *p1, *p2, *p3 ) );
+            return std::make_unique<model::Ellipsoid>( common.material,
+                                                       common.pos,
+                                                       model::Vector3f( *p1, *p2, *p3 ) );
         };
 
         if ( mode_ == Mode::Create )
@@ -911,9 +915,9 @@ class CapsuleParamsDialog : public OpticalObjParamsDialog {
         auto& obj = scene_manager_.getObjects()[*obj_idx_];
         if ( auto* c = dynamic_cast<model::Capsule*>( obj.get() ) )
         {
-            auto pa = c->getPaLocal();
-            auto pb = c->getPbLocal();
-            float h = std::abs( ( pb - pa ).y );
+            auto  pa = c->getPaLocal();
+            auto  pb = c->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
             if ( auto* f = findField( "p2" ) )
@@ -933,17 +937,18 @@ class CapsuleParamsDialog : public OpticalObjParamsDialog {
     bool
     applySpecific( const CommonFields& common ) override
     {
-        auto h  = parse( findField( "p1" ), []( double v ) { return v > 0; } );
-        auto r  = parse( findField( "p2" ), []( double v ) { return v > 0; } );
+        auto h = parse( findField( "p1" ), []( double v ) { return v > 0; } );
+        auto r = parse( findField( "p2" ), []( double v ) { return v > 0; } );
         if ( !h || !r )
             return false;
 
         auto make_obj = [&]() {
-            return std::make_unique<model::Capsule>( common.material,
-                                                     common.pos,
-                                                     model::Vector3f{ 0.0f, -0.5f * static_cast<float>( *h ), 0.0f },
-                                                     model::Vector3f{ 0.0f, 0.5f * static_cast<float>( *h ), 0.0f },
-                                                     static_cast<float>( *r ) );
+            return std::make_unique<model::Capsule>(
+                common.material,
+                common.pos,
+                model::Vector3f{ 0.0f, -0.5f * static_cast<float>( *h ), 0.0f },
+                model::Vector3f{ 0.0f, 0.5f * static_cast<float>( *h ), 0.0f },
+                static_cast<float>( *r ) );
         };
 
         if ( mode_ == Mode::Create )
@@ -976,17 +981,18 @@ class RoundedConeParamsDialog : public OpticalObjParamsDialog {
                              float                       h,
                              zemax::model::SceneManager& scene_manager,
                              CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Add RoundedCone",
-                                  scene_manager,
-                                  Mode::Create,
-                                  std::nullopt,
-                                  { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Add RoundedCone",
+              scene_manager,
+              Mode::Create,
+              std::nullopt,
+              { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         prefillCommonDefaults();
@@ -1001,17 +1007,18 @@ class RoundedConeParamsDialog : public OpticalObjParamsDialog {
                              zemax::model::SceneManager& scene_manager,
                              size_t                      obj_idx,
                              CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Edit RoundedCone",
-                                  scene_manager,
-                                  Mode::Edit,
-                                  obj_idx,
-                                  { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Edit RoundedCone",
+              scene_manager,
+              Mode::Edit,
+              obj_idx,
+              { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         auto info = scene_manager_.getObjectInfo( obj_idx );
@@ -1028,9 +1035,9 @@ class RoundedConeParamsDialog : public OpticalObjParamsDialog {
         auto& obj = scene_manager_.getObjects()[*obj_idx_];
         if ( auto* rc = dynamic_cast<model::RoundedCone*>( obj.get() ) )
         {
-            auto pa = rc->getPaLocal();
-            auto pb = rc->getPbLocal();
-            float h = std::abs( ( pb - pa ).y );
+            auto  pa = rc->getPaLocal();
+            auto  pb = rc->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
             if ( auto* f = findField( "p2" ) )
@@ -1061,16 +1068,13 @@ class RoundedConeParamsDialog : public OpticalObjParamsDialog {
             return false;
 
         auto make_obj = [&]() {
-            return std::make_unique<model::RoundedCone>( common.material,
-                                                         common.pos,
-                                                         model::Vector3f{ 0.0f,
-                                                                          -0.5f * static_cast<float>( *h ),
-                                                                          0.0f },
-                                                         model::Vector3f{ 0.0f,
-                                                                          0.5f * static_cast<float>( *h ),
-                                                                          0.0f },
-                                                         static_cast<float>( *ra ),
-                                                         static_cast<float>( *rb ) );
+            return std::make_unique<model::RoundedCone>(
+                common.material,
+                common.pos,
+                model::Vector3f{ 0.0f, -0.5f * static_cast<float>( *h ), 0.0f },
+                model::Vector3f{ 0.0f, 0.5f * static_cast<float>( *h ), 0.0f },
+                static_cast<float>( *ra ),
+                static_cast<float>( *rb ) );
         };
 
         if ( mode_ == Mode::Create )
@@ -1103,17 +1107,18 @@ class CappedConeParamsDialog : public OpticalObjParamsDialog {
                             float                       h,
                             zemax::model::SceneManager& scene_manager,
                             CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Add CappedCone",
-                                  scene_manager,
-                                  Mode::Create,
-                                  std::nullopt,
-                                  { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Add CappedCone",
+              scene_manager,
+              Mode::Create,
+              std::nullopt,
+              { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         prefillCommonDefaults();
@@ -1128,17 +1133,18 @@ class CappedConeParamsDialog : public OpticalObjParamsDialog {
                             zemax::model::SceneManager& scene_manager,
                             size_t                      obj_idx,
                             CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Edit CappedCone",
-                                  scene_manager,
-                                  Mode::Edit,
-                                  obj_idx,
-                                  { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Edit CappedCone",
+              scene_manager,
+              Mode::Edit,
+              obj_idx,
+              { { "Height", "p1" }, { "Radius A", "p2" }, { "Radius B", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         auto info = scene_manager_.getObjectInfo( obj_idx );
@@ -1155,9 +1161,9 @@ class CappedConeParamsDialog : public OpticalObjParamsDialog {
         auto& obj = scene_manager_.getObjects()[*obj_idx_];
         if ( auto* cc = dynamic_cast<model::CappedCone*>( obj.get() ) )
         {
-            auto pa = cc->getPaLocal();
-            auto pb = cc->getPbLocal();
-            float h = std::abs( ( pb - pa ).y );
+            auto  pa = cc->getPaLocal();
+            auto  pb = cc->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
             if ( auto* f = findField( "p2" ) )
@@ -1188,16 +1194,13 @@ class CappedConeParamsDialog : public OpticalObjParamsDialog {
             return false;
 
         auto make_obj = [&]() {
-            return std::make_unique<model::CappedCone>( common.material,
-                                                        common.pos,
-                                                        model::Vector3f{ 0.0f,
-                                                                         -0.5f * static_cast<float>( *h ),
-                                                                         0.0f },
-                                                        model::Vector3f{ 0.0f,
-                                                                         0.5f * static_cast<float>( *h ),
-                                                                         0.0f },
-                                                        static_cast<float>( *ra ),
-                                                        static_cast<float>( *rb ) );
+            return std::make_unique<model::CappedCone>(
+                common.material,
+                common.pos,
+                model::Vector3f{ 0.0f, -0.5f * static_cast<float>( *h ), 0.0f },
+                model::Vector3f{ 0.0f, 0.5f * static_cast<float>( *h ), 0.0f },
+                static_cast<float>( *ra ),
+                static_cast<float>( *rb ) );
         };
 
         if ( mode_ == Mode::Create )
@@ -1282,8 +1285,8 @@ class CappedCylinderParamsDialog : public OpticalObjParamsDialog {
         auto& obj = scene_manager_.getObjects()[*obj_idx_];
         if ( auto* cc = dynamic_cast<model::CappedCylinder*>( obj.get() ) )
         {
-            auto a = cc->getALocal();
-            auto b = cc->getBLocal();
+            auto  a = cc->getALocal();
+            auto  b = cc->getBLocal();
             float h = std::abs( ( b - a ).y );
             if ( auto* f = findField( "p1" ) )
                 f->input->setString( fmt2( h ) );
@@ -1348,17 +1351,18 @@ class WedgeParamsDialog : public OpticalObjParamsDialog {
                        float                       h,
                        zemax::model::SceneManager& scene_manager,
                        CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Add Wedge",
-                                  scene_manager,
-                                  Mode::Create,
-                                  std::nullopt,
-                                  { { "Half size X", "p1" }, { "Half size Y", "p2" }, { "Half size Z", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Add Wedge",
+              scene_manager,
+              Mode::Create,
+              std::nullopt,
+              { { "Half size X", "p1" }, { "Half size Y", "p2" }, { "Half size Z", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         prefillCommonDefaults();
@@ -1373,17 +1377,18 @@ class WedgeParamsDialog : public OpticalObjParamsDialog {
                        zemax::model::SceneManager& scene_manager,
                        size_t                      obj_idx,
                        CloseCb                     close_cb )
-        : OpticalObjParamsDialog( wm,
-                                  x,
-                                  y,
-                                  w,
-                                  h,
-                                  "Edit Wedge",
-                                  scene_manager,
-                                  Mode::Edit,
-                                  obj_idx,
-                                  { { "Half size X", "p1" }, { "Half size Y", "p2" }, { "Half size Z", "p3" } },
-                                  close_cb ),
+        : OpticalObjParamsDialog(
+              wm,
+              x,
+              y,
+              w,
+              h,
+              "Edit Wedge",
+              scene_manager,
+              Mode::Edit,
+              obj_idx,
+              { { "Half size X", "p1" }, { "Half size Y", "p2" }, { "Half size Z", "p3" } },
+              close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         auto info = scene_manager_.getObjectInfo( obj_idx );
@@ -1431,8 +1436,9 @@ class WedgeParamsDialog : public OpticalObjParamsDialog {
             return false;
 
         auto make_obj = [&]() {
-            return std::make_unique<model::Wedge>(
-                common.material, common.pos, model::Vector3f( *p1, *p2, *p3 ) );
+            return std::make_unique<model::Wedge>( common.material,
+                                                   common.pos,
+                                                   model::Vector3f( *p1, *p2, *p3 ) );
         };
 
         if ( mode_ == Mode::Create )
@@ -1474,7 +1480,12 @@ class EllipseParamsDialog : public OpticalObjParamsDialog {
                                   scene_manager,
                                   Mode::Create,
                                   std::nullopt,
-                                  { { "U.x", "ux" }, { "U.y", "uy" }, { "U.z", "uz" }, { "V.x", "vx" }, { "V.y", "vy" }, { "V.z", "vz" } },
+                                  { { "U.x", "ux" },
+                                    { "U.y", "uy" },
+                                    { "U.z", "uz" },
+                                    { "V.x", "vx" },
+                                    { "V.y", "vy" },
+                                    { "V.z", "vz" } },
                                   close_cb ),
           close_cb_( std::move( close_cb ) )
     {
@@ -1499,7 +1510,12 @@ class EllipseParamsDialog : public OpticalObjParamsDialog {
                                   scene_manager,
                                   Mode::Edit,
                                   obj_idx,
-                                  { { "U.x", "ux" }, { "U.y", "uy" }, { "U.z", "uz" }, { "V.x", "vx" }, { "V.y", "vy" }, { "V.z", "vz" } },
+                                  { { "U.x", "ux" },
+                                    { "U.y", "uy" },
+                                    { "U.z", "uz" },
+                                    { "V.x", "vx" },
+                                    { "V.y", "vy" },
+                                    { "V.z", "vz" } },
                                   close_cb ),
           close_cb_( std::move( close_cb ) )
     {
@@ -1565,11 +1581,10 @@ class EllipseParamsDialog : public OpticalObjParamsDialog {
             return false;
 
         auto make_obj = [&]() {
-            return std::make_unique<model::Ellipse>(
-                common.material,
-                common.pos,
-                model::Vector3f( *ux, *uy, *uz ),
-                model::Vector3f( *vx, *vy, *vz ) );
+            return std::make_unique<model::Ellipse>( common.material,
+                                                     common.pos,
+                                                     model::Vector3f( *ux, *uy, *uz ),
+                                                     model::Vector3f( *vx, *vy, *vz ) );
         };
 
         if ( mode_ == Mode::Create )
@@ -1602,20 +1617,25 @@ class TriangleParamsDialog : public OpticalObjParamsDialog {
                           float                       h,
                           zemax::model::SceneManager& scene_manager,
                           CloseCb                     close_cb )
-        : OpticalObjParamsDialog(
-              wm,
-              x,
-              y,
-              w,
-              h,
-              "Add Triangle",
-              scene_manager,
-              Mode::Create,
-              std::nullopt,
-              { { "V0.x", "v0x" }, { "V0.y", "v0y" }, { "V0.z", "v0z" },
-                { "V1.x", "v1x" }, { "V1.y", "v1y" }, { "V1.z", "v1z" },
-                { "V2.x", "v2x" }, { "V2.y", "v2y" }, { "V2.z", "v2z" } },
-              close_cb ),
+        : OpticalObjParamsDialog( wm,
+                                  x,
+                                  y,
+                                  w,
+                                  h,
+                                  "Add Triangle",
+                                  scene_manager,
+                                  Mode::Create,
+                                  std::nullopt,
+                                  { { "V0.x", "v0x" },
+                                    { "V0.y", "v0y" },
+                                    { "V0.z", "v0z" },
+                                    { "V1.x", "v1x" },
+                                    { "V1.y", "v1y" },
+                                    { "V1.z", "v1z" },
+                                    { "V2.x", "v2x" },
+                                    { "V2.y", "v2y" },
+                                    { "V2.z", "v2z" } },
+                                  close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         prefillCommonDefaults();
@@ -1630,20 +1650,25 @@ class TriangleParamsDialog : public OpticalObjParamsDialog {
                           zemax::model::SceneManager& scene_manager,
                           size_t                      obj_idx,
                           CloseCb                     close_cb )
-        : OpticalObjParamsDialog(
-              wm,
-              x,
-              y,
-              w,
-              h,
-              "Edit Triangle",
-              scene_manager,
-              Mode::Edit,
-              obj_idx,
-              { { "V0.x", "v0x" }, { "V0.y", "v0y" }, { "V0.z", "v0z" },
-                { "V1.x", "v1x" }, { "V1.y", "v1y" }, { "V1.z", "v1z" },
-                { "V2.x", "v2x" }, { "V2.y", "v2y" }, { "V2.z", "v2z" } },
-              close_cb ),
+        : OpticalObjParamsDialog( wm,
+                                  x,
+                                  y,
+                                  w,
+                                  h,
+                                  "Edit Triangle",
+                                  scene_manager,
+                                  Mode::Edit,
+                                  obj_idx,
+                                  { { "V0.x", "v0x" },
+                                    { "V0.y", "v0y" },
+                                    { "V0.z", "v0z" },
+                                    { "V1.x", "v1x" },
+                                    { "V1.y", "v1y" },
+                                    { "V1.z", "v1z" },
+                                    { "V2.x", "v2x" },
+                                    { "V2.y", "v2y" },
+                                    { "V2.z", "v2z" } },
+                                  close_cb ),
           close_cb_( std::move( close_cb ) )
     {
         auto info = scene_manager_.getObjectInfo( obj_idx );
@@ -1660,9 +1685,9 @@ class TriangleParamsDialog : public OpticalObjParamsDialog {
         auto& obj = scene_manager_.getObjects()[*obj_idx_];
         if ( auto* t = dynamic_cast<model::Triangle*>( obj.get() ) )
         {
-            auto v0 = t->getV0();
-            auto v1 = t->getV1();
-            auto v2 = t->getV2();
+            auto v0  = t->getV0();
+            auto v1  = t->getV1();
+            auto v2  = t->getV2();
             auto set = [&]( const char* key, const model::Vector3f& v, int idx ) {
                 if ( auto* f = findField( key ) )
                 {
@@ -1687,14 +1712,14 @@ class TriangleParamsDialog : public OpticalObjParamsDialog {
     {
         // Simple triangle on XY plane
         std::vector<std::pair<const char*, const char*>> defaults = { { "v0x", "0.0" },
-                                                                       { "v0y", "0.0" },
-                                                                       { "v0z", "0.0" },
-                                                                       { "v1x", "1.0" },
-                                                                       { "v1y", "0.0" },
-                                                                       { "v1z", "0.0" },
-                                                                       { "v2x", "0.0" },
-                                                                       { "v2y", "1.0" },
-                                                                       { "v2z", "0.0" } };
+                                                                      { "v0y", "0.0" },
+                                                                      { "v0z", "0.0" },
+                                                                      { "v1x", "1.0" },
+                                                                      { "v1y", "0.0" },
+                                                                      { "v1z", "0.0" },
+                                                                      { "v2x", "0.0" },
+                                                                      { "v2y", "1.0" },
+                                                                      { "v2z", "0.0" } };
         for ( auto& p : defaults )
         {
             if ( auto* f = findField( p.first ) )
@@ -1705,7 +1730,9 @@ class TriangleParamsDialog : public OpticalObjParamsDialog {
     bool
     applySpecific( const CommonFields& common ) override
     {
-        auto fetch = [&]( const char* key ) { return parse( findField( key ), []( double ) { return true; } ); };
+        auto fetch = [&]( const char* key ) {
+            return parse( findField( key ), []( double ) { return true; } );
+        };
         auto v0x = fetch( "v0x" ), v0y = fetch( "v0y" ), v0z = fetch( "v0z" );
         auto v1x = fetch( "v1x" ), v1y = fetch( "v1y" ), v1z = fetch( "v1z" );
         auto v2x = fetch( "v2x" ), v2y = fetch( "v2y" ), v2z = fetch( "v2z" );
@@ -1740,7 +1767,6 @@ class TriangleParamsDialog : public OpticalObjParamsDialog {
   private:
     CloseCb close_cb_;
 };
-
 
 } // namespace view
 } // namespace zemax

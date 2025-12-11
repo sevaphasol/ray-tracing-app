@@ -19,8 +19,8 @@ main()
     // manager.LoadFromFile( "plugins/libplugin_dr4_Vova.so" );
     manager.LoadFromFile( "plugins/libplugin_dr4.so" );
 
-    manager.LoadFromFile( "plugins/libplugin_pp.so" );
-    manager.LoadFromFile( "plugins/libplugin_pp_Vova.so" );
+    // manager.LoadFromFile( "plugins/libplugin_pp.so" );
+    // manager.LoadFromFile( "plugins/libplugin_pp_Vova.so" );
     // manager.LoadFromFile( "plugins/libplugin_pp_Artem_Text.so" );
     // manager.LoadFromFile( "plugins/libplugin_pp_Artem_Line.so" );
     // manager.LoadFromFile( "plugins/libplugin_pp_Artem.so" );
@@ -112,7 +112,12 @@ main()
                                   return;
                               }
                               wm.pushModal( std::make_unique<zemax::view::ToolSelectorDialog>(
-                                  &wm, x, y, 320.0f, 300.0f, &zemax_ptr->annotator() ) );
+                                  &wm,
+                                  x,
+                                  y,
+                                  320.0f,
+                                  300.0f,
+                                  &zemax_ptr->annotator() ) );
                           } },
                         { "Plugins",
                           [&wm, zemax_ptr]() {
