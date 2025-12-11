@@ -26,15 +26,15 @@ class Button : public hui::Widget {
                                                { 255, 255, 255 },
                                                15 };
 
-    using HoldPressCallback = std::function<void()>;
-    using ClickCallback     = std::function<void()>;
+    using HoldPressCb = std::function<void()>;
+    using ClickCb     = std::function<void()>;
 
   private:
     std::unique_ptr<dr4::Rectangle> background_;
     std::unique_ptr<dr4::Text>      label_;
 
-    ClickCallback     on_click_;
-    HoldPressCallback on_hold_press_;
+    ClickCb     on_click_;
+    HoldPressCb on_hold_press_;
 
     Theme theme_;
 
@@ -65,9 +65,9 @@ class Button : public hui::Widget {
     isPressed() const;
 
     void
-    setOnHoldPress( HoldPressCallback callback );
+    setOnHoldPress( HoldPressCb callback );
     void
-    setOnClick( ClickCallback callback );
+    setOnClick( ClickCb callback );
 
     bool
     onMousePress( const Event& event ) override;

@@ -94,13 +94,13 @@ Button::isPressed() const
 }
 
 void
-Button::setOnClick( ClickCallback callback )
+Button::setOnClick( ClickCb callback )
 {
     on_click_ = std::move( callback );
 }
 
 void
-Button::setOnHoldPress( HoldPressCallback callback )
+Button::setOnHoldPress( HoldPressCb callback )
 {
     on_hold_press_ = std::move( callback );
 }

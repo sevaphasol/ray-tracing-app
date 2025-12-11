@@ -4,8 +4,8 @@
 #include "dr4/texture.hpp"
 #include "hui/container_widget.hpp"
 #include "hui/widget.hpp"
-#include "rta/view/camera_control_panel.hpp"
-#include "rta/view/control_panel.hpp"
+#include "rta/view/control_panels/camera_control_panel.hpp"
+#include "rta/view/control_panels/objects_control_panel.hpp"
 #include "rta/view/object_editor_panel.hpp"
 #include "rta/view/scene.hpp"
 #include "rta/view/scene_objects_list.hpp"
@@ -135,7 +135,7 @@ class rta : public hui::ContainerWidget {
         return camera_panel_;
     }
 
-    ControlPanel&
+    ObjectsControlPanel&
     objectPanel()
     {
         return panel_;
@@ -172,7 +172,7 @@ class rta : public hui::ContainerWidget {
 
     Scene                 scene_;
     CameraControlPanel    camera_panel_;
-    ControlPanel          panel_;
+    ObjectsControlPanel   panel_;
     SceneObjectsListModal obj_list_;
     ObjectEditorPanel     editor_;
     SnapshotAnnotator     snp_annotator_;
