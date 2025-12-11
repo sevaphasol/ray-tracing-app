@@ -6,3 +6,6 @@
 	path   = 3rd_party/dr4hui-backend
 	url    = git@github.com:sevaphasol/dr4hui-backend
 	branch = main
+[submodule "3rd_party/nlohmann"]
+	path = 3rd_party/nlohmann
+	url = https://github.com/nlohmann/json

@@ -25,6 +25,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <nlohmann/json.hpp>
 
 namespace zemax {
 namespace model {
@@ -186,60 +187,139 @@ SceneManager::addWedge( const Material& material,
 bool
 SceneManager::saveToFile( const std::string& path ) const
 {
+    nlohmann::json j;
+
+    // Lights
+    j["lights"] = nlohmann::json::array();
+    for ( const auto& l : lights_ )
+    {
+        auto p = l.getPos();
+        j["lights"].push_back( { { "position", { { "x", p.x }, { "y", p.y }, { "z", p.z } } },
+                                 { "embedded", l.getEmbeddedIntensity() },
+                                 { "diffuse", l.getDiffuseIntensity() },
+                                 { "glare", l.getGlareIntensity() } } );
+    }
+
+    // Objects
+    j["objects"] = nlohmann::json::array();
+    for ( size_t idx = 0; idx < objects_.size(); ++idx )
+    {
+        const auto& obj_ptr = objects_[idx];
+        auto*       obj     = obj_ptr.get();
+        auto        info    = getObjectInfo( idx );
+        auto        mat     = obj->getMaterial();
+
+        nlohmann::json o;
+        o["type"] = info.type_name;
+        o["name"] = info.display_name;
+        o["material"] =
+            nlohmann::json{ { "color",
+                              { { "r", mat.color.r },
+                                { "g", mat.color.g },
+                                { "b", mat.color.b },
+                                { "a", mat.color.a } } },
+                            { "reflection", mat.reflection_factor },
+                            { "refraction", mat.refraction_factor },
+                            { "eta", mat.refraction_eta } };
+        o["position"] = { { "x", info.pos.x }, { "y", info.pos.y }, { "z", info.pos.z } };
+
+        auto push_size = [&]( const std::string& key, float v ) { o["size"][key] = v; };
+
+        if ( auto* s = dynamic_cast<Sphere*>( obj ) )
+        {
+            push_size( "radius", s->getRadius() );
+        } else if ( auto* a = dynamic_cast<AABB*>( obj ) )
+        {
+            auto hs = a->getHalfSize();
+            push_size( "half_x", hs.x );
+            push_size( "half_y", hs.y );
+            push_size( "half_z", hs.z );
+        } else if ( auto* t = dynamic_cast<Torus*>( obj ) )
+        {
+            push_size( "major_radius", t->getMajorRadius() );
+            push_size( "minor_radius", t->getMinorRadius() );
+        } else if ( auto* h = dynamic_cast<HexPrism*>( obj ) )
+        {
+            push_size( "radius", h->getRadius() );
+            push_size( "height", h->getHeight() );
+        } else if ( auto* g = dynamic_cast<Goursat*>( obj ) )
+        {
+            push_size( "ka", g->getKa() );
+            push_size( "kb", g->getKb() );
+        } else if ( auto* rb = dynamic_cast<RoundedBox*>( obj ) )
+        {
+            auto hs = rb->getHalfSize();
+            push_size( "half_x", hs.x );
+            push_size( "half_y", hs.y );
+            push_size( "half_z", hs.z );
+            push_size( "radius", rb->getRadius() );
+        } else if ( auto* e = dynamic_cast<Ellipsoid*>( obj ) )
+        {
+            auto r = e->getRadii();
+            push_size( "rad_x", r.x );
+            push_size( "rad_y", r.y );
+            push_size( "rad_z", r.z );
+        } else if ( auto* c = dynamic_cast<Capsule*>( obj ) )
+        {
+            auto  pa = c->getPaLocal();
+            auto  pb = c->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
+            push_size( "height", h );
+            push_size( "radius", c->getRadius() );
+        } else if ( auto* rc = dynamic_cast<RoundedCone*>( obj ) )
+        {
+            auto  pa = rc->getPaLocal();
+            auto  pb = rc->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
+            push_size( "height", h );
+            push_size( "radius_a", rc->getRadiusA() );
+            push_size( "radius_b", rc->getRadiusB() );
+        } else if ( auto* cc = dynamic_cast<CappedCone*>( obj ) )
+        {
+            auto  pa = cc->getPaLocal();
+            auto  pb = cc->getPbLocal();
+            float h  = std::abs( ( pb - pa ).y );
+            push_size( "height", h );
+            push_size( "radius_a", cc->getRadiusA() );
+            push_size( "radius_b", cc->getRadiusB() );
+        } else if ( auto* cyl = dynamic_cast<CappedCylinder*>( obj ) )
+        {
+            auto  a = cyl->getALocal();
+            auto  b = cyl->getBLocal();
+            float h = std::abs( ( b - a ).y );
+            push_size( "height", h );
+            push_size( "radius", cyl->getRadius() );
+        } else if ( auto* w = dynamic_cast<Wedge*>( obj ) )
+        {
+            auto hs = w->getS();
+            push_size( "half_x", hs.x );
+            push_size( "half_y", hs.y );
+            push_size( "half_z", hs.z );
+        } else if ( auto* el = dynamic_cast<Ellipse*>( obj ) )
+        {
+            auto u = el->getU();
+            auto v = el->getV();
+            o["u"] = { { "x", u.x }, { "y", u.y }, { "z", u.z } };
+            o["v"] = { { "x", v.x }, { "y", v.y }, { "z", v.z } };
+        } else if ( auto* tri = dynamic_cast<Triangle*>( obj ) )
+        {
+            auto v0 = tri->getV0();
+            auto v1 = tri->getV1();
+            auto v2 = tri->getV2();
+            o["v0"] = { { "x", v0.x }, { "y", v0.y }, { "z", v0.z } };
+            o["v1"] = { { "x", v1.x }, { "y", v1.y }, { "z", v1.z } };
+            o["v2"] = { { "x", v2.x }, { "y", v2.y }, { "z", v2.z } };
+        }
+
+        j["objects"].push_back( o );
+    }
+
     std::ofstream out( path );
     if ( !out.is_open() )
     {
         return false;
     }
-
-    // Simple text format:
-    // LIGHTS N
-    // x y z emb diff glare
-    // ...
-    // OBJECTS N
-    // TYPE name x y z p1 p2 p3 p4 r g b refl
-    out << "LIGHTS " << lights_.size() << '\n';
-    for ( const auto& l : lights_ )
-    {
-        auto p = l.getPos();
-        out << p.x << ' ' << p.y << ' ' << p.z << ' ' << l.getEmbeddedIntensity() << ' '
-            << l.getDiffuseIntensity() << ' ' << l.getGlareIntensity() << '\n';
-    }
-
-    out << "OBJECTS " << objects_.size() << '\n';
-    for ( const auto& obj_ptr : objects_ )
-    {
-        auto* obj = obj_ptr.get();
-        auto  info =
-            getObjectInfo( static_cast<size_t>( &obj_ptr - &objects_[0] ) ); // order preserved
-
-        auto material = obj->getMaterial();
-        out << info.type_name << ' ' << info.display_name << ' ' << info.pos.x << ' ' << info.pos.y
-            << ' ' << info.pos.z << ' ';
-
-        if ( auto* s = dynamic_cast<Sphere*>( obj ) )
-        {
-            out << s->getRadius() << " 0 0 0 ";
-        } else if ( auto* a = dynamic_cast<AABB*>( obj ) )
-        {
-            auto hs = a->getHalfSize();
-            out << hs.x << ' ' << hs.y << ' ' << hs.z << " 0 ";
-        } else if ( auto* t = dynamic_cast<Torus*>( obj ) )
-        {
-            out << t->getMajorRadius() << ' ' << t->getMinorRadius() << " 0 0 ";
-        } else if ( auto* h = dynamic_cast<HexPrism*>( obj ) )
-        {
-            out << h->getRadius() << ' ' << h->getHeight() << " 0 0 ";
-        } else
-        {
-            out << "0 0 0 0 ";
-        }
-
-        out << static_cast<int>( material.color.r ) << ' ' << static_cast<int>( material.color.g )
-            << ' ' << static_cast<int>( material.color.b ) << ' ' << material.reflection_factor
-            << '\n';
-    }
-
+    out << j.dump( 4 );
     return true;
 }
 
@@ -252,75 +332,187 @@ SceneManager::loadFromFile( const std::string& path )
         return false;
     }
 
+    nlohmann::json j;
+    try
+    {
+        in >> j;
+    } catch ( const std::exception& )
+    {
+        return false;
+    }
+
     clear();
 
-    std::string header;
-    size_t      count = 0;
-
-    // Lights
-    if ( !( in >> header >> count ) || header != "LIGHTS" )
-    {
-        return false;
-    }
-    for ( size_t i = 0; i < count; ++i )
-    {
-        float x, y, z, emb, diff, glare;
-        if ( !( in >> x >> y >> z >> emb >> diff >> glare ) )
+    auto get_obj_array = [&]() -> std::vector<nlohmann::json> {
+        if ( j.contains( "objects" ) && j["objects"].is_array() )
+            return j["objects"].get<std::vector<nlohmann::json>>();
+        // support map with numeric keys
+        std::vector<nlohmann::json> res;
+        if ( j.is_object() )
         {
-            return false;
+            for ( auto& [k, v] : j.items() )
+            {
+                if ( v.is_object() )
+                    res.push_back( v );
+            }
         }
-        addLight( { x, y, z }, emb, diff, glare );
-    }
+        return res;
+    };
 
-    if ( !( in >> header >> count ) || header != "OBJECTS" )
+    auto lights_arr = j.value( "lights", nlohmann::json::array() );
+    if ( lights_arr.is_array() )
     {
-        return false;
-    }
-
-    std::string line;
-    std::getline( in, line ); // consume endline
-    for ( size_t i = 0; i < count; ++i )
-    {
-        if ( !std::getline( in, line ) )
-            break;
-        std::istringstream iss( line );
-        std::string        type, name;
-        float              x, y, z, p1, p2, p3, p4;
-        int                r, g, b;
-        float              refl;
-
-        if ( !( iss >> type >> name >> x >> y >> z >> p1 >> p2 >> p3 >> p4 >> r >> g >> b >>
-                refl ) )
+        for ( auto& l : lights_arr )
         {
-            continue;
+            auto pos = l.value( "position", nlohmann::json::object() );
+            addLight(
+                { pos.value( "x", 0.0f ), pos.value( "y", 0.0f ), pos.value( "z", 0.0f ) },
+                l.value( "embedded", 1.0f ),
+                l.value( "diffuse", 1.0f ),
+                l.value( "glare", 1.0f ) );
         }
+    }
 
-        Material mat( Color( static_cast<uint8_t>( r ),
-                             static_cast<uint8_t>( g ),
-                             static_cast<uint8_t>( b ) ),
-                      refl );
-        Vector3f origin{ x, y, z };
+    auto objs = get_obj_array();
+    for ( auto& o : objs )
+    {
+        auto type = o.value( "type", std::string() );
+        auto name = o.value( "name", type );
+        auto pos  = o.value( "position", nlohmann::json::object() );
+        auto matj = o.value( "material", nlohmann::json::object() );
+        auto colj = matj.value( "color", nlohmann::json::object() );
+        Color color( static_cast<uint8_t>( colj.value( "r", 118 ) ),
+                     static_cast<uint8_t>( colj.value( "g", 185 ) ),
+                     static_cast<uint8_t>( colj.value( "b", 0 ) ),
+                     static_cast<uint8_t>( colj.value( "a", 255 ) ) );
+        float refl = matj.value( "reflection", 0.0f );
+        float refr = matj.value( "refraction", matj.value( "refracion", 0.0f ) ); // typo support
+        float eta  = matj.value( "eta", 1.0f );
+        Material material( color, refl, refr, eta );
+        Vector3f origin{ pos.value( "x", 0.0f ), pos.value( "y", 0.0f ), pos.value( "z", 0.0f ) };
+        auto     size = o.value( "size", nlohmann::json::object() );
+
+        auto add_with_name = [&]( auto obj_builder ) {
+            obj_builder();
+            if ( !objects_.empty() )
+                objects_.back()->setDisplayName( name );
+        };
 
         if ( type == "Sphere" )
         {
-            addSphere( mat, origin, p1 );
+            add_with_name( [&]() { addSphere( material, origin, size.value( "radius", 1.0f ) ); } );
         } else if ( type == "AABB" )
         {
-            addAABB( mat, origin, { p1, p2, p3 } );
+            add_with_name( [&]() {
+                addAABB( material,
+                         origin,
+                         { size.value( "half_x", 1.0f ),
+                           size.value( "half_y", 1.0f ),
+                           size.value( "half_z", 1.0f ) } );
+            } );
         } else if ( type == "Torus" )
         {
-            addTorus( mat, origin, p2, p1 );
+            add_with_name( [&]() {
+                addTorus( material,
+                          origin,
+                          size.value( "minor_radius", 0.5f ),
+                          size.value( "major_radius", 1.0f ) );
+            } );
         } else if ( type == "HexPrism" )
         {
-            addHexPrism( mat, origin, p1, p2 );
-        } else
+            add_with_name( [&]() {
+                addHexPrism(
+                    material, origin, size.value( "radius", 1.0f ), size.value( "height", 1.0f ) );
+            } );
+        } else if ( type == "Goursat" )
         {
-            continue;
-        }
-
-        if ( !objects_.empty() )
+            add_with_name( [&]() {
+                addGoursat(
+                    material, origin, size.value( "ka", 1.0f ), size.value( "kb", 1.0f ) );
+            } );
+        } else if ( type == "RoundedBox" )
         {
-            objects_.back()->setDisplayName( name );
+            add_with_name( [&]() {
+                addRoundedBox( material,
+                               origin,
+                               { size.value( "half_x", 1.0f ),
+                                 size.value( "half_y", 1.0f ),
+                                 size.value( "half_z", 1.0f ) },
+                               size.value( "radius", 0.2f ) );
+            } );
+        } else if ( type == "Ellipsoid" )
+        {
+            add_with_name( [&]() {
+                addEllipsoid( material,
+                              origin,
+                              { size.value( "rad_x", 1.0f ),
+                                size.value( "rad_y", 1.0f ),
+                                size.value( "rad_z", 1.0f ) } );
+            } );
+        } else if ( type == "Capsule" )
+        {
+            add_with_name( [&]() {
+                addCapsule( material,
+                            origin,
+                            size.value( "height", 1.0f ),
+                            size.value( "radius", 0.5f ) );
+            } );
+        } else if ( type == "RoundedCone" )
+        {
+            add_with_name( [&]() {
+                addRoundedCone( material,
+                                origin,
+                                size.value( "height", 1.0f ),
+                                size.value( "radius_a", 1.0f ),
+                                size.value( "radius_b", 0.5f ) );
+            } );
+        } else if ( type == "CappedCone" )
+        {
+            add_with_name( [&]() {
+                addCappedCone( material,
+                               origin,
+                               size.value( "height", 1.0f ),
+                               size.value( "radius_a", 1.0f ),
+                               size.value( "radius_b", 0.5f ) );
+            } );
+        } else if ( type == "CappedCylinder" )
+        {
+            add_with_name( [&]() {
+                addCappedCylinder( material,
+                                   origin,
+                                   size.value( "height", 1.0f ),
+                                   size.value( "radius", 0.5f ) );
+            } );
+        } else if ( type == "Wedge" )
+        {
+            add_with_name( [&]() {
+                addWedge( material,
+                          origin,
+                          { size.value( "half_x", 1.0f ),
+                            size.value( "half_y", 1.0f ),
+                            size.value( "half_z", 1.0f ) } );
+            } );
+        } else if ( type == "Ellipse" )
+        {
+            auto u = o.value( "u", nlohmann::json::object() );
+            auto v = o.value( "v", nlohmann::json::object() );
+            add_with_name( [&]() {
+                addEllipse( material,
+                            origin,
+                            { u.value( "x", 1.0f ), u.value( "y", 0.0f ), u.value( "z", 0.0f ) },
+                            { v.value( "x", 0.0f ), v.value( "y", 1.0f ), v.value( "z", 0.0f ) } );
+            } );
+        } else if ( type == "Triangle" )
+        {
+            auto v0 = o.value( "v0", nlohmann::json::object() );
+            auto v1 = o.value( "v1", nlohmann::json::object() );
+            auto v2 = o.value( "v2", nlohmann::json::object() );
+            add_with_name( [&]() {
+                addTriangle( material,
+                             { v0.value( "x", 0.0f ), v0.value( "y", 0.0f ), v0.value( "z", 0.0f ) },
+                             { v1.value( "x", 1.0f ), v1.value( "y", 0.0f ), v1.value( "z", 0.0f ) },
+                             { v2.value( "x", 0.0f ), v2.value( "y", 1.0f ), v2.value( "z", 0.0f ) } );
+            } );
         }
     }
 
