@@ -10,13 +10,11 @@ namespace zemax {
 namespace view {
 
 class ToolPanel : public hui::ContainerWidget {
-    using Tools = std::vector<std::unique_ptr<pp::Tool>>*;
-
   public:
     ToolPanel( hui::WindowManager* wm, float x, float y, float visible_height );
 
     void
-    addTools( Tools tools );
+    addTools( const std::vector<pp::Tool*>& tools );
 
     std::optional<size_t>
     getActiveToolIdx() const;
@@ -75,20 +73,22 @@ ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float visible_he
 }
 
 void
-ToolPanel::addTools( Tools tools )
+ToolPanel::addTools( const std::vector<pp::Tool*>& tools )
 {
     tools_.clear();
     active_tool_idx_.reset();
 
     buttons_.clear();
 
-    if ( tools == nullptr )
+    if ( tools.empty() )
     {
         setSize( { button_size_ + 2 * padding_, padding_ * 2 } );
         return;
     }
 
-    for ( size_t i = 0; i < tools->size(); ++i )
+    tools_.assign( tools.begin(), tools.end() );
+
+    for ( size_t i = 0; i < tools_.size(); ++i )
     {
         hui::Button::Theme theme{ { 30, 30, 30, 255 },
                                   { 50, 70, 30, 255 },
@@ -98,14 +98,12 @@ ToolPanel::addTools( Tools tools )
         auto btn = std::make_unique<hui::Button>( wm_,
                                                   dr4::Vec2f( padding_, padding_ + i * ( button_size_ + padding_ ) ),
                                                   dr4::Vec2f( button_size_, button_size_ ),
-                                                  std::string( ( *tools )[i]->Icon() ),
+                                                  std::string( tools_[i]->Icon() ),
                                                   theme );
         if ( icon_font_loaded_ )
         {
             btn->setFont( icon_font_.get() );
         }
-
-        tools_.push_back( ( *tools )[i].get() );
 
         size_t capture_index = i;
         btn->setOnClick( [this, capture_index]() {

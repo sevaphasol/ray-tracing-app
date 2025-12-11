@@ -78,7 +78,6 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     refreshPlugins()
     {
         plugin_tools_.clear();
-        active_tools_             = nullptr;
         bool active_still_present = false;
 
         for ( auto* plg : wm_->getPluginManager()->GetAllOfType<cum::PPToolPlugin>() )
@@ -86,6 +85,7 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             PluginTools bucket;
             bucket.plugin = plg;
             bucket.tools  = plg->CreateTools( this );
+            bucket.enabled.assign( bucket.tools.size(), true );
             plugin_tools_.push_back( std::move( bucket ) );
             if ( plg == active_plugin_ )
             {
@@ -168,6 +168,57 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     isVisible() const
     {
         return active_;
+    }
+
+    bool
+    hasActivePlugin() const
+    {
+        return active_plugin_ != nullptr;
+    }
+
+    struct ToolInfo
+    {
+        size_t      index;
+        std::string name;
+        std::string icon;
+        bool        enabled;
+    };
+
+    std::vector<ToolInfo>
+    listActivePluginTools() const
+    {
+        std::vector<ToolInfo> res;
+        if ( !active_plugin_ )
+            return res;
+        for ( auto& entry : plugin_tools_ )
+        {
+            if ( entry.plugin != active_plugin_ )
+                continue;
+            res.reserve( entry.tools.size() );
+            for ( size_t i = 0; i < entry.tools.size(); ++i )
+            {
+                const auto& t = entry.tools[i];
+                res.push_back(
+                    { i, std::string( t->Name() ), std::string( t->Icon() ), entry.enabled[i] } );
+            }
+            break;
+        }
+        return res;
+    }
+
+    void
+    toggleToolEnabled( size_t idx )
+    {
+        for ( auto& entry : plugin_tools_ )
+        {
+            if ( entry.plugin != active_plugin_ )
+                continue;
+            if ( idx >= entry.enabled.size() )
+                return;
+            entry.enabled[idx] = !entry.enabled[idx];
+            rebuildToolPanel();
+            return;
+        }
     }
 
     bool
@@ -259,14 +310,11 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
         {
             return false;
         }
-        if ( active_tools_ )
+        for ( auto& tool : visible_tools_ )
         {
-            for ( auto& tool : *active_tools_ )
+            if ( tool->OnKeyDown( event.info.key ) )
             {
-                if ( tool->OnKeyDown( event.info.key ) )
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -351,9 +399,9 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        if ( active_tools_ && tool_panel_.getActiveToolIdx().has_value() )
+        if ( !visible_tools_.empty() && tool_panel_.getActiveToolIdx().has_value() )
         {
-            auto& active_tool = ( *active_tools_ )[tool_panel_.getActiveToolIdx().value()];
+            auto& active_tool = visible_tools_[tool_panel_.getActiveToolIdx().value()];
             if ( active_tool->IsCurrentlyDrawing() )
             {
                 if ( active_tool->OnMouseDown( evt.info.mouseButton ) )
@@ -393,9 +441,9 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
 
         // // std::cerr << "Shapes didn't took" << std::endl;
 
-        if ( active_tools_ && tool_panel_.getActiveToolIdx().has_value() )
+        if ( !visible_tools_.empty() && tool_panel_.getActiveToolIdx().has_value() )
         {
-            auto& active_tool = ( *active_tools_ )[tool_panel_.getActiveToolIdx().value()];
+            auto& active_tool = visible_tools_[tool_panel_.getActiveToolIdx().value()];
             if ( active_tool->OnMouseDown( evt.info.mouseButton ) )
             {
                 return true;
@@ -408,12 +456,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     bool
     onTextEnter( const hui::Event& event ) override final
     {
-        if ( !active_tools_ )
+        if ( visible_tools_.empty() )
         {
             return false;
         }
 
-        for ( auto& tool : *active_tools_ )
+        for ( auto& tool : visible_tools_ )
         {
             if ( tool->OnText( event.info.text ) )
             {
@@ -454,12 +502,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        if ( !active_tools_ )
+        if ( visible_tools_.empty() )
         {
             return false;
         }
 
-        for ( auto& tool : *active_tools_ )
+        for ( auto& tool : visible_tools_ )
         {
             if ( tool->OnMouseUp( evt ) )
             {
@@ -500,12 +548,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
             }
         }
 
-        if ( !active_tools_ )
+        if ( visible_tools_.empty() )
         {
             return false;
         }
 
-        for ( auto& tool : *active_tools_ )
+        for ( auto& tool : visible_tools_ )
         {
             if ( tool->OnMouseMove( evt ) )
             {
@@ -527,28 +575,33 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     bool
     hasTools() const
     {
-        return active_tools_ && !active_tools_->empty();
+        return !visible_tools_.empty();
     }
 
     void
     rebuildToolPanel()
     {
-        active_tools_ = nullptr;
+        visible_tools_.clear();
         for ( auto& entry : plugin_tools_ )
         {
             if ( entry.plugin == active_plugin_ )
             {
-                active_tools_ = &entry.tools;
+                if ( entry.enabled.empty() )
+                {
+                    entry.enabled.assign( entry.tools.size(), true );
+                }
+                for ( size_t i = 0; i < entry.tools.size(); ++i )
+                {
+                    if ( i < entry.enabled.size() && entry.enabled[i] )
+                    {
+                        visible_tools_.push_back( entry.tools[i].get() );
+                    }
+                }
                 break;
             }
         }
 
-        if ( active_tools_ && active_tools_->empty() )
-        {
-            active_tools_ = nullptr;
-        }
-
-        tool_panel_.addTools( active_tools_ );
+        tool_panel_.addTools( visible_tools_ );
     }
 
     void
@@ -584,11 +637,12 @@ class SnapshotAnnotator : public hui::Widget, public pp::Canvas {
     {
         cum::PPToolPlugin*                     plugin = nullptr;
         std::vector<std::unique_ptr<pp::Tool>> tools;
+        std::vector<bool>                      enabled;
     };
 
-    std::vector<PluginTools>                plugin_tools_;
-    std::vector<std::unique_ptr<pp::Tool>>* active_tools_  = nullptr;
-    cum::PPToolPlugin*                      active_plugin_ = nullptr;
+    std::vector<PluginTools> plugin_tools_;
+    std::vector<pp::Tool*>   visible_tools_;
+    cum::PPToolPlugin*       active_plugin_ = nullptr;
 
     bool active_ = false;
 

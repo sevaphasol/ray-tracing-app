@@ -95,7 +95,26 @@ main()
     };
 
     toolbar->addMenu( "Annotator",
-                      { { "Plugins",
+                      { { "Tools",
+                          [&wm, zemax_ptr]() {
+                              float x = 120.0f;
+                              float y = 30.0f;
+                              if ( !zemax_ptr->annotator().hasActivePlugin() )
+                              {
+                                  wm.pushModal( std::make_unique<hui::MessageBox>(
+                                      &wm,
+                                      x,
+                                      y,
+                                      300.0f,
+                                      160.0f,
+                                      "No plugin",
+                                      "No active plugin is selected." ) );
+                                  return;
+                              }
+                              wm.pushModal( std::make_unique<zemax::view::ToolSelectorDialog>(
+                                  &wm, x, y, 320.0f, 300.0f, &zemax_ptr->annotator() ) );
+                          } },
+                        { "Plugins",
                           [&wm, zemax_ptr]() {
                               float x = 120.0f;
                               float y = 30.0f;
@@ -114,7 +133,7 @@ main()
                               bool new_state = !zemax_ptr->annotator().isColorPickerVisible();
                               zemax_ptr->annotator().setColorPickerVisible( new_state );
                               toolbar_ptr->setMenuItemLabel( "Annotator",
-                                                             1,
+                                                             2,
                                                              fmt_label( new_state, "RGB Picker" ) );
                           } } } );
 

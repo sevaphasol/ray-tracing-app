@@ -4,6 +4,7 @@
 #include "custom-hui-impl/button.hpp"
 #include "custom-hui-impl/dialog_box.hpp"
 #include "custom-hui-impl/scrollable_list_widget.hpp"
+#include "custom-hui-impl/message_box.hpp"
 #include "zemax/view/snapshot_annotator.hpp"
 #include <algorithm>
 #include <functional>
@@ -196,6 +197,92 @@ class PluginManagerDialog : public hui::DialogBox {
     hui::Button               delete_btn_;
     cum::PPToolPlugin*        selected_       = nullptr;
     static constexpr float    buttons_row_h_  = 44.0f;
+};
+
+class ToolSelectorDialog : public hui::DialogBox {
+  public:
+    ToolSelectorDialog( hui::WindowManager* wm,
+                        float               x,
+                        float               y,
+                        float               w,
+                        float               h,
+                        SnapshotAnnotator*  annotator )
+        : DialogBox( wm, x, y, w, h, [wm]() { wm->popModal(); }, "Tools" ),
+          annotator_( annotator ),
+          list_( wm,
+                 { 8.0f, TopBarHeight + 8.0f },
+                 { w - 16.0f, h - TopBarHeight - 16.0f - 44.0f },
+                 10.0f ),
+          close_( wm,
+                  { w - 90.0f, h - 34.0f },
+                  { 70.0f, 24.0f },
+                  "Close",
+                  hui::Button::DefaultTheme )
+    {
+        list_.setParent( this );
+        close_.setParent( this );
+        close_.setOnClick( [this]() { wm_->popModal(); } );
+        rebuild();
+    }
+
+    bool
+    propagateEventToChildren( const hui::Event& event ) override
+    {
+        if ( event.apply( &list_ ) )
+            return true;
+        if ( event.apply( &close_ ) )
+            return true;
+        return DialogBox::propagateEventToChildren( event );
+    }
+
+    void
+    RedrawMyTexture() const override
+    {
+        DialogBox::RedrawMyTexture();
+        list_.Redraw();
+        close_.Redraw();
+    }
+
+  private:
+    hui::Button::Theme
+    rowTheme( bool enabled ) const
+    {
+        return enabled ? hui::Button::Theme{ { 50, 100, 20, 255 },
+                                             { 70, 130, 30, 255 },
+                                             { 90, 150, 40, 255 },
+                                             { 230, 230, 230, 255 },
+                                             15 }
+                       : hui::Button::DefaultTheme;
+    }
+
+    void
+    rebuild()
+    {
+        list_.clearItems();
+        if ( !annotator_ )
+            return;
+        auto tools = annotator_->listActivePluginTools();
+        for ( auto& t : tools )
+        {
+            auto label = t.icon.empty() ? t.name : ( std::string( t.icon ) + " " + t.name );
+            auto btn   = std::make_unique<hui::Button>(
+                wm_,
+                dr4::Vec2f{ 0.0f, 0.0f },
+                dr4::Vec2f{ list_.getSize().x - 12.0f, 28.0f },
+                label,
+                rowTheme( t.enabled ) );
+            btn->setOnClick( [this, idx = t.index]() {
+                annotator_->toggleToolEnabled( idx );
+                rebuild();
+            } );
+            list_.addItem( std::move( btn ) );
+        }
+    }
+
+  private:
+    SnapshotAnnotator*        annotator_;
+    hui::ScrollableListWidget list_;
+    hui::Button               close_;
 };
 
 } // namespace view

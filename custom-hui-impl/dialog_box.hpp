@@ -1,9 +1,9 @@
 #pragma once
 
-#include "custom-hui-impl/button.hpp"
-#include "custom-hui-impl/label.hpp"
-#include "custom-hui-impl/widget.hpp"
-#include "custom-hui-impl/window_manager.hpp"
+#include "button.hpp"
+#include "label.hpp"
+#include "widget.hpp"
+#include "window_manager.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
 #include <cstdlib>
