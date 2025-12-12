@@ -21,34 +21,8 @@ MenuPopup::MenuPopup( WindowManager*               wm,
 }
 
 void
-MenuPopup::createButtons()
+MenuPopup::updateSize()
 {
-    buttons_ = std::make_unique<VerticalButtonsList>( wm_,
-                                                      dr4::Vec2f{ 0.0f, 0.0f },
-                                                      dr4::Vec2f{ 0.0f, 0.0f },
-                                                      theme_.padding_y );
-    buttons_->setParent( this );
-
-    auto btn_theme = Button::Theme{ theme_.background,
-                                    theme_.hover_color,
-                                    theme_.hover_color,
-                                    theme_.text_color,
-                                    static_cast<size_t>( theme_.font_size ) };
-
-    for ( const auto& item : items_ )
-    {
-        auto btn = std::make_unique<Button>( wm_,
-                                             dr4::Vec2f{ 0.0f, 0.0f },
-                                             dr4::Vec2f{ 0.0f, 0.0f },
-                                             item.label,
-                                             btn_theme );
-        btn->fitToLabel( theme_.padding_x * 2.0f, theme_.padding_y * 2.0f );
-        btn->setOnClick( item.on_click );
-        btn->setLabelAlignment( Button::LabelAlign::Left, theme_.padding_x );
-        buttons_->addButton( std::move( btn ) );
-    }
-
-    // Normalize sizes so all menu entries match width/height and stay left-aligned.
     float max_w = 0.0f;
     float max_h = 0.0f;
     for ( const auto& btn : buttons_->getButtons() )
@@ -56,8 +30,6 @@ MenuPopup::createButtons()
         max_w = std::max( max_w, btn->getSize().x );
         max_h = std::max( max_h, btn->getSize().y );
     }
-    max_w = std::max( max_w, 1.0f );
-    max_h = std::max( max_h, 1.0f );
 
     for ( auto& btn : buttons_->getButtons() )
     {
@@ -70,6 +42,29 @@ MenuPopup::createButtons()
     dr4::Vec2f list_size = buttons_->getSize();
     setSize( list_size );
     background_->SetSize( list_size );
+}
+
+void
+MenuPopup::createButtons()
+{
+    buttons_ = std::make_unique<VerticalButtonsList>( wm_, theme_.padding_y );
+    buttons_->setParent( this );
+
+    auto btn_theme = Button::Theme{ theme_.background,
+                                    theme_.hover_color,
+                                    theme_.hover_color,
+                                    theme_.text_color,
+                                    theme_.font_size };
+
+    for ( const auto& item : items_ )
+    {
+        auto btn = std::make_unique<Button>( wm_, item.label, btn_theme );
+        btn->fitToLabel( theme_.padding_x * 2.0f, theme_.padding_y * 2.0f );
+        btn->setOnClick( item.on_click );
+        buttons_->addButton( std::move( btn ) );
+    }
+
+    updateSize();
 }
 
 void
@@ -145,27 +140,7 @@ MenuPopup::setItemLabel( size_t idx, const std::string& label )
         btns[idx]->setLabelAlignment( Button::LabelAlign::Left, theme_.padding_x );
     }
 
-    // Recompute uniform sizing after label change.
-    float max_w = 0.0f;
-    float max_h = 0.0f;
-    for ( const auto& btn : buttons_->getButtons() )
-    {
-        max_w = std::max( max_w, btn->getSize().x );
-        max_h = std::max( max_h, btn->getSize().y );
-    }
-    max_w = std::max( max_w, 1.0f );
-    max_h = std::max( max_h, 1.0f );
-
-    for ( auto& btn : buttons_->getButtons() )
-    {
-        btn->setSize( { max_w, max_h } );
-        btn->setLabelAlignment( Button::LabelAlign::Left, theme_.padding_x );
-    }
-
-    buttons_->rebuildLayout();
-    dr4::Vec2f list_size = buttons_->getSize();
-    setSize( list_size );
-    background_->SetSize( list_size );
+    updateSize();
 }
 
 const std::string&
@@ -205,7 +180,7 @@ ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
                                     theme_.hover_color,
                                     theme_.hover_color,
                                     theme_.font_color,
-                                    static_cast<size_t>( theme_.font_size ) };
+                                    theme_.font_size };
 
     auto btn = std::make_unique<Button>(
         wm_,
@@ -213,7 +188,6 @@ ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
         dr4::Vec2f{ 0.0f, std::max( 1.0f, height_ - 2.0f * theme_.padding ) },
         name,
         btn_theme );
-    // Width will be adjusted by HorizontalButtonsList; set desired height.
     btn->setSize( { btn->getSize().x, std::max( 1.0f, height_ - 2.0f * theme_.padding ) } );
 
     size_t idx_capture = menu_defs_.size();
@@ -235,6 +209,7 @@ ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
     menu_defs_.push_back( std::move( md ) );
 
     rebuildLayout();
+
     return menu_defs_.size() - 1;
 }
 
@@ -261,10 +236,8 @@ ToolBar::setMenuItemLabel( const std::string& menu_name, size_t item_idx, const 
     }
 
     it->items[item_idx].label = label;
-    // Rebuild layout to reflect potential width changes when popup opens
     rebuildLayout();
 
-    // Update open popup if it matches this menu
     if ( auto* popup = dynamic_cast<MenuPopup*>( wm_->getTopModal() ) )
     {
         if ( popup->menuName() == menu_name )
@@ -346,12 +319,12 @@ ToolBar::onMouseRelease( const Event& event )
         return false;
     }
 
-    if ( buttons_ && event.apply( buttons_.get() ) )
+    if ( !buttons_ )
     {
-        return true;
+        return false;
     }
 
-    return false;
+    return event.apply( buttons_.get() );
 }
 
 } // namespace hui

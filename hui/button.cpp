@@ -7,6 +7,11 @@
 
 namespace hui {
 
+Button::Button( hui::WindowManager* wm, const std::string& title, const Button::Theme& theme )
+    : Button( wm, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, title, theme )
+{
+}
+
 Button::Button( hui::WindowManager*  wm,
                 const dr4::Vec2f&    pos,
                 const dr4::Vec2f&    size,

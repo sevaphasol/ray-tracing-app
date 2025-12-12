@@ -59,6 +59,8 @@ class MenuPopup : public Widget {
 
   private:
     void
+    updateSize();
+    void
     createButtons();
 
   private:

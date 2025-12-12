@@ -25,10 +25,7 @@ class ButtonsList : public ContainerWidget {
                  const dr4::Vec2f& pos,
                  const dr4::Vec2f& size,
                  Theme             theme = Theme::Default() );
-    ButtonsList( WindowManager*    wm,
-                 const dr4::Vec2f& pos,
-                 const dr4::Vec2f& size,
-                 float             pad );
+    ButtonsList( WindowManager* wm, const dr4::Vec2f& pos, const dr4::Vec2f& size, float pad );
 
     virtual ~ButtonsList() = default;
 
@@ -68,15 +65,19 @@ class ButtonsList : public ContainerWidget {
 
 class VerticalButtonsList : public ButtonsList {
   public:
-    VerticalButtonsList( WindowManager*    wm,
-                         const dr4::Vec2f& pos,
-                         const dr4::Vec2f& size,
-                         Theme             theme = Theme::Default() );
+    explicit VerticalButtonsList( WindowManager* wm, Theme theme = Theme::Default() );
 
-    VerticalButtonsList( WindowManager*    wm,
-                         const dr4::Vec2f& pos,
-                         const dr4::Vec2f& size,
-                         float             pad );
+    explicit VerticalButtonsList( WindowManager* wm, float pad );
+
+    explicit VerticalButtonsList( WindowManager*    wm,
+                                  const dr4::Vec2f& pos,
+                                  const dr4::Vec2f& size,
+                                  Theme             theme = Theme::Default() );
+
+    explicit VerticalButtonsList( WindowManager*    wm,
+                                  const dr4::Vec2f& pos,
+                                  const dr4::Vec2f& size,
+                                  float             pad );
 
   protected:
     void
@@ -85,6 +86,10 @@ class VerticalButtonsList : public ButtonsList {
 
 class HorizontalButtonsList : public ButtonsList {
   public:
+    explicit HorizontalButtonsList( WindowManager* wm, Theme theme = Theme::Default() );
+
+    explicit HorizontalButtonsList( WindowManager* wm, float pad );
+
     HorizontalButtonsList( WindowManager*    wm,
                            const dr4::Vec2f& pos,
                            const dr4::Vec2f& size,

@@ -19,7 +19,7 @@ class Button : public hui::Widget {
         dr4::Color hovered_color   = { 50, 70, 30 };
         dr4::Color pressed_color   = { 100, 150, 0 };
         dr4::Color font_color      = { 255, 255, 255 };
-        size_t     font_size       = 15;
+        float      font_size       = 15;
         LabelAlign label_align     = LabelAlign::Center;
         float      label_padding_x = 0.0f;
 
@@ -43,6 +43,10 @@ class Button : public hui::Widget {
     Theme theme_;
 
   public:
+    explicit Button( hui::WindowManager* wm,
+                     const std::string&  title,
+                     const Theme&        theme = Theme::Default() );
+
     explicit Button( hui::WindowManager* wm,
                      const dr4::Vec2f&   pos,
                      const dr4::Vec2f&   size,

@@ -1,5 +1,6 @@
 #include "buttons_list.hpp"
 #include "button.hpp"
+#include "dr4/math/vec2.hpp"
 #include <algorithm>
 
 namespace hui {
@@ -39,8 +40,7 @@ void
 ButtonsList::clearButtons()
 {
     btns_.clear();
-    // !FIXME 1.0 set because sfml cannot create texture with zero-size
-    setSize( { getSize().x, 1.0f } );
+    setSize( { getSize().x, 0.0f } );
 }
 
 void
@@ -104,6 +104,16 @@ ButtonsList::RedrawMyTexture() const
     }
 }
 
+VerticalButtonsList::VerticalButtonsList( WindowManager* wm, Theme theme )
+    : hui::VerticalButtonsList( wm, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, theme )
+{
+}
+
+VerticalButtonsList::VerticalButtonsList( WindowManager* wm, float pad )
+    : hui::VerticalButtonsList( wm, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, pad )
+{
+}
+
 VerticalButtonsList::VerticalButtonsList( WindowManager*    wm,
                                           const dr4::Vec2f& pos,
                                           const dr4::Vec2f& size,
@@ -146,6 +156,16 @@ VerticalButtonsList::layoutButtons()
     float new_w = std::max( { getSize().x, max_w, 1.0f } );
 
     setSize( { new_w, new_h } );
+}
+
+HorizontalButtonsList::HorizontalButtonsList( WindowManager* wm, Theme theme )
+    : hui::HorizontalButtonsList( wm, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, theme )
+{
+}
+
+HorizontalButtonsList::HorizontalButtonsList( WindowManager* wm, float pad )
+    : hui::HorizontalButtonsList( wm, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, pad )
+{
 }
 
 HorizontalButtonsList::HorizontalButtonsList( WindowManager*    wm,
