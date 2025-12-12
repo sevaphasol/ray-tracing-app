@@ -11,7 +11,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <utility>
 
 namespace rta {
 namespace view {
@@ -31,14 +30,14 @@ class RGBPicker : public hui::Widget {
         dr4::Color preview_border    = { 60, 60, 60, 255 };
         dr4::Color preview_outline   = { 255, 255, 255, 220 };
         dr4::Color label_color       = { 230, 230, 230, 255 };
-        float      padding           = 6.0f;
+        float      padding           = 10.0f;
         float      bar_width         = 256.0f;
         float      bar_height        = 12.0f;
         float      bar_spacing       = 10.0f;
         float      label_width       = 16.0f;
         float      preview_size      = 36.0f;
         float      marker_width      = 3.0f;
-        float      label_font_size   = 12.0f;
+        float      label_font_size   = 15.0f;
 
         static Theme
         Default()
@@ -85,10 +84,18 @@ class RGBPicker : public hui::Widget {
         marker_rect_->SetFillColor( theme_.marker_fill );
         marker_rect_->SetBorderThickness( 0.0f );
 
+        const float preview_x = barStartX() + theme_.bar_width + theme_.padding;
+        const float preview_y = theme_.padding;
+
+        preview_background_->SetPos( { preview_x, preview_y } );
+        preview_background_->SetSize( { theme_.preview_size, theme_.preview_size } );
         preview_background_->SetFillColor( theme_.preview_fill );
         preview_background_->SetBorderThickness( 1.0f );
         preview_background_->SetBorderColor( theme_.preview_border );
 
+        preview_rect_->SetPos( { preview_x, preview_y } );
+        preview_rect_->SetSize( { theme_.preview_size, theme_.preview_size } );
+        preview_rect_->SetFillColor( current_color_ );
         preview_rect_->SetBorderThickness( 1.0f );
         preview_rect_->SetBorderColor( theme_.preview_outline );
 
@@ -115,6 +122,7 @@ class RGBPicker : public hui::Widget {
     setColor( const dr4::Color& color )
     {
         current_color_ = color;
+        preview_rect_->SetFillColor( current_color_ );
     }
 
     dr4::Color
@@ -188,7 +196,7 @@ class RGBPicker : public hui::Widget {
         const float bars_height = static_cast<float>( ChannelsCount ) * theme.bar_height +
                                   static_cast<float>( ChannelsCount - 1 ) * theme.bar_spacing;
         const float width =
-            theme.padding * 3.0f + theme.label_width + theme.bar_width + theme.preview_size;
+            theme.padding * 4.0f + theme.label_width + theme.bar_width + theme.preview_size;
         const float height = theme.padding * 2.0f + std::max( bars_height, theme.preview_size );
         return { width, height };
     }
@@ -274,6 +282,8 @@ class RGBPicker : public hui::Widget {
         {
             on_color_change_( current_color_ );
         }
+
+        preview_rect_->SetFillColor( current_color_ );
     }
 
     uint8_t
@@ -393,7 +403,6 @@ class RGBPicker : public hui::Widget {
     void
     RedrawMyTexture() const override
     {
-        background_rect_->SetSize( getSize() );
         texture_->Draw( *background_rect_ );
 
         for ( auto channel : Channels )
@@ -401,16 +410,7 @@ class RGBPicker : public hui::Widget {
             drawChannel( channel );
         }
 
-        const float preview_x = barStartX() + theme_.bar_width + theme_.padding;
-        const float preview_y = theme_.padding;
-
-        preview_background_->SetPos( { preview_x, preview_y } );
-        preview_background_->SetSize( { theme_.preview_size, theme_.preview_size } );
         texture_->Draw( *preview_background_ );
-
-        preview_rect_->SetPos( { preview_x, preview_y } );
-        preview_rect_->SetSize( { theme_.preview_size, theme_.preview_size } );
-        preview_rect_->SetFillColor( current_color_ );
         texture_->Draw( *preview_rect_ );
     }
 
