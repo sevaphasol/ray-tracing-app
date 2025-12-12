@@ -28,6 +28,13 @@ ScrollableWidget::setContent( std::unique_ptr<Widget> content )
 }
 
 void
+ScrollableWidget::setScrollFactor( double factor )
+{
+    scroll_bar_.setScrollFactor( factor );
+    updateContentPosition();
+}
+
+void
 ScrollableWidget::updateContentPosition()
 {
     if ( !content_ )

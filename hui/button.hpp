@@ -11,20 +11,24 @@ namespace hui {
 
 class Button : public hui::Widget {
   public:
+    enum class LabelAlign { Left, Center, Right };
+
     struct Theme
     {
-        dr4::Color default_color;
-        dr4::Color hovered_color;
-        dr4::Color pressed_color;
-        dr4::Color font_color;
-        size_t     font_size;
-    };
+        dr4::Color default_color   = { 30, 30, 30 };
+        dr4::Color hovered_color   = { 50, 70, 30 };
+        dr4::Color pressed_color   = { 100, 150, 0 };
+        dr4::Color font_color      = { 255, 255, 255 };
+        float      font_size       = 15;
+        LabelAlign label_align     = LabelAlign::Center;
+        float      label_padding_x = 0.0f;
 
-    static const inline Theme DefaultTheme = { { 30, 30, 30 },
-                                               { 50, 70, 30 },
-                                               { 100, 150, 0 },
-                                               { 255, 255, 255 },
-                                               15 };
+        static Theme
+        Default()
+        {
+            return Theme();
+        }
+    };
 
     using HoldPressCb = std::function<void()>;
     using ClickCb     = std::function<void()>;
@@ -40,10 +44,14 @@ class Button : public hui::Widget {
 
   public:
     explicit Button( hui::WindowManager* wm,
+                     const std::string&  title,
+                     const Theme&        theme = Theme::Default() );
+
+    explicit Button( hui::WindowManager* wm,
                      const dr4::Vec2f&   pos,
                      const dr4::Vec2f&   size,
                      const std::string&  title,
-                     const Theme&        theme = DefaultTheme );
+                     const Theme&        theme = Theme::Default() );
 
     const Theme&
     getTheme() const;
@@ -60,6 +68,12 @@ class Button : public hui::Widget {
     setFont( const dr4::Font* font );
     void
     setBackgroundColor( const dr4::Color& color );
+    void
+    setLabelAlignment( LabelAlign align, float padding = -1.0f );
+    dr4::Vec2f
+    getLabelBounds() const;
+    void
+    fitToLabel( float padding_x, float padding_y );
 
     bool
     isPressed() const;
@@ -81,6 +95,8 @@ class Button : public hui::Widget {
   private:
     void
     RedrawMyTexture() const override;
+    void
+    updateLabelPosition();
 };
 
 } // namespace hui

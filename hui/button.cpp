@@ -7,14 +7,10 @@
 
 namespace hui {
 
-namespace {
-void
-centerLabel( dr4::Text& text, const dr4::Vec2f& rect_size, const dr4::Vec2f& /*rect_pos*/ )
+Button::Button( hui::WindowManager* wm, const std::string& title, const Button::Theme& theme )
+    : Button( wm, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, title, theme )
 {
-    const auto& bounds = text.GetBounds();
-    text.SetPos( rect_size.x * 0.5f - bounds.x * 0.5f, rect_size.y * 0.5f - bounds.y * 0.5f );
 }
-} // namespace
 
 Button::Button( hui::WindowManager*  wm,
                 const dr4::Vec2f&    pos,
@@ -34,7 +30,7 @@ Button::Button( hui::WindowManager*  wm,
     label_->SetFontSize( theme.font_size );
     label_->SetColor( theme.font_color );
 
-    centerLabel( *label_, size, pos );
+    updateLabelPosition();
 }
 
 const Button::Theme&
@@ -53,7 +49,7 @@ void
 Button::setRelPos( const dr4::Vec2f& pos )
 {
     Widget::setRelPos( pos );
-    centerLabel( *label_, size_, pos_ );
+    updateLabelPosition();
 }
 
 void
@@ -61,23 +57,23 @@ Button::setSize( const dr4::Vec2f& size )
 {
     Widget::setSize( size );
     background_->SetSize( size );
-    centerLabel( *label_, size_, pos_ );
+    updateLabelPosition();
 }
 
 void
 Button::setLabelText( const std::string& text )
 {
     label_->SetText( text );
-    centerLabel( *label_, size_, pos_ );
+    updateLabelPosition();
 }
 
 void
 Button::setFont( const dr4::Font* font )
 {
-    if ( font )
+    if ( font != nullptr )
     {
         label_->SetFont( font );
-        centerLabel( *label_, size_, pos_ );
+        updateLabelPosition();
     }
 }
 
@@ -85,6 +81,31 @@ void
 Button::setBackgroundColor( const dr4::Color& color )
 {
     background_->SetFillColor( color );
+}
+
+void
+Button::setLabelAlignment( LabelAlign align, float padding )
+{
+    theme_.label_align = align;
+    if ( padding >= 0.0f )
+    {
+        theme_.label_padding_x = padding;
+    }
+    updateLabelPosition();
+}
+
+dr4::Vec2f
+Button::getLabelBounds() const
+{
+    return label_->GetBounds();
+}
+
+void
+Button::fitToLabel( float padding_x, float padding_y )
+{
+    dr4::Vec2f bounds      = getLabelBounds();
+    theme_.label_padding_x = padding_x * 0.5f;
+    setSize( { bounds.x + padding_x, bounds.y + padding_y } );
 }
 
 bool
@@ -180,6 +201,30 @@ Button::RedrawMyTexture() const
 {
     texture_->Draw( *background_ );
     texture_->Draw( *label_ );
+}
+
+void
+Button::updateLabelPosition()
+{
+    const auto& bounds = label_->GetBounds();
+
+    float x = 0.0f;
+    switch ( theme_.label_align )
+    {
+        case LabelAlign::Left:
+            x = theme_.label_padding_x;
+            break;
+        case LabelAlign::Right:
+            x = size_.x - bounds.x - theme_.label_padding_x;
+            break;
+        case LabelAlign::Center:
+        default:
+            x = size_.x * 0.5f - bounds.x * 0.5f;
+            break;
+    }
+
+    float y = size_.y * 0.5f - bounds.y * 0.5f;
+    label_->SetPos( { x, y } );
 }
 
 } // namespace hui

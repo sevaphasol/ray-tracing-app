@@ -1,11 +1,13 @@
 #pragma once
 
 #include "hui/button.hpp"
+#include "hui/button_cancel.hpp"
+#include "hui/button_ok.hpp"
 #include "hui/closable_panel.hpp"
 #include "hui/dialog_box.hpp"
 #include "hui/input_text.hpp"
 #include "hui/label.hpp"
-#include "hui/scrollable_list_widget.hpp"
+#include "hui/scrollable_buttons_list_widget.hpp"
 #include "hui/slider.hpp"
 #include "rta/model/primitives/impls/aabb.hpp"
 #include "rta/model/primitives/impls/capped_cone.hpp"
@@ -46,31 +48,11 @@ class ObjectEditorPanel : public hui::ClosablePanel {
           scene_manager_( scene_manager ),
           objects_changed_cb_( std::move( objects_changed_cb ) ),
           label_text_( wm->getWindow()->CreateText() ),
-          type_btn_( wm,
-                     { 12.0f, size.y - 34.0f },
-                     { 88.0f, 24.0f },
-                     "Type",
-                     hui::Button::DefaultTheme ),
-          add_btn_( wm,
-                    { 112.0f, size.y - 34.0f },
-                    { 88.0f, 24.0f },
-                    "Add",
-                    hui::Button::DefaultTheme ),
-          copy_btn_( wm,
-                     { 12.0f, size.y - 34.0f },
-                     { 88.0f, 24.0f },
-                     "Copy",
-                     hui::Button::DefaultTheme ),
-          del_btn_( wm,
-                    { 112.0f, size.y - 34.0f },
-                    { 88.0f, 24.0f },
-                    "Delete",
-                    hui::Button::DefaultTheme ),
-          apply_btn_( wm,
-                      { size.x - 100.0f, size.y - 34.0f },
-                      { 88.0f, 24.0f },
-                      "Apply",
-                      hui::Button::DefaultTheme ),
+          type_btn_( wm, { 12.0f, size.y - 34.0f }, { 88.0f, 24.0f }, "Type" ),
+          add_btn_( wm, { 112.0f, size.y - 34.0f }, { 88.0f, 24.0f }, "Add" ),
+          copy_btn_( wm, { 12.0f, size.y - 34.0f }, { 88.0f, 24.0f }, "Copy" ),
+          del_btn_( wm, { 112.0f, size.y - 34.0f }, { 88.0f, 24.0f }, "Delete" ),
+          apply_btn_( wm, { size.x - 100.0f, size.y - 34.0f }, { 88.0f, 24.0f }, "Apply" ),
           color_picker_( wm,
                          { 20.0f, TopBarHeight + 350.0f },
                          dr4::Color{ 118, 185, 0, 255 },
@@ -1350,24 +1332,25 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         void
         buildItems()
         {
-            list_.clearItems();
+            list_.clearButtons();
             auto add = [&]( const std::string& label, Type t ) {
                 auto btn = std::make_unique<hui::Button>(
                     wm_,
                     dr4::Vec2f{ 0, 0 },
                     dr4::Vec2f{ 180.0f, 32.0f },
                     label,
-                    t == selected_ ? hui::Button::Theme{ hui::Button::DefaultTheme.pressed_color,
-                                                         hui::Button::DefaultTheme.hovered_color,
-                                                         hui::Button::DefaultTheme.pressed_color,
-                                                         hui::Button::DefaultTheme.font_color,
-                                                         hui::Button::DefaultTheme.font_size }
-                                   : hui::Button::DefaultTheme );
+                    t == selected_
+                        ? hui::Button::Theme{ hui::Button::Theme::Default().pressed_color,
+                                              hui::Button::Theme::Default().hovered_color,
+                                              hui::Button::Theme::Default().pressed_color,
+                                              hui::Button::Theme::Default().font_color,
+                                              hui::Button::Theme::Default().font_size }
+                        : hui::Button::Theme::Default() );
                 btn->setOnClick( [this, t]() {
                     selected_ = t;
                     buildItems();
                 } );
-                list_.addItem( std::move( btn ) );
+                list_.addButton( std::move( btn ) );
             };
 
             add( "Sphere", Type::Sphere );
@@ -1384,15 +1367,17 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             add( "Wedge", Type::Wedge );
             add( "Ellipse", Type::Ellipse );
             add( "Triangle", Type::Triangle );
+
+            list_.rebuildLayout();
         }
 
       private:
-        hui::ScrollableListWidget   list_;
-        hui::ButtonOk               ok_;
-        hui::ButtonCancel           cancel_;
-        std::function<void( Type )> on_ok_;
-        std::function<void()>       on_cancel_;
-        Type                        selected_ = Type::Sphere;
+        hui::ScrollableButtonsListWidget list_;
+        hui::ButtonOk                    ok_;
+        hui::ButtonCancel                cancel_;
+        std::function<void( Type )>      on_ok_;
+        std::function<void()>            on_cancel_;
+        Type                             selected_ = Type::Sphere;
     };
 
     void

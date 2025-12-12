@@ -37,10 +37,10 @@ main()
     font->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
     window->SetDefaultFont( font );
 
-    auto  rta     = std::make_unique<rta::view::rta>( &wm, window, 28.0f );
+    auto  rta     = std::make_unique<rta::view::RayTracingApp>( &wm, window );
     auto* rta_ptr = rta.get();
 
-    auto  toolbar     = std::make_unique<hui::ToolBar>( &wm, 28.0f );
+    auto  toolbar     = std::make_unique<hui::ToolBar>( &wm );
     auto* toolbar_ptr = toolbar.get();
 
     const std::string scene_file_default = "scene.txt";

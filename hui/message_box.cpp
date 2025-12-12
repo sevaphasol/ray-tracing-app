@@ -11,21 +11,18 @@ MessageBox::MessageBox( hui::WindowManager*   wm,
                         const std::string&    title,
                         const std::string&    message,
                         std::function<void()> on_close )
-    : DialogBox( wm,
-                 x,
-                 y,
-                 w,
-                 h,
-                 [on_close]() {
-                     if ( on_close )
-                         on_close();
-                 },
-                 title ),
-      ok_( wm,
-           dr4::Vec2f{ w - 90.0f, h - 34.0f },
-           dr4::Vec2f{ 70.0f, 24.0f },
-           "OK",
-           hui::Button::DefaultTheme ),
+    : DialogBox(
+          wm,
+          x,
+          y,
+          w,
+          h,
+          [on_close]() {
+              if ( on_close )
+                  on_close();
+          },
+          title ),
+      ok_( wm, dr4::Vec2f{ w - 90.0f, h - 34.0f }, dr4::Vec2f{ 70.0f, 24.0f }, "OK" ),
       on_close_( std::move( on_close ) )
 {
     ok_.setParent( this );

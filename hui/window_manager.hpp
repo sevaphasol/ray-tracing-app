@@ -76,7 +76,7 @@ class WindowManager {
     Widget*                                   focused_wgt_  = nullptr;
     Widget*                                   captured_wgt_ = nullptr;
     Widget*                                   hovered_wgt_  = nullptr;
-    std::vector<std::unique_ptr<hui::Widget>> modal_widgets_; // ← замена
+    std::vector<std::unique_ptr<hui::Widget>> modal_widgets_;
     std::unique_ptr<dr4::Window>              win_;
     cum::Manager*                             pm_ = nullptr;
     hui::VectorContainerWidget                desktop_;
