@@ -149,24 +149,28 @@ MenuPopup::menuName() const
     return menu_name_;
 }
 
-ToolBar::ToolBar( WindowManager* wm, float height, const Theme& theme )
-    : Widget( wm, 0.0f, 0.0f, wm->getWindow()->GetSize().x, height ),
+ToolBar::ToolBar( WindowManager* wm, float height )
+    : hui::ToolBar( wm, Theme::Default().changedHeight( height ) )
+{
+}
+
+ToolBar::ToolBar( WindowManager* wm, const Theme& theme )
+    : Widget( wm, 0.0f, 0.0f, wm->getWindow()->GetSize().x, theme.height ),
       wm_( wm ),
-      height_( height ),
       theme_( theme )
 {
     background_.reset( wm->getWindow()->CreateRectangle() );
     background_->SetPos( { 0, 0 } );
-    background_->SetSize( { getSize().x, height_ } );
+    background_->SetSize( { getSize().x, theme_.height } );
     background_->SetFillColor( theme_.background_color );
 
     buttons_ =
         std::make_unique<HorizontalButtonsList>( wm_,
-                                                 dr4::Vec2f{ theme_.padding, theme_.padding },
-                                                 dr4::Vec2f{ 0.0f, height_ },
-                                                 theme_.padding );
+                                                 dr4::Vec2f{ theme_.padding_x, theme_.padding_y },
+                                                 dr4::Vec2f{ 0.0f, theme_.height },
+                                                 theme_.padding_x );
     buttons_->setParent( this );
-    buttons_->setLabelPadding( theme_.padding );
+    buttons_->setLabelPadding( theme_.label_padding_x );
 }
 
 size_t
@@ -185,10 +189,10 @@ ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
     auto btn = std::make_unique<Button>(
         wm_,
         dr4::Vec2f{ 0.0f, 0.0f },
-        dr4::Vec2f{ 0.0f, std::max( 1.0f, height_ - 2.0f * theme_.padding ) },
+        dr4::Vec2f{ 0.0f, std::max( 1.0f, theme_.height - 2.0f * theme_.padding_y ) },
         name,
         btn_theme );
-    btn->setSize( { btn->getSize().x, std::max( 1.0f, height_ - 2.0f * theme_.padding ) } );
+    btn->setSize( { btn->getSize().x, std::max( 1.0f, theme_.height - 2.0f * theme_.padding_y ) } );
 
     size_t idx_capture = menu_defs_.size();
     btn->setOnClick( [this, idx_capture]() {
@@ -198,7 +202,7 @@ ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
         }
         const auto& md        = menu_defs_[idx_capture];
         dr4::Vec2f  popup_pos = getAbsPos() + buttons_->getRelPos() + md.button->getRelPos() +
-                               dr4::Vec2f{ 0.0f, height_ };
+                               dr4::Vec2f{ 0.0f, theme_.height };
         auto popup = std::make_unique<MenuPopup>( wm_, popup_pos, md.name, md.items );
         wm_->pushModal( std::move( popup ) );
     } );
@@ -279,7 +283,7 @@ ToolBar::onMouseMove( const Event& event )
     dr4::Vec2f mp( event.info.mouseMove.pos.x, event.info.mouseMove.pos.y );
     dr4::Vec2f local_pos = mp - getAbsPos();
 
-    if ( local_pos.y < 0 || local_pos.y > height_ )
+    if ( local_pos.y < 0 || local_pos.y > theme_.height )
     {
         return false;
     }
@@ -303,7 +307,7 @@ ToolBar::onMousePress( const Event& event )
     dr4::Vec2f mp( event.info.mouseButton.pos.x, event.info.mouseButton.pos.y );
     dr4::Vec2f local_pos = mp - getAbsPos();
 
-    if ( local_pos.y < 0 || local_pos.y > height_ )
+    if ( local_pos.y < 0 || local_pos.y > theme_.height )
     {
         return false;
     }

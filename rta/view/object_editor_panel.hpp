@@ -1,6 +1,8 @@
 #pragma once
 
 #include "hui/button.hpp"
+#include "hui/button_cancel.hpp"
+#include "hui/button_ok.hpp"
 #include "hui/closable_panel.hpp"
 #include "hui/dialog_box.hpp"
 #include "hui/input_text.hpp"

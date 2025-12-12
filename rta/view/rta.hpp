@@ -14,9 +14,11 @@
 namespace rta {
 namespace view {
 
-class rta : public hui::ContainerWidget {
+class RayTracingApp : public hui::ContainerWidget {
   public:
-    explicit rta( hui::WindowManager* wm, dr4::Window* window, float toolbar_height )
+    explicit RayTracingApp( hui::WindowManager* wm,
+                            dr4::Window*        window,
+                            float               toolbar_height = 35.0f )
         : hui::ContainerWidget( wm,
                                 { 0, toolbar_height },
                                 { window->GetSize().x, window->GetSize().y - toolbar_height } ),
@@ -56,7 +58,7 @@ class rta : public hui::ContainerWidget {
             [this]( std::optional<size_t> idx ) { editor_.setTarget( idx ); } );
     }
 
-    ~rta() = default;
+    ~RayTracingApp() = default;
 
     bool
     propagateEventToChildren( const hui::Event& event ) override
@@ -101,7 +103,7 @@ class rta : public hui::ContainerWidget {
     {
         texture_->Clear( { 0, 0, 0 } );
 
-        const_cast<rta*>( this )->syncAnnotatorWithScene();
+        const_cast<RayTracingApp*>( this )->syncAnnotatorWithScene();
 
         scene_.Redraw();
         if ( camera_panel_.isVisible() )
