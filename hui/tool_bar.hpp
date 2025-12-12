@@ -20,25 +20,19 @@ class MenuPopup : public Widget {
   public:
     struct Theme
     {
-        dr4::Color background;
-        dr4::Color border;
-        float      border_thickness;
-        dr4::Color text_color;
-        float      font_size;
-        dr4::Color hover_color;
-        float      padding_x;
-        float      padding_y;
+        dr4::Color background       = { 40, 40, 40, 255 };
+        dr4::Color border           = { 80, 80, 80, 255 };
+        float      border_thickness = -1.0f;
+        dr4::Color text_color       = { 220, 220, 220, 255 };
+        float      font_size        = 14.0f;
+        dr4::Color hover_color      = { 60, 60, 60, 255 };
+        float      padding_x        = 8.0f;
+        float      padding_y        = 4.0f;
 
-        Theme()
-            : background( { 40, 40, 40, 255 } ),
-              border( { 80, 80, 80, 255 } ),
-              border_thickness( -1.0f ),
-              text_color( { 220, 220, 220, 255 } ),
-              font_size( 14.0f ),
-              hover_color( { 60, 60, 60, 255 } ),
-              padding_x( 8.0f ),
-              padding_y( 4.0f )
+        static Theme
+        Default()
         {
+            return Theme();
         }
     };
 
@@ -46,7 +40,7 @@ class MenuPopup : public Widget {
                const dr4::Vec2f&            pos,
                const std::string&           menu_name,
                const std::vector<MenuItem>& items,
-               const Theme&                 theme = Theme() );
+               const Theme&                 theme = Theme::Default() );
 
     void
     RedrawMyTexture() const override;
@@ -79,23 +73,20 @@ class ToolBar : public Widget {
   public:
     struct Theme
     {
-        dr4::Color background_color;
-        dr4::Color hover_color;
-        dr4::Color font_color;
-        float      font_size;
-        float      padding;
+        dr4::Color background_color = { 45, 45, 45, 255 };
+        dr4::Color hover_color      = { 60, 60, 60, 255 };
+        dr4::Color font_color       = { 220, 220, 220, 255 };
+        float      font_size        = 15.0f;
+        float      padding          = 6.0f;
 
-        Theme()
-            : background_color( { 45, 45, 45, 255 } ),
-              hover_color( { 60, 60, 60, 255 } ),
-              font_color( { 220, 220, 220, 255 } ),
-              font_size( 15.0f ),
-              padding( 6.0f )
+        static Theme
+        Default()
         {
+            return Theme();
         }
     };
 
-    ToolBar( WindowManager* wm, float height = 35.0f, const Theme& theme = Theme() );
+    ToolBar( WindowManager* wm, float height = 35.0f, const Theme& theme = Theme::Default() );
 
     size_t
     addMenu( const std::string& name, std::vector<MenuItem> items );

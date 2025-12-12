@@ -11,13 +11,17 @@ namespace hui {
 
 class Button : public hui::Widget {
   public:
+    enum class LabelAlign { Left, Center, Right };
+
     struct Theme
     {
-        dr4::Color default_color = { 30, 30, 30 };
-        dr4::Color hovered_color = { 50, 70, 30 };
-        dr4::Color pressed_color = { 100, 150, 0 };
-        dr4::Color font_color    = { 255, 255, 255 };
-        size_t     font_size     = 15;
+        dr4::Color default_color   = { 30, 30, 30 };
+        dr4::Color hovered_color   = { 50, 70, 30 };
+        dr4::Color pressed_color   = { 100, 150, 0 };
+        dr4::Color font_color      = { 255, 255, 255 };
+        size_t     font_size       = 15;
+        LabelAlign label_align     = LabelAlign::Center;
+        float      label_padding_x = 0.0f;
 
         static Theme
         Default()
@@ -60,6 +64,8 @@ class Button : public hui::Widget {
     setFont( const dr4::Font* font );
     void
     setBackgroundColor( const dr4::Color& color );
+    void
+    setLabelAlignment( LabelAlign align, float padding = -1.0f );
     dr4::Vec2f
     getLabelBounds() const;
     void
@@ -85,6 +91,8 @@ class Button : public hui::Widget {
   private:
     void
     RedrawMyTexture() const override;
+    void
+    updateLabelPosition();
 };
 
 } // namespace hui
