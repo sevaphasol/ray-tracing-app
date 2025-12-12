@@ -737,7 +737,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             return std::nullopt;
         }
 
-        auto  color = color_picker_.currentColor();
+        auto  color = color_picker_.getColor();
         float vf    = sliderReflectionValue();
         float vref  = sliderRefractionValue();
         float veta  = sliderEtaValue();
