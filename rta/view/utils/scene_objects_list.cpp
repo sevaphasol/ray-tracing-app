@@ -40,7 +40,6 @@ rta::view::SceneObjectsListModal::SceneObjectsListModal( hui::WindowManager*  wm
     const float inner_h         = h - ( inner_y + 12.0f );
     const float scrollbar_width = 12.0f;
 
-    // Create scrollable list of buttons and make it a child of the modal
     list_ = std::make_unique<hui::ScrollableButtonsListWidget>(
         wm,
         dr4::Vec2f{ inner_x, inner_y },
@@ -117,7 +116,6 @@ rta::view::SceneObjectsListModal::rebuildListItems()
         return;
     }
 
-    // Recreate list from scratch - this is a simple and safe way to reset elements
     const float inner_x         = 12.0f;
     const float inner_y         = TopBarHeight + 12.0f;
     const float inner_w         = size_.x - inner_x - 12.0f;
@@ -131,7 +129,6 @@ rta::view::SceneObjectsListModal::rebuildListItems()
                                               scrollbar_width ) );
     list_->setParent( this );
 
-    // Get object names
     std::vector<std::string> names;
     std::vector<size_t>      object_indices;
     for ( size_t i = 0; i < scene_manager_.getObjectsCount(); ++i )
@@ -145,10 +142,9 @@ rta::view::SceneObjectsListModal::rebuildListItems()
     const float item_h = 22.0f;
     const float item_w = inner_w - scrollbar_width - 8.0f;
 
-    // Create buttons instead of labels
     for ( size_t i = 0; i < names.size(); ++i )
     {
-        auto               item_idx = object_indices[i]; // Capture the actual object index
+        auto               item_idx = object_indices[i];
         hui::Button::Theme theme{ dr4::Color{ 50, 50, 50, 255 },
                                   dr4::Color{ 70, 70, 70, 255 },
                                   dr4::Color{ 30, 30, 30, 255 },

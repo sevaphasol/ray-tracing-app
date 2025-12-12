@@ -1,7 +1,3 @@
-/*
-    Rounded cone (Inigo Quilez iRoundedCone)
-*/
-
 #include "rta/model/primitives/impls/rounded_cone.hpp"
 #include "rta/model/rendering/vector3.hpp"
 
@@ -28,7 +24,6 @@ RoundedCone::RoundedCone( const Material& material,
 
 namespace {
 
-// Возвращает t и нормаль (локальная), либо t=max() если нет хита.
 float
 iRoundedCone( const Vector3f& ro,
               const Vector3f& rd,
@@ -52,7 +47,6 @@ iRoundedCone( const Vector3f& ro,
     float m6 = scalarMul( ob, rd );
     float m7 = scalarMul( ob, ob );
 
-    // body
     float d2 = m0 - rr * rr;
     float k2 = d2 - m2 * m2;
     float k1 = d2 * m3 - m1 * m2 + m2 * rr * ra;
@@ -75,7 +69,6 @@ iRoundedCone( const Vector3f& ro,
         }
     }
 
-    // caps
     float h1 = m3 * m3 - m5 + ra * ra;
     float h2 = m6 * m6 - m7 + rb * rb;
     if ( std::max( h1, h2 ) < 0.0f )
@@ -136,7 +129,7 @@ RoundedCone::calcRayIntersection( const Ray& ray ) const
     info.close_distance = t;
     info.far_distance   = t;
     info.inside_object  = false;
-    info.normal         = localToWorldNormal( n_local ); // даём движку готовую нормаль
+    info.normal         = localToWorldNormal( n_local );
 
     return info;
 }
@@ -144,8 +137,6 @@ RoundedCone::calcRayIntersection( const Ray& ray ) const
 Vector3f
 RoundedCone::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    // Грубая аппроксимация на случай, если нормаль не была сохранена
-    // (по факту движок возьмёт нормаль из IntersectionInfo).
     Vector3f p_local = worldToLocalPoint( point );
     Vector3f pa      = pa_local_;
     Vector3f pb      = pb_local_;
@@ -164,7 +155,6 @@ RoundedCone::calcNormal( const Vector3f& point, bool inside_object ) const
     float    y  = scalarMul( ba, oa );
     float    s  = y / baba;
 
-    // ограничим на отрезке
     s = std::clamp( s, 0.0f, 1.0f );
 
     Vector3f c = pa + ba * s;
@@ -179,7 +169,6 @@ RoundedCone::calcNormal( const Vector3f& point, bool inside_object ) const
 std::array<Vector3f, 8>
 RoundedCone::getCircumscribedAABB() const
 {
-    // Очень грубый AABB: берём концы + оба радиуса
     Vector3f pa   = pa_local_;
     Vector3f pb   = pb_local_;
     float    rmax = std::max( ra_, rb_ );

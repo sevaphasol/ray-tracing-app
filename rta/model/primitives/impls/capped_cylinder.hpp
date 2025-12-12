@@ -12,7 +12,6 @@ namespace model {
 
 class CappedCylinder : public Primitive {
   public:
-    // a_local, b_local — концы оси в локальных координатах; ra — радиус.
     CappedCylinder( const Material& material,
                     const Vector3f& center,
                     const Vector3f& a_local,

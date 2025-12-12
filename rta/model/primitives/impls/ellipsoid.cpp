@@ -22,7 +22,6 @@ namespace {
 std::pair<float, float>
 eliIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& ra )
 {
-    // ellipsoid centered at origin with radii ra
     Vector3f ocn = Vector3f{ ro.x / ra.x, ro.y / ra.y, ro.z / ra.z };
     Vector3f rdn = Vector3f{ rd.x / ra.x, rd.y / ra.y, rd.z / ra.z };
 

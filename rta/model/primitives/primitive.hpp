@@ -114,7 +114,6 @@ class Primitive {
     virtual std::array<Vector3f, 8>
     getCircumscribedAABB() const = 0;
 
-    // Orientation helpers
     const Vector3f&
     getAxisX() const
     {
@@ -134,61 +133,21 @@ class Primitive {
     }
 
     void
-    setOrientation( const Vector3f& x, const Vector3f& y, const Vector3f& z )
-    {
-        // Simple Gram-Schmidt to keep basis orthonormal-ish.
-        axis_x_ = x;
-        if ( axis_x_.getLenSq() > 0.0f )
-        {
-            axis_x_.normalize();
-        } else
-        {
-            axis_x_ = { 1.0f, 0.0f, 0.0f };
-        }
-
-        Vector3f y_ortho = y - axis_x_ * scalarMul( y, axis_x_ );
-        if ( y_ortho.getLenSq() > 0.0f )
-        {
-            axis_y_ = y_ortho.normalize();
-        } else
-        {
-            // pick arbitrary perpendicular if input degenerate
-            axis_y_ = { 0.0f, 1.0f, 0.0f };
-        }
-
-        axis_z_        = cross( axis_x_, axis_y_ );
-        float z_len_sq = axis_z_.getLenSq();
-        if ( z_len_sq > 0.0f )
-        {
-            axis_z_ *= 1.0f / std::sqrt( z_len_sq );
-        } else
-        {
-            axis_z_ = { 0.0f, 0.0f, 1.0f };
-        }
-    }
-
-    void
     rotateAroundWorldAxis( const Vector3f& axis_world, float angle )
     {
         Vector3f axis = axis_world;
-        float    len  = axis.getLen();
-        if ( len == 0.0f )
-        {
-            return;
-        }
-        axis *= 1.0f / len;
+        axis.normalize();
 
         float c = std::cos( angle );
         float s = std::sin( angle );
 
-        auto rotateVec = [&]( const Vector3f& v ) -> Vector3f {
-            // Rodrigues' rotation formula
+        auto rotate_vec = [&]( const Vector3f& v ) -> Vector3f {
             return v * c + cross( axis, v ) * s + axis * ( scalarMul( axis, v ) * ( 1.0f - c ) );
         };
 
-        axis_x_ = rotateVec( axis_x_ );
-        axis_y_ = rotateVec( axis_y_ );
-        axis_z_ = rotateVec( axis_z_ );
+        axis_x_ = rotate_vec( axis_x_ );
+        axis_y_ = rotate_vec( axis_y_ );
+        axis_z_ = rotate_vec( axis_z_ );
     }
 
     void
@@ -230,13 +189,7 @@ class Primitive {
     Vector3f
     localToWorldNormal( const Vector3f& n_local ) const
     {
-        Vector3f n   = localToWorldDir( n_local );
-        float    len = n.getLen();
-        if ( len == 0.0f )
-        {
-            return n;
-        }
-        return n * ( 1.0f / len );
+        return localToWorldDir( n_local ).normalize();
     }
 
   private:

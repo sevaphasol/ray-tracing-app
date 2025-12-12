@@ -59,7 +59,6 @@ Ellipse::calcRayIntersection( const Ray& ray ) const
     float denom = safeDot( rd, n );
     if ( std::fabs( denom ) < 1e-6f )
     {
-        // луч почти параллелен плоскости эллипса
         return std::nullopt;
     }
 
@@ -84,8 +83,7 @@ Ellipse::calcRayIntersection( const Ray& ray ) const
     info.inside_object  = false;
 
     Vector3f nrm = n.normalize();
-    // если нужно одно-стороннее освещение, можно фейсинг-флипать по rd
-    info.normal = localToWorldNormal( nrm );
+    info.normal  = localToWorldNormal( nrm );
 
     return info;
 }
@@ -102,7 +100,6 @@ Ellipse::calcNormal( const Vector3f& /*point*/, bool inside_object ) const
 std::array<Vector3f, 8>
 Ellipse::getCircumscribedAABB() const
 {
-    // Грубый AABB: |u| + |v| по компонентам
     Vector3f c   = getOrigin();
     Vector3f ext = { std::fabs( u_.x ) + std::fabs( v_.x ),
                      std::fabs( u_.y ) + std::fabs( v_.y ),

@@ -8,7 +8,6 @@
 
 namespace hui {
 
-// Simple modal message box with a message label and OK button.
 class MessageBox : public hui::DialogBox {
   public:
     MessageBox( hui::WindowManager*   wm,

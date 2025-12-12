@@ -42,7 +42,6 @@ signf( float x )
     return ( x > 0.0f ) ? 1.0f : ( x < 0.0f ? -1.0f : 0.0f );
 }
 
-// Возвращает t и нормаль в ЛОКАЛЬНЫХ координатах, либо t=max() если нет пересечения.
 float
 coneIntersect( const Vector3f& ro,
                const Vector3f& rd,
@@ -69,7 +68,7 @@ coneIntersect( const Vector3f& ro,
     if ( m1 < 0.0f )
     {
         Vector3f tmp = oa * m2 - rd * m1;
-        if ( dot2( tmp ) < ( ra * ra * m2 * m2 ) ) // delayed division
+        if ( dot2( tmp ) < ( ra * ra * m2 * m2 ) )
         {
             float denom = m2;
             if ( std::fabs( denom ) < 1e-6f )
@@ -87,7 +86,7 @@ coneIntersect( const Vector3f& ro,
         float denom = m2;
         if ( std::fabs( denom ) >= 1e-6f )
         {
-            float    t = -m9 / denom; // NOT delayed division
+            float    t = -m9 / denom;
             Vector3f p = ob + rd * t;
             if ( dot2( p ) < rb * rb )
             {
@@ -101,7 +100,6 @@ coneIntersect( const Vector3f& ro,
         }
     }
 
-    // body
     float rr = ra - rb;
     float hy = m0 + rr * rr;
     float k2 = m0 * m0 - m2 * m2 * hy;
@@ -120,7 +118,6 @@ coneIntersect( const Vector3f& ro,
     if ( y < 0.0f || y > m0 )
         return INF;
 
-    // нормаль тела
     Vector3f n = m0 * ( m0 * ( oa + rd * t ) + rr * ba * ra ) - ba * hy * y;
     outNormal  = n.normalize();
     return t;
@@ -152,7 +149,6 @@ CappedCone::calcRayIntersection( const Ray& ray ) const
 Vector3f
 CappedCone::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    // Грубый пересчёт нормали по локальной геометрии:
     Vector3f p_local = worldToLocalPoint( point );
     Vector3f pa      = pa_local_;
     Vector3f pb      = pb_local_;
@@ -174,13 +170,12 @@ CappedCone::calcNormal( const Vector3f& point, bool inside_object ) const
     Vector3f n;
     if ( h < 0.0f )
     {
-        n = -ba.normalize(); // нижняя крышка
+        n = -ba.normalize();
     } else if ( h > 1.0f )
     {
-        n = ba.normalize();  // верхняя крышка
+        n = ba.normalize();
     } else
     {
-        // тело — просто берём градиент от осевой линии, без учёта изменения радиуса
         Vector3f c = pa + ba * h;
         n          = ( p_local - c ).normalize();
     }

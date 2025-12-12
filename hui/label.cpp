@@ -32,18 +32,15 @@ void
 LabelWidget::RedrawMyTexture() const
 {
     if ( !text_obj_ )
+    {
         return;
+    }
 
-    // небольшой внутренний отступ слева/сверху
     const float pad_x = 4.0f;
     const float pad_y = 2.0f;
 
-    // Размещаем текст в локальной системе координат текстуры (texture_),
-    // поэтому pos задаём относительно 0..size_
     text_obj_->SetPos( { pad_x, pad_y } );
 
-    // Если текст длиннее доступной ширины — text_obj_ сам ограничит bounds/GetBounds(), но
-    // можно также обрезать строку заранее. Пока пусть текст рисуется как есть.
     text_obj_->DrawOn( *texture_ );
 }
 

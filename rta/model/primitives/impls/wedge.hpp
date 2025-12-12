@@ -12,7 +12,6 @@ namespace model {
 
 class Wedge : public Primitive {
   public:
-    // s — половинный размер по осям (как в iWedge: box от -s до +s).
     Wedge( const Material& material, const Vector3f& center, const Vector3f& s );
 
     std::optional<Primitive::IntersectionInfo>

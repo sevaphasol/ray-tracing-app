@@ -47,10 +47,8 @@ capIntersect( const Vector3f& ro,
         h       = std::sqrt( h );
         float t = ( -b - h ) / a;
         float y = baoa + t * bard;
-        // body
         if ( y > 0.0f && y < baba )
             return t;
-        // caps
         Vector3f oc = ( y <= 0.0f ) ? oa : ( ro - pb );
         b           = scalarMul( rd, oc );
         c           = scalarMul( oc, oc ) - ra * ra;
@@ -81,7 +79,7 @@ Capsule::calcRayIntersection( const Ray& ray ) const
     Primitive::IntersectionInfo info;
     info.close_distance = t;
     info.far_distance   = t;
-    info.inside_object  = false; // при желании можно доработать
+    info.inside_object  = false;
     info.normal         = std::nullopt;
 
     return info;
@@ -98,7 +96,6 @@ Capsule::calcNormal( const Vector3f& point, bool inside_object ) const
     float baba = scalarMul( ba, ba );
     if ( baba < 1e-6f )
     {
-        // деградант в сферу
         Vector3f n = ( p_local - pa ).normalize();
         if ( inside_object )
             n = -n;
@@ -113,15 +110,12 @@ Capsule::calcNormal( const Vector3f& point, bool inside_object ) const
 
     if ( s < 0.0f )
     {
-        // нижняя "сфера"
         n_local = ( p_local - pa ).normalize();
     } else if ( s > 1.0f )
     {
-        // верхняя "сфера"
         n_local = ( p_local - pb ).normalize();
     } else
     {
-        // цилиндрическое тело
         Vector3f c = pa + ba * s;
         n_local    = ( p_local - c ).normalize();
     }

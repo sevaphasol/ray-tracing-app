@@ -154,7 +154,6 @@ SceneManager::addCappedCone( const Material& material,
                              float           ra,
                              float           rb )
 {
-    // Ось по Y, локальные концы относительно center
     Vector3f pa_local{ 0.0f, -0.5f * height, 0.0f };
     Vector3f pb_local{ 0.0f, 0.5f * height, 0.0f };
 
@@ -168,7 +167,6 @@ SceneManager::addCappedCylinder( const Material& material,
                                  float           height,
                                  float           radius )
 {
-    // Ось по Y, локальные концы относительно center
     Vector3f a_local{ 0.0f, -0.5f * height, 0.0f };
     Vector3f b_local{ 0.0f, 0.5f * height, 0.0f };
 
@@ -189,7 +187,6 @@ SceneManager::saveToFile( const std::string& path ) const
 {
     nlohmann::json j;
 
-    // Lights
     j["lights"] = nlohmann::json::array();
     for ( const auto& l : lights_ )
     {
@@ -200,7 +197,6 @@ SceneManager::saveToFile( const std::string& path ) const
                                  { "glare", l.getGlareIntensity() } } );
     }
 
-    // Objects
     j["objects"] = nlohmann::json::array();
     for ( size_t idx = 0; idx < objects_.size(); ++idx )
     {
@@ -345,7 +341,6 @@ SceneManager::loadFromFile( const std::string& path )
     auto get_obj_array = [&]() -> std::vector<nlohmann::json> {
         if ( j.contains( "objects" ) && j["objects"].is_array() )
             return j["objects"].get<std::vector<nlohmann::json>>();
-        // support map with numeric keys
         std::vector<nlohmann::json> res;
         if ( j.is_object() )
         {

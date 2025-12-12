@@ -12,7 +12,6 @@ namespace model {
 
 class Triangle : public Primitive {
   public:
-    // v0,v1,v2 задаются в МИРОВЫХ координатах
     Triangle( const Material& material,
               const Vector3f& v0_world,
               const Vector3f& v1_world,
@@ -39,7 +38,6 @@ class Triangle : public Primitive {
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;
 
-    // ВЕРШИНЫ В МИРОВЫХ КООРДИНАТАХ (вычисляются как origin + local)
     Vector3f
     getV0() const
     {
@@ -58,7 +56,6 @@ class Triangle : public Primitive {
         return getOrigin() + v2_local_;
     }
 
-    // Локальные вершины (относительно origin), если вдруг нужно
     const Vector3f&
     getV0Local() const
     {
@@ -99,7 +96,6 @@ class Triangle : public Primitive {
     }
 
   private:
-    // локальные вершины относительно origin (Primitive::getOrigin())
     Vector3f v0_local_;
     Vector3f v1_local_;
     Vector3f v2_local_;

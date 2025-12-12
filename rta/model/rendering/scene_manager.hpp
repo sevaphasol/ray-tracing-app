@@ -303,7 +303,6 @@ class SceneManager {
                        float           height,
                        float           radius );
 
-    // Wedge: пересечение AABB [-s,+s] с клиновой плоскостью, центр в center.
     void
     addWedge( const Material& material, const Vector3f& center, const Vector3f& half_size );
 

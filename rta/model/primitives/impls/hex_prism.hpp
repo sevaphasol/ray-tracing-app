@@ -9,10 +9,7 @@ namespace model {
 
 class HexPrism : public Primitive {
   public:
-    HexPrism( const Material& material,
-              const Vector3f& center,
-              float           radius, // ra — радиус описанной окружности шестиугольника
-              float           height );         // he — половина высоты (от центра вверх/вниз)
+    HexPrism( const Material& material, const Vector3f& center, float radius, float height );
 
     std::optional<Primitive::IntersectionInfo>
     calcRayIntersection( const Ray& ray ) const override final;

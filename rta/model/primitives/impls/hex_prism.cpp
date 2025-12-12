@@ -21,7 +21,7 @@ HexPrism::HexPrism( const Material& material, const Vector3f& center, float radi
 std::optional<Primitive::IntersectionInfo>
 HexPrism::calcRayIntersection( const Ray& ray ) const
 {
-    const float ks3 = 0.8660254037844386f; // sqrt(3)/2
+    const float ks3 = 0.8660254037844386f;
 
     Vector3f n1( 1.0f, 0.0f, 0.0f );
     Vector3f n2( 0.5f, 0.0f, ks3 );
@@ -60,7 +60,6 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
         return std::nullopt;
     }
 
-    // Определяем, какая грань пересечена первой
     Vector3f normal;
     float    t = tNear;
 
@@ -74,7 +73,6 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
         normal = n4;
     else
     {
-        // fallback: проверим все грани
         float eps = 1e-4f;
         if ( std::abs( t - t1x ) < eps )
             normal = n1;
@@ -97,13 +95,9 @@ HexPrism::calcRayIntersection( const Ray& ray ) const
 Vector3f
 HexPrism::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 {
-    // Для простоты используем нормаль из пересечения
-    // (в реальности можно пересчитать, но в вашем движке normal берётся из IntersectionInfo)
-    // Поэтому этот метод редко вызывается — оставим заглушку
     Vector3f    local = worldToLocalPoint( point );
     const float ks3   = 0.8660254037844386f;
 
-    // Нормали граней
     struct
     {
         Vector3f n;
@@ -136,9 +130,9 @@ HexPrism::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 std::array<Vector3f, 8>
 HexPrism::getCircumscribedAABB() const
 {
-    float dx = radius_; // ra
-    float dy = height_; // he
-    float dz = radius_; // ra
+    float dx = radius_;
+    float dy = height_;
+    float dz = radius_;
 
     std::array<Vector3f, 8> corners_local = { { { -dx, -dy, -dz },
                                                 { dx, -dy, -dz },

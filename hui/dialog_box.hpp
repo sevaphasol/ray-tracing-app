@@ -1,51 +1,48 @@
 #pragma once
 
 #include "button.hpp"
+#include "dr4/math/vec2.hpp"
+#include "dr4/texture.hpp"
 #include "label.hpp"
 #include "widget.hpp"
 #include "window_manager.hpp"
-#include "dr4/math/vec2.hpp"
-#include "dr4/texture.hpp"
 #include <cstdlib>
 #include <memory>
 #include <string>
 
 namespace hui {
 
-// Generic dialog panel with a top bar, title and close button.
 class DialogBox : public hui::ContainerWidget {
   public:
     struct Theme
     {
-        dr4::Color      rect_fill;
-        dr4::Color      rect_border;
-        float           rect_border_thickness;
-        dr4::Color      topbar_fill;
-        dr4::Color      topbar_border;
-        float           topbar_border_thickness;
-        dr4::Color      label_color;
-        float           label_font_size;
-        dr4::Vec2f      label_padding;
+        dr4::Color         rect_fill;
+        dr4::Color         rect_border;
+        float              rect_border_thickness;
+        dr4::Color         topbar_fill;
+        dr4::Color         topbar_border;
+        float              topbar_border_thickness;
+        dr4::Color         label_color;
+        float              label_font_size;
+        dr4::Vec2f         label_padding;
         hui::Button::Theme close_button;
     };
 
     static const inline Theme DefaultTheme = {
-        /*rect_fill=*/{ 32, 32, 32, 128 },
-        /*rect_border=*/{ 118, 185, 0, 255 },
-        /*rect_border_thickness=*/-2.0f,
-        /*topbar_fill=*/{ 32, 32, 32, 128 },
-        /*topbar_border=*/{ 118, 185, 0, 255 },
-        /*topbar_border_thickness=*/-2.0f,
-        /*label_color=*/{ 255, 255, 255, 255 },
-        /*label_font_size=*/12.0f,
-        /*label_padding=*/{ std::abs( -2.0f ) + 2.0f, std::abs( -2.0f ) + 2.0f },
-        /*close_button=*/
+        { 32, 32, 32, 128 },
+        { 118, 185, 0, 255 },
+        -2.0f,
+        { 32, 32, 32, 128 },
+        { 118, 185, 0, 255 },
+        -2.0f,
+        { 255, 255, 255, 255 },
+        12.0f,
+        { std::abs( -2.0f ) + 2.0f, std::abs( -2.0f ) + 2.0f },
         hui::Button::Theme{ { 128, 0, 0, 255 },
                             { 164, 0, 0, 255 },
                             { 96, 0, 0, 255 },
                             { 255, 255, 255, 255 },
-                            12 }
-    };
+                            12 } };
 
   private:
     std::unique_ptr<dr4::Rectangle> rect_;
@@ -56,9 +53,9 @@ class DialogBox : public hui::ContainerWidget {
     hui::Button close_btn_;
     using CloseBtnCallBack = std::function<void()>;
 
-    static constexpr float         TopBarHeight          = 25.0f;
-    static constexpr float         TopBarBorderThickness = -2.0f;
-    static constexpr float         CloseBtnSize = TopBarHeight - std::abs( TopBarBorderThickness );
+    static constexpr float TopBarHeight          = 25.0f;
+    static constexpr float TopBarBorderThickness = -2.0f;
+    static constexpr float CloseBtnSize          = TopBarHeight - std::abs( TopBarBorderThickness );
 
   public:
     DialogBox( hui::WindowManager* wm,

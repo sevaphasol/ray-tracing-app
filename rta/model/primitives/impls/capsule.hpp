@@ -10,7 +10,6 @@
 namespace rta {
 namespace model {
 
-// Капсула: отрезок [pa, pb] в ЛОКАЛЬНЫХ координатах относительно origin + радиус.
 class Capsule : public Primitive {
   public:
     Capsule( const Material& material,

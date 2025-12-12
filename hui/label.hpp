@@ -9,7 +9,6 @@ namespace hui {
 
 class LabelWidget : public Widget {
   public:
-    // pos and size are relative to parent/content (ScrollableListWidget will set rel pos)
     LabelWidget( hui::WindowManager* wm,
                  const dr4::Vec2f&   pos,
                  const dr4::Vec2f&   size,

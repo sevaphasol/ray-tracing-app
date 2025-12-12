@@ -1,7 +1,3 @@
-/*
-    Capped cylinder — Shadertoy cylIntersect + cylNormal.
-*/
-
 #include "rta/model/primitives/impls/capped_cylinder.hpp"
 #include "rta/model/rendering/vector3.hpp"
 
@@ -64,7 +60,6 @@ cylIntersect( const Vector3f& ro,
     float y  = baoc + t * bard;
     float t0 = t;
 
-    // body
     if ( y > 0.0f && y < baba && t > 1e-4f )
     {
         Vector3f n = oc + rd * t - ba * ( y / baba );
@@ -73,7 +68,6 @@ cylIntersect( const Vector3f& ro,
         return t;
     }
 
-    // caps
     float denom = bard;
     if ( std::fabs( denom ) < 1e-6f )
         return INF;
@@ -82,7 +76,6 @@ cylIntersect( const Vector3f& ro,
     if ( t <= 1e-4f )
         return INF;
 
-    // проверка, что точка в диске
     float k1t = k1 + k2 * t;
     if ( std::fabs( k1t ) < h )
     {

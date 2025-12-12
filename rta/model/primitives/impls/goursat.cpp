@@ -1,19 +1,3 @@
-/*
-    Goursat surface intersection
-
-    Основано на шейдере с Shadertoy:
-
-    float gouIntersect( in vec3 ro, in vec3 rd, in float ka, float kb )
-    {
-        ...
-    }
-
-    vec3 gouNormal( in vec3 pos, float ka, float kb )
-    {
-        return normalize( 4.0*pos*pos*pos - 2.0*pos*kb );
-    }
-*/
-
 #include "rta/model/primitives/impls/goursat.hpp"
 #include "rta/model/rendering/vector3.hpp"
 
@@ -31,7 +15,6 @@ Goursat::Goursat( const Material& material, const Vector3f& center, float ka, fl
 
 namespace {
 
-// локальный double-вектор, чтобы спокойно делать поэлементные операции
 struct Vec3d
 {
     double x;
@@ -48,13 +31,13 @@ makeVec3d( const Vector3f& v )
 }
 
 inline Vec3d
-operator*( const Vec3d& a, const Vec3d& b ) // поэлементно
+operator*( const Vec3d& a, const Vec3d& b )
 {
     return Vec3d{ a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
 inline Vec3d
-operator*( const Vec3d& a, double s ) // умножение на скаляр
+operator*( const Vec3d& a, double s )
 {
     return Vec3d{ a.x * s, a.y * s, a.z * s };
 }
@@ -83,7 +66,6 @@ sign_glsl( double x )
     return ( x > 0.0 ) ? 1.0 : ( x < 0.0 ? -1.0 : 0.0 );
 }
 
-// GLSL-версия gouIntersect, аккуратно перенесённая в double
 static double
 gouIntersectInternal( const Vec3d& ro, const Vec3d& rd, double ka, double kb )
 {
@@ -139,7 +121,6 @@ gouIntersectInternal( const Vec3d& ro, const Vec3d& rd, double ka, double kb )
     double R = c2 * c2 * c2 - 3.0 * c0 * c2 + c1 * c1;
     double h = R * R - Q * Q * Q;
 
-    // 2 пересечения
     if ( h > 0.0 )
     {
         h = std::sqrt( h );
@@ -167,7 +148,6 @@ gouIntersectInternal( const Vec3d& ro, const Vec3d& rd, double ka, double kb )
         return ( po < 0.0 ) ? ( 1.0 / t ) : t;
     }
 
-    // 4 пересечения
     if ( Q <= 0.0 )
         return -1.0;
 
@@ -223,7 +203,6 @@ gouIntersectInternal( const Vec3d& ro, const Vec3d& rd, double ka, double kb )
     return t;
 }
 
-// Обёртка под твой Vector3f, возвращаем float + max() как "нет хита"
 static float
 gouIntersect( const Vector3f& ro_f, const Vector3f& rd_f, float ka_f, float kb_f )
 {
@@ -240,8 +219,6 @@ gouIntersect( const Vector3f& ro_f, const Vector3f& rd_f, float ka_f, float kb_f
     return static_cast<float>( t );
 }
 
-// грубый радиус описывающей сферы для Goursat: x^4 + y^4 + z^4 + ka - kb(x^2 + y^2 + z^2) = 0
-// берём максимум по оси: x^4 - kb x^2 + ka = 0 => y^2 - kb y + ka = 0, y = x^2
 static float
 computeBoundingRadius( float ka_f, float kb_f )
 {
@@ -260,11 +237,10 @@ computeBoundingRadius( float ka_f, float kb_f )
         R           = ( yMax > 0.0 ) ? std::sqrt( yMax ) : 1.0;
     } else
     {
-        // fallback, если параметры такие, что формально корней нет
         R = std::sqrt( std::fabs( kb ) + std::fabs( ka ) + 1.0 );
     }
 
-    return static_cast<float>( R * 1.05 ); // чуть запас
+    return static_cast<float>( R * 1.05 );
 }
 
 } // anonymous namespace
@@ -272,9 +248,8 @@ computeBoundingRadius( float ka_f, float kb_f )
 std::optional<Primitive::IntersectionInfo>
 Goursat::calcRayIntersection( const Ray& ray ) const
 {
-    // локальные координаты: центр в getOrigin()
     Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
-    Vector3f rd = worldToLocalDir( ray.getDir() ); // НЕ нормализуем, как и для остальных примитивов
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     float t = gouIntersect( ro, rd, ka_, kb_ );
 
@@ -287,7 +262,7 @@ Goursat::calcRayIntersection( const Ray& ray ) const
     info.close_distance = t;
     info.far_distance   = t;
     info.inside_object  = false;
-    info.normal         = std::nullopt; // посчитаешь через calcNormal при нужде
+    info.normal         = std::nullopt;
 
     return info;
 }
@@ -295,8 +270,6 @@ Goursat::calcRayIntersection( const Ray& ray ) const
 Vector3f
 Goursat::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
 {
-    // gouNormal( pos ) = normalize( 4.0*pos^3 - 2.0*pos*kb )
-    // pos^3 и pos*kb — поэлементно
     Vector3f p = worldToLocalPoint( point );
 
     Vector3f p2( p.x * p.x, p.y * p.y, p.z * p.z );

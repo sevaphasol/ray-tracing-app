@@ -1,9 +1,3 @@
-/*
-    Triangle intersection (barycentric), но теперь вершины в локальных координатах
-    относительно origin, а луч в calcRayIntersection переводим в локал:
-    ro_local = ro_world - origin.
-*/
-
 #include "rta/model/primitives/impls/triangle.hpp"
 #include "rta/model/rendering/vector3.hpp"
 
@@ -18,7 +12,6 @@ Triangle::Triangle( const Material& material,
                     const Vector3f& v0_world,
                     const Vector3f& v1_world,
                     const Vector3f& v2_world )
-    // origin = центр масс треугольника
     : Primitive( material, ( v0_world + v1_world + v2_world ) * ( 1.0f / 3.0f ) )
 {
     Vector3f o = getOrigin();
@@ -30,7 +23,6 @@ Triangle::Triangle( const Material& material,
 std::optional<Primitive::IntersectionInfo>
 Triangle::calcRayIntersection( const Ray& ray ) const
 {
-    // Переводим луч в локальное пространство треугольника:
     const Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
     const Vector3f rd = worldToLocalDir( ray.getDir() );
 
@@ -46,7 +38,6 @@ Triangle::calcRayIntersection( const Ray& ray ) const
     float    denom = scalarMul( rd, n );
     if ( std::fabs( denom ) < 1e-6f )
     {
-        // Луч почти параллелен плоскости
         return std::nullopt;
     }
 
@@ -63,7 +54,7 @@ Triangle::calcRayIntersection( const Ray& ray ) const
     }
 
     Primitive::IntersectionInfo info;
-    info.close_distance = t; // t вдоль rd в МИРОВЫХ = t вдоль rd в локале (только трансляция)
+    info.close_distance = t;
     info.far_distance   = t;
     info.inside_object  = false;
 
@@ -85,7 +76,6 @@ Triangle::calcNormal( const Vector3f& /*point*/, bool inside_object ) const
 std::array<Vector3f, 8>
 Triangle::getCircumscribedAABB() const
 {
-    // AABB считаем в МИРОВЫХ координатах
     Vector3f w0 = localToWorldPoint( v0_local_ );
     Vector3f w1 = localToWorldPoint( v1_local_ );
     Vector3f w2 = localToWorldPoint( v2_local_ );

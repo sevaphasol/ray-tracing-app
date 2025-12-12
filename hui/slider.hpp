@@ -7,7 +7,6 @@
 
 namespace hui {
 
-// Simple horizontal slider with 0..1 factor and on-change callback.
 class Slider : public hui::Widget {
   public:
     struct Theme

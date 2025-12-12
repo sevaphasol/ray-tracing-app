@@ -1,8 +1,4 @@
 
-/*
-    Rounded axis-aligned box (Inigo Quilez intersectors)
-*/
-
 #include "rta/model/primitives/impls/rounded_box.hpp"
 #include "rta/model/rendering/vector3.hpp"
 
@@ -26,7 +22,6 @@ namespace {
 float
 roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& size, float rad )
 {
-    // bounding box (как в шейдере, но с защитой от деления на ноль)
     Vector3f    m;
     const float big = std::numeric_limits<float>::max();
     m.x             = ( std::abs( rd.x ) > 1e-6f ) ? 1.0f / rd.x : big;
@@ -49,7 +44,6 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
 
     float t = tN;
 
-    // convert to first octant
     Vector3f pos = ro + rd * t;
     Vector3f s   = sign( pos );
 
@@ -57,10 +51,8 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
     Vector3f rd1  = rd * s;
     Vector3f pos1 = pos * s;
 
-    // faces
     pos1 -= size;
 
-    // pos = max( pos.xyz, pos.yzx );
     Vector3f p2{ pos1.y, pos1.z, pos1.x };
     pos1.x = std::max( pos1.x, p2.x );
     pos1.y = std::max( pos1.y, p2.y );
@@ -69,7 +61,6 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
     if ( std::min( { pos1.x, pos1.y, pos1.z } ) < 0.0f )
         return t;
 
-    // some precomputation
     Vector3f oc  = ro1 - size;
     Vector3f dd  = { rd1.x * rd1.x, rd1.y * rd1.y, rd1.z * rd1.z };
     Vector3f oo  = { oc.x * oc.x, oc.y * oc.y, oc.z * oc.z };
@@ -78,7 +69,6 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
 
     t = std::numeric_limits<float>::max();
 
-    // corner
     {
         float b = od.x + od.y + od.z;
         float c = oo.x + oo.y + oo.z - ra2;
@@ -91,7 +81,6 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
         }
     }
 
-    // edge X
     {
         float a = dd.y + dd.z;
         float b = od.y + od.z;
@@ -105,7 +94,6 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
         }
     }
 
-    // edge Y
     {
         float a = dd.z + dd.x;
         float b = od.z + od.x;
@@ -119,7 +107,6 @@ roundedboxIntersect( const Vector3f& ro, const Vector3f& rd, const Vector3f& siz
         }
     }
 
-    // edge Z
     {
         float a = dd.x + dd.y;
         float b = od.x + od.y;
@@ -145,7 +132,7 @@ std::optional<Primitive::IntersectionInfo>
 RoundedBox::calcRayIntersection( const Ray& ray ) const
 {
     Vector3f ro = worldToLocalPoint( ray.getBasePoint() );
-    Vector3f rd = worldToLocalDir( ray.getDir() ); // уже нормализован
+    Vector3f rd = worldToLocalDir( ray.getDir() );
 
     float t = roundedboxIntersect( ro, rd, half_size_, radius_ );
 
@@ -156,14 +143,13 @@ RoundedBox::calcRayIntersection( const Ray& ray ) const
     info.close_distance = t;
     info.far_distance   = t;
     info.inside_object  = false;
-    info.normal         = std::nullopt; // нормаль посчитаем через calcNormal
+    info.normal         = std::nullopt;
     return info;
 }
 
 Vector3f
 RoundedBox::calcNormal( const Vector3f& point, bool inside_object ) const
 {
-    // Шейдер-труд: sign(pos)*normalize(max(abs(pos)-siz,0.0))
     Vector3f p_local = worldToLocalPoint( point );
     Vector3f s       = sign( p_local );
     Vector3f ap      = abs( p_local );
@@ -176,7 +162,6 @@ RoundedBox::calcNormal( const Vector3f& point, bool inside_object ) const
 
     if ( q.getLenSq() < 1e-8f )
     {
-        // На почти плоской части — как у обычного AABB
         if ( ap.x >= ap.y && ap.x >= ap.z )
             n = Vector3f{ s.x, 0.0f, 0.0f };
         else if ( ap.y >= ap.z )

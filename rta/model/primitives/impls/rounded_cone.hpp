@@ -10,8 +10,6 @@
 namespace rta {
 namespace model {
 
-// "Rounded cone" из шейдера Иниго: отрезок [pa, pb] в ЛОКАЛЬНЫХ координатах,
-// с радиусами ra (у pa) и rb (у pb).
 class RoundedCone : public Primitive {
   public:
     RoundedCone( const Material& material,
@@ -24,7 +22,6 @@ class RoundedCone : public Primitive {
     std::optional<Primitive::IntersectionInfo>
     calcRayIntersection( const Ray& ray ) const override final;
 
-    // Нормаль берём либо из IntersectionInfo, либо даём грубую аппроксимацию
     Vector3f
     calcNormal( const Vector3f& point, bool inside_object ) const override final;
 

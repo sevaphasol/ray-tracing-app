@@ -36,7 +36,6 @@
 namespace rta {
 namespace view {
 
-// Single editor for objects: create when none selected, edit/copy/delete when selected.
 class ObjectEditorPanel : public hui::ClosablePanel {
   public:
     explicit ObjectEditorPanel( hui::WindowManager*   wm,
@@ -400,7 +399,6 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 defs.push_back( { "V2.z", "v2z" } );
                 break;
         }
-        // reflection / refraction / eta now use sliders
 
         auto* win  = wm_->getWindow();
         auto* font = win->GetDefaultFont();
@@ -725,7 +723,6 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         float veta  = sliderEtaValue();
         if ( vref == 0.0f )
         {
-            // eta allowed to be zero if refraction disabled
             veta = std::max( veta, 0.0f );
         } else if ( veta <= 0.0f )
         {

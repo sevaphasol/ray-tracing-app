@@ -12,8 +12,6 @@ namespace model {
 
 class CappedCone : public Primitive {
   public:
-    // pa_local, pb_local — концы оси конуса в локальных координатах относительно center.
-    // ra, rb — радиусы у pa и pb.
     CappedCone( const Material& material,
                 const Vector3f& center,
                 const Vector3f& pa_local,
