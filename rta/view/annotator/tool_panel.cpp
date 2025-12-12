@@ -1,60 +1,34 @@
-#pragma once
-
+#include "rta/view/annotator/tool_panel.hpp"
 #include "hui/button.hpp"
 #include "hui/window_manager.hpp"
 #include "pp/tool.hpp"
 #include <optional>
 #include <vector>
 
-namespace rta {
-namespace view {
-
-class ToolPanel : public hui::ContainerWidget {
-  public:
-    ToolPanel( hui::WindowManager* wm, float x, float y, float visible_height );
-
-    void
-    addTools( const std::vector<pp::Tool*>& tools );
-
-    std::optional<size_t>
-    getActiveToolIdx() const;
-    void
-    setActiveTool( std::optional<size_t> idx );
-
-  private:
-    std::optional<size_t>                     active_tool_idx_;
-    std::vector<pp::Tool*>                    tools_;
-    const dr4::Font*                          font_;
-    float                                     button_size_;
-    float                                     padding_;
-    std::vector<std::unique_ptr<hui::Button>> buttons_;
-    std::unique_ptr<dr4::Font>                icon_font_;
-    bool                                      icon_font_loaded_ = false;
-
-    bool
-    propagateEventToChildren( const hui::Event& event ) override
+bool
+rta::view::ToolPanel::propagateEventToChildren( const hui::Event& event )
+{
+    for ( auto& btn : buttons_ )
     {
-        for ( auto& btn : buttons_ )
+        if ( event.apply( btn.get() ) )
         {
-            if ( event.apply( btn.get() ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void
-    RedrawMyTexture() const override
-    {
-        for ( auto& btn : buttons_ )
-        {
-            btn->Redraw();
+            return true;
         }
     }
-};
 
-ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float visible_height )
+    return false;
+}
+
+void
+rta::view::ToolPanel::RedrawMyTexture() const
+{
+    for ( const auto& btn : buttons_ )
+    {
+        btn->Redraw();
+    }
+}
+
+rta::view::ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float visible_height )
     : hui::ContainerWidget( wm, { x, y }, { 50.0f + 2.0f * 10.0f, visible_height } ),
       font_( wm->getWindow()->GetDefaultFont() ),
       button_size_( 50.0f ),
@@ -73,7 +47,7 @@ ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float visible_he
 }
 
 void
-ToolPanel::addTools( const std::vector<pp::Tool*>& tools )
+rta::view::ToolPanel::addTools( const std::vector<pp::Tool*>& tools )
 {
     tools_.clear();
     active_tool_idx_.reset();
@@ -125,16 +99,13 @@ ToolPanel::addTools( const std::vector<pp::Tool*>& tools )
 }
 
 std::optional<size_t>
-ToolPanel::getActiveToolIdx() const
+rta::view::ToolPanel::getActiveToolIdx() const
 {
     return active_tool_idx_;
 }
 
 void
-ToolPanel::setActiveTool( std::optional<size_t> idx )
+rta::view::ToolPanel::setActiveTool( std::optional<size_t> idx )
 {
     active_tool_idx_ = idx;
 }
-
-} // namespace view
-} // namespace rta

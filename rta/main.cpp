@@ -4,8 +4,8 @@
 #include "hui/file_dialog_box.hpp"
 #include "hui/tool_bar.hpp"
 #include "hui/window_manager.hpp"
-#include "rta/view/plugin_manager.hpp"
 #include "rta/view/rta.hpp"
+#include "rta/view/utils/plugin_manager.hpp"
 
 #include <dlfcn.h>
 #include <memory>

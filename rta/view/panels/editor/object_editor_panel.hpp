@@ -24,7 +24,7 @@
 #include "rta/model/primitives/impls/triangle.hpp"
 #include "rta/model/primitives/impls/wedge.hpp"
 #include "rta/model/rendering/scene_manager.hpp"
-#include "rta/view/rgb_picker.hpp"
+#include "rta/view/utils/rgb_picker.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <memory>
