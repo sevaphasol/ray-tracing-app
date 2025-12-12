@@ -29,13 +29,13 @@ class ScrollableButtonsListWidget : public ScrollableWidget {
     void
     rebuildLayout();
 
-    ButtonsList*
+    VerticalButtonsList*
     getButtonsList();
-    const ButtonsList*
+    const VerticalButtonsList*
     getButtonsList() const;
 
   private:
-    ButtonsList* buttons_list_ = nullptr;
+    VerticalButtonsList* buttons_list_ = nullptr;
 };
 
 } // namespace hui

@@ -9,10 +9,10 @@ ScrollableButtonsListWidget::ScrollableButtonsListWidget( WindowManager*    wm,
                                                           float             padding )
     : ScrollableWidget( wm, pos, content_size, scrollbar_width )
 {
-    auto buttons_list =
-        std::make_unique<ButtonsList>( wm, dr4::Vec2f{ 0.0f, 0.0f }, content_size, padding );
-    buttons_list_ = buttons_list.get();
-    setContent( std::move( buttons_list ) );
+    auto vertical_list = std::make_unique<VerticalButtonsList>(
+        wm, dr4::Vec2f{ 0.0f, 0.0f }, content_size, padding );
+    buttons_list_ = vertical_list.get();
+    setContent( std::move( vertical_list ) );
 }
 
 Button*
@@ -62,13 +62,13 @@ ScrollableButtonsListWidget::rebuildLayout()
     }
 }
 
-ButtonsList*
+VerticalButtonsList*
 ScrollableButtonsListWidget::getButtonsList()
 {
     return buttons_list_;
 }
 
-const ButtonsList*
+const VerticalButtonsList*
 ScrollableButtonsListWidget::getButtonsList() const
 {
     return buttons_list_;

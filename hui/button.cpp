@@ -87,6 +87,19 @@ Button::setBackgroundColor( const dr4::Color& color )
     background_->SetFillColor( color );
 }
 
+dr4::Vec2f
+Button::getLabelBounds() const
+{
+    return label_->GetBounds();
+}
+
+void
+Button::fitToLabel( float padding_x, float padding_y )
+{
+    dr4::Vec2f bounds = getLabelBounds();
+    setSize( { bounds.x + padding_x, bounds.y + padding_y } );
+}
+
 bool
 Button::isPressed() const
 {

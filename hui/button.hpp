@@ -60,6 +60,10 @@ class Button : public hui::Widget {
     setFont( const dr4::Font* font );
     void
     setBackgroundColor( const dr4::Color& color );
+    dr4::Vec2f
+    getLabelBounds() const;
+    void
+    fitToLabel( float padding_x, float padding_y );
 
     bool
     isPressed() const;
