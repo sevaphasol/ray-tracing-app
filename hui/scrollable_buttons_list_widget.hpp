@@ -21,10 +21,10 @@ class ScrollableButtonsListWidget : public ScrollableWidget {
     clearButtons();
 
     void
-    setPadding( float padding );
+    setPad( float padding );
 
     float
-    getPadding() const;
+    getPad() const;
 
     void
     rebuildLayout();

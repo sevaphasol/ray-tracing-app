@@ -39,7 +39,8 @@ void
 ButtonsList::clearButtons()
 {
     btns_.clear();
-    setSize( { getSize().x, 0.0f } );
+    // !FIXME 1.0 set because sgml cannot create texture with zero-size
+    setSize( { getSize().x, 1.0f } );
 }
 
 void

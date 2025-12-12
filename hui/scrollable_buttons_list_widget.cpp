@@ -1,5 +1,4 @@
 #include "scrollable_buttons_list_widget.hpp"
-#include "buttons_list.hpp"
 
 namespace hui {
 
@@ -33,12 +32,13 @@ ScrollableButtonsListWidget::clearButtons()
     {
         return;
     }
+    setScrollFactor( 0.0 );
     buttons_list_->clearButtons();
     buttons_list_->setRelPos( { 0.0f, 0.0f } );
 }
 
 void
-ScrollableButtonsListWidget::setPadding( float padding )
+ScrollableButtonsListWidget::setPad( float padding )
 {
     if ( buttons_list_ == nullptr )
     {
@@ -48,7 +48,7 @@ ScrollableButtonsListWidget::setPadding( float padding )
 }
 
 float
-ScrollableButtonsListWidget::getPadding() const
+ScrollableButtonsListWidget::getPad() const
 {
     return ( buttons_list_ != nullptr ) ? buttons_list_->getPad() : 0.0f;
 }

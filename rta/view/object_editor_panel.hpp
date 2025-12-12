@@ -5,7 +5,7 @@
 #include "hui/dialog_box.hpp"
 #include "hui/input_text.hpp"
 #include "hui/label.hpp"
-#include "hui/scrollable_list_widget.hpp"
+#include "hui/scrollable_buttons_list_widget.hpp"
 #include "hui/slider.hpp"
 #include "rta/model/primitives/impls/aabb.hpp"
 #include "rta/model/primitives/impls/capped_cone.hpp"
@@ -1330,7 +1330,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         void
         buildItems()
         {
-            list_.clearItems();
+            list_.clearButtons();
             auto add = [&]( const std::string& label, Type t ) {
                 auto btn = std::make_unique<hui::Button>(
                     wm_,
@@ -1348,7 +1348,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                     selected_ = t;
                     buildItems();
                 } );
-                list_.addItem( std::move( btn ) );
+                list_.addButton( std::move( btn ) );
             };
 
             add( "Sphere", Type::Sphere );
@@ -1365,15 +1365,17 @@ class ObjectEditorPanel : public hui::ClosablePanel {
             add( "Wedge", Type::Wedge );
             add( "Ellipse", Type::Ellipse );
             add( "Triangle", Type::Triangle );
+
+            list_.rebuildLayout();
         }
 
       private:
-        hui::ScrollableListWidget   list_;
-        hui::ButtonOk               ok_;
-        hui::ButtonCancel           cancel_;
-        std::function<void( Type )> on_ok_;
-        std::function<void()>       on_cancel_;
-        Type                        selected_ = Type::Sphere;
+        hui::ScrollableButtonsListWidget list_;
+        hui::ButtonOk                    ok_;
+        hui::ButtonCancel                cancel_;
+        std::function<void( Type )>      on_ok_;
+        std::function<void()>            on_cancel_;
+        Type                             selected_ = Type::Sphere;
     };
 
     void

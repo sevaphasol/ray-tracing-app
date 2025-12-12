@@ -18,6 +18,9 @@ class ScrollableWidget : public ContainerWidget {
     setContent( std::unique_ptr<Widget> content );
 
     void
+    setScrollFactor( double factor );
+
+    void
     RedrawMyTexture() const override;
     bool
     propagateEventToChildren( const Event& event ) override final;
