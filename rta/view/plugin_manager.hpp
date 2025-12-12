@@ -38,13 +38,11 @@ class PluginManagerDialog : public hui::DialogBox {
           choose_btn_( wm,
                        { 14.0f, h - buttons_row_h_ + 6.0f },
                        { ( w - 14.0f * 3.0f ) * 0.5f, buttons_row_h_ - 12.0f },
-                       "Choose",
-                       hui::Button::DefaultTheme ),
+                       "Choose" ),
           delete_btn_( wm,
                        { 14.0f + ( w - 14.0f * 3.0f ) * 0.5f + 14.0f, h - buttons_row_h_ + 6.0f },
                        { ( w - 14.0f * 3.0f ) * 0.5f, buttons_row_h_ - 12.0f },
-                       "Delete",
-                       hui::Button::DefaultTheme )
+                       "Delete" )
     {
         list_.setParent( this );
         choose_btn_.setParent( this );
@@ -226,11 +224,7 @@ class ToolSelectorDialog : public hui::DialogBox {
                  { 8.0f, TopBarHeight + 8.0f },
                  { w - 16.0f, h - TopBarHeight - 16.0f - 44.0f },
                  10.0f ),
-          close_( wm,
-                  { w - 90.0f, h - 34.0f },
-                  { 70.0f, 24.0f },
-                  "Close",
-                  hui::Button::DefaultTheme )
+          close_( wm, { w - 90.0f, h - 34.0f }, { 70.0f, 24.0f }, "Close" )
     {
         list_.setParent( this );
         close_.setParent( this );
@@ -265,7 +259,7 @@ class ToolSelectorDialog : public hui::DialogBox {
                                              { 90, 150, 40, 255 },
                                              { 230, 230, 230, 255 },
                                              15 }
-                       : hui::Button::DefaultTheme;
+                       : hui::Button::Theme::Default();
     }
 
     void

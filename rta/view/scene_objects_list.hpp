@@ -2,7 +2,7 @@
 #include "hui/button.hpp"
 #include "hui/dialog_box.hpp"
 #include "hui/label.hpp"
-#include "hui/scrollable_list_widget.hpp"
+#include "hui/scrollable_buttons_list_widget.hpp"
 #include "rta/model/primitives/impls/aabb.hpp"
 #include "rta/model/primitives/impls/plane.hpp"
 #include "rta/model/primitives/impls/sphere.hpp"
@@ -51,8 +51,8 @@ class SceneObjectsListModal : public hui::DialogBox {
         const float inner_h         = h - ( inner_y + 12.0f );
         const float scrollbar_width = 12.0f;
 
-        // Create ScrollableListWidget and make it a child of the modal
-        list_ = std::make_unique<hui::ScrollableListWidget>(
+        // Create scrollable list of buttons and make it a child of the modal
+        list_ = std::make_unique<hui::ScrollableButtonsListWidget>(
             wm,
             dr4::Vec2f{ inner_x, inner_y },
             dr4::Vec2f{ inner_w - scrollbar_width, inner_h },
@@ -137,10 +137,10 @@ class SceneObjectsListModal : public hui::DialogBox {
         const float scrollbar_width = 12.0f;
 
         list_.reset(
-            new hui::ScrollableListWidget( wm_,
-                                           dr4::Vec2f{ inner_x, inner_y },
-                                           dr4::Vec2f{ inner_w - scrollbar_width, inner_h },
-                                           scrollbar_width ) );
+            new hui::ScrollableButtonsListWidget( wm_,
+                                                  dr4::Vec2f{ inner_x, inner_y },
+                                                  dr4::Vec2f{ inner_w - scrollbar_width, inner_h },
+                                                  scrollbar_width ) );
         list_->setParent( this );
 
         // Get object names
@@ -179,7 +179,7 @@ class SceneObjectsListModal : public hui::DialogBox {
                 }
             } );
 
-            list_->addItem( std::move( btn ) );
+            list_->addButton( std::move( btn ) );
         }
 
         list_->rebuildLayout();
@@ -188,7 +188,7 @@ class SceneObjectsListModal : public hui::DialogBox {
   private:
     model::SceneManager&                       scene_manager_;
     CloseCb                                    close_cb_;
-    std::unique_ptr<hui::ScrollableListWidget> list_;
+    std::unique_ptr<hui::ScrollableButtonsListWidget> list_;
     std::function<void( size_t )>              on_select_;
     bool                                       visible_ = true;
 };

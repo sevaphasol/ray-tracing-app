@@ -13,18 +13,18 @@ class Button : public hui::Widget {
   public:
     struct Theme
     {
-        dr4::Color default_color;
-        dr4::Color hovered_color;
-        dr4::Color pressed_color;
-        dr4::Color font_color;
-        size_t     font_size;
-    };
+        dr4::Color default_color = { 30, 30, 30 };
+        dr4::Color hovered_color = { 50, 70, 30 };
+        dr4::Color pressed_color = { 100, 150, 0 };
+        dr4::Color font_color    = { 255, 255, 255 };
+        size_t     font_size     = 15;
 
-    static const inline Theme DefaultTheme = { { 30, 30, 30 },
-                                               { 50, 70, 30 },
-                                               { 100, 150, 0 },
-                                               { 255, 255, 255 },
-                                               15 };
+        static Theme
+        Default()
+        {
+            return Theme();
+        }
+    };
 
     using HoldPressCb = std::function<void()>;
     using ClickCb     = std::function<void()>;
@@ -43,7 +43,7 @@ class Button : public hui::Widget {
                      const dr4::Vec2f&   pos,
                      const dr4::Vec2f&   size,
                      const std::string&  title,
-                     const Theme&        theme = DefaultTheme );
+                     const Theme&        theme = Theme::Default() );
 
     const Theme&
     getTheme() const;
