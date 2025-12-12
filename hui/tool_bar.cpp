@@ -7,41 +7,44 @@ namespace hui {
 
 MenuPopup::MenuPopup( WindowManager*               wm,
                       const dr4::Vec2f&            pos,
+                      const std::string&           menu_name,
                       const std::vector<MenuItem>& items,
                       const Theme&                 theme )
-    : Widget( wm,
-              pos,
-              { 160.0f, 24.0f * static_cast<float>( std::max<size_t>( 1, items.size() ) ) } ),
-      items_( items ),
-      theme_( theme )
+    : Widget( wm, pos, { 1.0f, 1.0f } ), items_( items ), menu_name_( menu_name ), theme_( theme )
 {
     background_.reset( wm->getWindow()->CreateRectangle() );
-    background_->SetSize( getSize() );
     background_->SetFillColor( theme_.background );
     background_->SetBorderColor( theme_.border );
     background_->SetBorderThickness( theme_.border_thickness );
 
-    createTextElements();
+    createButtons();
 }
 
 void
-MenuPopup::createTextElements()
+MenuPopup::createButtons()
 {
-    const dr4::Font* font = wm_->getWindow()->GetDefaultFont();
-    text_elements_.clear();
-    text_elements_.reserve( items_.size() );
+    buttons_ = std::make_unique<VerticalButtonsList>(
+        wm_, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, theme_.padding_y );
+    buttons_->setParent( this );
 
-    for ( size_t i = 0; i < items_.size(); ++i )
+    auto btn_theme = Button::Theme{
+        theme_.background, theme_.hover_color, theme_.hover_color, theme_.text_color,
+        static_cast<size_t>( theme_.font_size ) };
+
+    for ( const auto& item : items_ )
     {
-        auto* text = wm_->getWindow()->CreateText();
-        text->SetFont( font );
-        text->SetFontSize( theme_.font_size );
-        text->SetText( items_[i].label );
-        text->SetColor( theme_.text_color );
-        text->SetPos(
-            { theme_.padding_x, static_cast<float>( i ) * ItemHeight + theme_.padding_y } );
-        text_elements_.push_back( std::unique_ptr<dr4::Text>( text ) );
+        auto btn = std::make_unique<Button>(
+            wm_, dr4::Vec2f{ 0.0f, 0.0f }, dr4::Vec2f{ 0.0f, 0.0f }, item.label, btn_theme );
+        btn->fitToLabel( theme_.padding_x * 2.0f, theme_.padding_y * 2.0f );
+        btn->setOnClick( item.on_click );
+        buttons_->addButton( std::move( btn ) );
     }
+
+    buttons_->rebuildLayout();
+
+    dr4::Vec2f list_size = buttons_->getSize();
+    setSize( list_size );
+    background_->SetSize( list_size );
 }
 
 void
@@ -50,9 +53,9 @@ MenuPopup::RedrawMyTexture() const
     texture_->Clear( { 0, 0, 0, 0 } );
     texture_->Draw( *background_ );
 
-    for ( const auto& text : text_elements_ )
+    if ( buttons_ )
     {
-        texture_->Draw( *text );
+        buttons_->Redraw();
     }
 }
 
@@ -80,20 +83,60 @@ MenuPopup::onMousePress( const Event& event )
         return true;
     }
 
-    dr4::Vec2f local_pos = mp - getAbsPos();
-    int        idx       = static_cast<int>( local_pos.y / ItemHeight );
-
-    if ( idx >= 0 && idx < static_cast<int>( items_.size() ) )
+    if ( buttons_ && event.apply( buttons_.get() ) )
     {
-        if ( items_[idx].on_click )
-        {
-            items_[idx].on_click();
-        }
-        // wm_->popModal();
         return true;
     }
 
     return false;
+}
+
+bool
+MenuPopup::onMouseMove( const Event& event )
+{
+    if ( buttons_ && event.apply( buttons_.get() ) )
+    {
+        return true;
+    }
+    return false;
+}
+
+bool
+MenuPopup::onMouseRelease( const Event& event )
+{
+    if ( buttons_ && event.apply( buttons_.get() ) )
+    {
+        return true;
+    }
+    return false;
+}
+
+void
+MenuPopup::setItemLabel( size_t idx, const std::string& label )
+{
+    if ( idx >= items_.size() || !buttons_ )
+    {
+        return;
+    }
+
+    items_[idx].label = label;
+    auto& btns        = buttons_->getButtons();
+    if ( idx < btns.size() )
+    {
+        btns[idx]->setLabelText( label );
+        btns[idx]->fitToLabel( theme_.padding_x * 2.0f, theme_.padding_y * 2.0f );
+    }
+
+    buttons_->rebuildLayout();
+    dr4::Vec2f list_size = buttons_->getSize();
+    setSize( list_size );
+    background_->SetSize( list_size );
+}
+
+const std::string&
+MenuPopup::menuName() const
+{
+    return menu_name_;
 }
 
 ToolBar::ToolBar( WindowManager* wm, float height, const Theme& theme )
@@ -107,21 +150,52 @@ ToolBar::ToolBar( WindowManager* wm, float height, const Theme& theme )
     background_->SetSize( { getSize().x, height_ } );
     background_->SetFillColor( theme_.background_color );
 
-    item_x_ = 10.0f;
+    buttons_ = std::make_unique<HorizontalButtonsList>(
+        wm_, dr4::Vec2f{ theme_.padding, theme_.padding }, dr4::Vec2f{ 0.0f, height_ }, theme_.padding );
+    buttons_->setParent( this );
+    buttons_->setLabelPadding( theme_.padding );
 }
 
 size_t
 ToolBar::addMenu( const std::string& name, std::vector<MenuItem> items )
 {
     MenuDef md;
-    md.name  = name;
-    md.items = std::move( items );
-    md.pos   = { item_x_, 0.0f };
-    md.size  = { 10.0f + static_cast<float>( name.size() ) * 8.0f, height_ };
+    md.name   = name;
+    md.items  = std::move( items );
 
+    auto btn_theme = Button::Theme{ theme_.background_color,
+                                    theme_.hover_color,
+                                    theme_.hover_color,
+                                    theme_.font_color,
+                                    static_cast<size_t>( theme_.font_size ) };
+
+    auto btn = std::make_unique<Button>( wm_,
+                                         dr4::Vec2f{ 0.0f, 0.0f },
+                                         dr4::Vec2f{ 0.0f, std::max( 1.0f, height_ - 2.0f * theme_.padding ) },
+                                         name,
+                                         btn_theme );
+    // Width will be adjusted by HorizontalButtonsList; set desired height.
+    btn->setSize( { btn->getSize().x, std::max( 1.0f, height_ - 2.0f * theme_.padding ) } );
+
+    size_t idx_capture = menu_defs_.size();
+    btn->setOnClick( [this, idx_capture]() {
+        if ( idx_capture >= menu_defs_.size() )
+        {
+            return;
+        }
+        const auto& md = menu_defs_[idx_capture];
+        dr4::Vec2f  popup_pos =
+            getAbsPos() + buttons_->getRelPos() + md.button->getRelPos() + dr4::Vec2f{ 0.0f, height_ };
+        auto popup = std::make_unique<MenuPopup>( wm_, popup_pos, md.name, md.items );
+        wm_->pushModal( std::move( popup ) );
+    } );
+
+    md.button = btn.get();
+
+    buttons_->addButton( std::move( btn ) );
     menu_defs_.push_back( std::move( md ) );
-    item_x_ += menu_defs_.back().size.x + 10.0f;
-    text_elements_.clear();
+
+    rebuildLayout();
     return menu_defs_.size() - 1;
 }
 
@@ -148,25 +222,25 @@ ToolBar::setMenuItemLabel( const std::string& menu_name, size_t item_idx, const 
     }
 
     it->items[item_idx].label = label;
-    text_elements_.clear();
+    // Rebuild layout to reflect potential width changes when popup opens
+    rebuildLayout();
+
+    // Update open popup if it matches this menu
+    if ( auto* popup = dynamic_cast<MenuPopup*>( wm_->getTopModal() ) )
+    {
+        if ( popup->menuName() == menu_name )
+        {
+            popup->setItemLabel( item_idx, label );
+        }
+    }
 }
 
 void
-ToolBar::createTextElements()
+ToolBar::rebuildLayout()
 {
-    const dr4::Font* font = wm_->getWindow()->GetDefaultFont();
-    text_elements_.clear();
-    text_elements_.reserve( menu_defs_.size() );
-
-    for ( size_t i = 0; i < menu_defs_.size(); ++i )
+    if ( buttons_ )
     {
-        auto* text = wm_->getWindow()->CreateText();
-        text->SetFont( font );
-        text->SetFontSize( theme_.font_size );
-        text->SetText( menu_defs_[i].name );
-        text->SetColor( theme_.font_color );
-        text->SetPos( { menu_defs_[i].pos.x + theme_.padding, theme_.padding } );
-        text_elements_.push_back( std::unique_ptr<dr4::Text>( text ) );
+        buttons_->rebuildLayout();
     }
 }
 
@@ -176,62 +250,40 @@ ToolBar::RedrawMyTexture() const
     texture_->Clear( { 0, 0, 0, 0 } );
     texture_->Draw( *background_ );
 
-    const_cast<ToolBar*>( this )->createTextElements();
-
-    for ( size_t i = 0; i < text_elements_.size(); ++i )
+    if ( buttons_ )
     {
-        if ( hovered_menu_ == static_cast<int>( i ) )
-        {
-            auto* highlight = wm_->getWindow()->CreateRectangle();
-            highlight->SetPos( menu_defs_[i].pos );
-            highlight->SetSize( menu_defs_[i].size );
-            highlight->SetFillColor( theme_.hover_color );
-            texture_->Draw( *highlight );
-        }
-        texture_->Draw( *text_elements_[i] );
+        buttons_->Redraw();
     }
 }
 
 bool
 ToolBar::onMouseMove( const Event& event )
 {
+    if ( !buttons_ )
+    {
+        return false;
+    }
+
     dr4::Vec2f mp( event.info.mouseMove.pos.x, event.info.mouseMove.pos.y );
     dr4::Vec2f local_pos = mp - getAbsPos();
 
     if ( local_pos.y < 0 || local_pos.y > height_ )
     {
-        if ( hovered_menu_ != -1 )
-        {
-            hovered_menu_ = -1;
-            return true;
-        }
         return false;
     }
 
-    int new_hover = -1;
-    for ( size_t i = 0; i < menu_defs_.size(); ++i )
-    {
-        if ( local_pos.x >= menu_defs_[i].pos.x &&
-             local_pos.x <= menu_defs_[i].pos.x + menu_defs_[i].size.x )
-        {
-            new_hover = static_cast<int>( i );
-            break;
-        }
-    }
-
-    if ( new_hover != hovered_menu_ )
-    {
-        hovered_menu_ = new_hover;
-        return true;
-    }
-
-    return false;
+    return event.apply( buttons_.get() );
 }
 
 bool
 ToolBar::onMousePress( const Event& event )
 {
     if ( event.info.mouseButton.button != dr4::MouseButtonType::LEFT )
+    {
+        return false;
+    }
+
+    if ( !buttons_ )
     {
         return false;
     }
@@ -244,17 +296,7 @@ ToolBar::onMousePress( const Event& event )
         return false;
     }
 
-    for ( size_t i = 0; i < menu_defs_.size(); ++i )
-    {
-        if ( local_pos.x >= menu_defs_[i].pos.x &&
-             local_pos.x <= menu_defs_[i].pos.x + menu_defs_[i].size.x )
-        {
-            pressed_index_ = static_cast<int>( i );
-            return true;
-        }
-    }
-
-    return false;
+    return event.apply( buttons_.get() );
 }
 
 bool
@@ -265,20 +307,9 @@ ToolBar::onMouseRelease( const Event& event )
         return false;
     }
 
-    if ( pressed_index_ >= 0 )
+    if ( buttons_ && event.apply( buttons_.get() ) )
     {
-        int idx        = pressed_index_;
-        pressed_index_ = -1;
-
-        if ( idx >= 0 && idx < static_cast<int>( menu_defs_.size() ) )
-        {
-            dr4::Vec2f popup_pos = { getAbsPos().x + menu_defs_[idx].pos.x,
-                                     getAbsPos().y + height_ };
-
-            auto popup = std::make_unique<MenuPopup>( wm_, popup_pos, menu_defs_[idx].items );
-            wm_->pushModal( std::move( popup ) );
-            return true;
-        }
+        return true;
     }
 
     return false;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "buttons_list.hpp"
 #include "window_manager.hpp"
 #include <functional>
 #include <memory>
@@ -43,26 +44,35 @@ class MenuPopup : public Widget {
 
     MenuPopup( WindowManager*               wm,
                const dr4::Vec2f&            pos,
+               const std::string&           menu_name,
                const std::vector<MenuItem>& items,
                const Theme&                 theme = Theme() );
 
     void
     RedrawMyTexture() const override;
     bool
+    onMouseMove( const Event& event ) override;
+    bool
     onMousePress( const Event& event ) override;
     bool
+    onMouseRelease( const Event& event ) override;
+    bool
     containsPoint( const dr4::Vec2f& pt ) const;
+    void
+    setItemLabel( size_t idx, const std::string& label );
+    const std::string&
+    menuName() const;
 
   private:
     void
-    createTextElements();
+    createButtons();
 
   private:
-    std::vector<MenuItem>                   items_;
-    std::unique_ptr<dr4::Rectangle>         background_;
-    std::vector<std::unique_ptr<dr4::Text>> text_elements_;
-    static constexpr float                  ItemHeight = 24.0f;
-    Theme                                   theme_;
+    std::vector<MenuItem>                items_;
+    std::string                          menu_name_;
+    std::unique_ptr<VerticalButtonsList> buttons_;
+    std::unique_ptr<dr4::Rectangle>      background_;
+    Theme                                theme_;
 };
 
 class ToolBar : public Widget {
@@ -85,7 +95,7 @@ class ToolBar : public Widget {
         }
     };
 
-    ToolBar( WindowManager* wm, float height = 28.0f, const Theme& theme = Theme() );
+    ToolBar( WindowManager* wm, float height = 35.0f, const Theme& theme = Theme() );
 
     size_t
     addMenu( const std::string& name, std::vector<MenuItem> items );
@@ -107,23 +117,19 @@ class ToolBar : public Widget {
     {
         std::string           name;
         std::vector<MenuItem> items;
-        dr4::Vec2f            pos;
-        dr4::Vec2f            size;
+        Button*               button = nullptr;
     };
 
     void
-    createTextElements();
+    rebuildLayout();
 
   private:
-    WindowManager*                          wm_     = nullptr;
-    float                                   height_ = 28.0f;
-    std::unique_ptr<dr4::Rectangle>         background_;
-    std::vector<MenuDef>                    menu_defs_;
-    std::vector<std::unique_ptr<dr4::Text>> text_elements_;
-    float                                   item_x_        = 10.0f;
-    int                                     pressed_index_ = -1;
-    int                                     hovered_menu_  = -1;
-    Theme                                   theme_;
+    WindowManager*                         wm_     = nullptr;
+    float                                  height_ = 28.0f;
+    std::unique_ptr<dr4::Rectangle>        background_;
+    std::vector<MenuDef>                   menu_defs_;
+    std::unique_ptr<HorizontalButtonsList> buttons_;
+    Theme                                  theme_;
 };
 
 } // namespace hui

@@ -143,7 +143,7 @@ VerticalButtonsList::layoutButtons()
     }
 
     float new_h = ( btns_size == 0 ) ? 1.0f : y;
-    float new_w = std::max( getSize().x, max_w );
+    float new_w = std::max( { getSize().x, max_w, 1.0f } );
 
     setSize( { new_w, new_h } );
 }
