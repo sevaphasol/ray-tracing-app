@@ -1,4 +1,4 @@
-#include "rta/view/object_editor/generic_fields.hpp"
+#include "rta/view/panels/editor/generic_fields.hpp"
 #include "dr4/math/vec2.hpp"
 #include <algorithm>
 #include <stdexcept>

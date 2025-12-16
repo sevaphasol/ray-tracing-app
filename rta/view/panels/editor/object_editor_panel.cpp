@@ -1,6 +1,6 @@
 #include "rta/view/panels/editor/object_editor_panel.hpp"
-#include "rta/view/object_editor/fields/shape_fields.hpp"
-#include "rta/view/object_editor/types.hpp"
+#include "rta/view/panels/editor/fields/shape_fields.hpp"
+#include "rta/view/panels/editor/types.hpp"
 #include <utility>
 
 namespace rta {

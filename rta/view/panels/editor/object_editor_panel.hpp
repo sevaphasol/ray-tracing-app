@@ -9,8 +9,8 @@
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
 #include "rta/model/rendering/scene_manager.hpp"
-#include "rta/view/object_editor/generic_fields.hpp"
-#include "rta/view/object_editor/types.hpp"
+#include "rta/view/panels/editor/generic_fields.hpp"
+#include "rta/view/panels/editor/types.hpp"
 #include <functional>
 #include <memory>
 #include <optional>

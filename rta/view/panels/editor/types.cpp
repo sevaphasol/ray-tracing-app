@@ -1,4 +1,4 @@
-#include "rta/view/object_editor/types.hpp"
+#include "rta/view/panels/editor/types.hpp"
 
 namespace rta {
 namespace view {

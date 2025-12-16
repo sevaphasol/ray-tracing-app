@@ -1,20 +1,6 @@
 #pragma once
 
-#include "rta/model/primitives/impls/aabb.hpp"
-#include "rta/model/primitives/impls/capped_cone.hpp"
-#include "rta/model/primitives/impls/capped_cylinder.hpp"
-#include "rta/model/primitives/impls/capsule.hpp"
-#include "rta/model/primitives/impls/ellipse.hpp"
-#include "rta/model/primitives/impls/ellipsoid.hpp"
-#include "rta/model/primitives/impls/goursat.hpp"
-#include "rta/model/primitives/impls/hex_prism.hpp"
-#include "rta/model/primitives/impls/rounded_box.hpp"
-#include "rta/model/primitives/impls/rounded_cone.hpp"
-#include "rta/model/primitives/impls/sphere.hpp"
-#include "rta/model/primitives/impls/torus.hpp"
-#include "rta/model/primitives/impls/triangle.hpp"
-#include "rta/model/primitives/impls/wedge.hpp"
-#include "rta/view/object_editor/generic_fields.hpp"
+#include "rta/view/panels/editor/generic_fields.hpp"
 #include <memory>
 
 namespace rta {
