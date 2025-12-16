@@ -30,6 +30,11 @@ class Goursat : public Primitive {
     {
         return "Goursat";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Goursat;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

@@ -28,6 +28,11 @@ class Plane : public Primitive {
     {
         return "Plane";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Plane;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

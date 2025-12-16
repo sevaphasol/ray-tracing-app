@@ -35,6 +35,11 @@ class RoundedBox : public Primitive {
     {
         return "RoundedBox";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::RoundedBox;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

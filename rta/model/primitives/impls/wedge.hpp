@@ -31,6 +31,11 @@ class Wedge : public Primitive {
     {
         return "Wedge";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Wedge;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

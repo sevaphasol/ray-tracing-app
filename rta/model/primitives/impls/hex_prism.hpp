@@ -1,4 +1,3 @@
-// rta/model/primitives/impls/hex_prism.hpp
 #pragma once
 #include "rta/model/primitives/primitive.hpp"
 #include "rta/model/rendering/ray.hpp"
@@ -27,6 +26,11 @@ class HexPrism : public Primitive {
     getName() const override final
     {
         return "HexPrism";
+    }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::HexPrism;
     }
 
     std::array<Vector3f, 8>

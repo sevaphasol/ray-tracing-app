@@ -1,8 +1,8 @@
 #include "rta/view/utils/plugin_manager.hpp"
-#include "hui/button.hpp"
-#include "hui/dialog_box.hpp"
-#include "hui/file_dialog_box.hpp"
-#include "hui/scrollable_buttons_list_widget.hpp"
+#include "custom-hui/button.hpp"
+#include "custom-hui/dialog_box.hpp"
+#include "custom-hui/file_dialog_box.hpp"
+#include "custom-hui/scrollable_buttons_list_widget.hpp"
 #include "rta/view/annotator/snapshot_annotator.hpp"
 #include <algorithm>
 #include <memory>
@@ -244,16 +244,7 @@ rta::view::PluginManagerDialog::chooseSelected()
 {
     if ( selected_ != nullptr )
     {
-        // std::cerr << "annotator_->getActivePlugin() = " << annotator_->getActivePlugin()
-        // << std::endl;
-        // std::cerr << "selected_ = " << selected_ << std::endl;
-
         annotator_->setActivePlugin( selected_ );
-        // std::cerr << "selected_ = " << selected_ << std::endl;
-
-        // std::cerr << "annotator_->getActivePlugin() = " << annotator_->getActivePlugin()
-        //   << std::endl;
-
         rebuild();
     }
 }

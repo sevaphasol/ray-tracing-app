@@ -1,14 +1,14 @@
 #pragma once
 
+#include "custom-hui/widget.hpp"
 #include "dr4/math/color.hpp"
 #include "dr4/texture.hpp"
-#include "hui/widget.hpp"
 #include "rta/model/rendering/vector2.hpp"
 #include "rta/model/rendering/vector3.hpp"
 
-#include "hui/window_manager.hpp"
+#include "custom-hui/window_manager.hpp"
 
-#include "hui/closable_panel.hpp"
+#include "custom-hui/closable_panel.hpp"
 #include "rta/model/primitives/material.hpp"
 #include "rta/model/primitives/primitive.hpp"
 #include "rta/model/rendering/camera.hpp"

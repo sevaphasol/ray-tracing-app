@@ -10,16 +10,16 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party )
 
 ###############################################################################
-
-file( GLOB_RECURSE HUI_BACKEND_SRC CONFIGURE_DEPENDS
-	${CMAKE_CURRENT_SOURCE_DIR}/hui/*.cpp
-)
-add_library( hui-backend STATIC ${HUI_BACKEND_SRC} )
-target_link_libraries( hui-backend PUBLIC dr4 )
-target_include_directories( hui-backend PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/nlohmann/single_include
-)
-
+#
+# file( GLOB_RECURSE HUI_BACKEND_SRC CONFIGURE_DEPENDS
+	# ${CMAKE_CURRENT_SOURCE_DIR}/custom-hui/*.cpp
+# )
+# add_library( hui-backend STATIC ${HUI_BACKEND_SRC} )
+# target_link_libraries( hui-backend PUBLIC dr4 )
+# target_include_directories( hui-backend PUBLIC
+	# ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/nlohmann/single_include
+# )
+#
 ###############################################################################
 
 file( GLOB_RECURSE RTA_SOURCES CONFIGURE_DEPENDS
@@ -34,7 +34,8 @@ target_link_libraries( rta PRIVATE dr4 )
 target_link_libraries( rta PRIVATE cum )
 target_link_libraries( rta PRIVATE pp  )
 
-target_link_libraries( rta PRIVATE hui-backend )
+target_link_libraries( rta PRIVATE custom-hui-interface )
+target_link_libraries( rta PRIVATE custom-hui )
 
 set( CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" )
 target_compile_options( rta PRIVATE -O3 -march=native -mtune=native -DNDEBUG )

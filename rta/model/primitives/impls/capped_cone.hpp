@@ -36,6 +36,11 @@ class CappedCone : public Primitive {
     {
         return "CappedCone";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::CappedCone;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

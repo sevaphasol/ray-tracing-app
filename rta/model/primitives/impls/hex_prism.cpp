@@ -1,9 +1,3 @@
-/*
-
-Spizheno s https://iquilezles.org/articles/intersectors/
-
-*/
-
 #include "rta/model/primitives/impls/hex_prism.hpp"
 #include "rta/model/rendering/vector3.hpp"
 #include <algorithm>

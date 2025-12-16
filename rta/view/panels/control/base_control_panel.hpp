@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hui/button.hpp"
-#include "hui/closable_panel.hpp"
-#include "hui/window_manager.hpp"
+#include "custom-hui/button.hpp"
+#include "custom-hui/closable_panel.hpp"
+#include "custom-hui/window_manager.hpp"
 #include <memory>
 #include <vector>
 

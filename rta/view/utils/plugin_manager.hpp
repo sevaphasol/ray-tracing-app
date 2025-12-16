@@ -1,10 +1,10 @@
 #pragma once
 
-#include "hui/button.hpp"
-#include "hui/dialog_box.hpp"
-#include "hui/file_dialog_box.hpp"
-#include "hui/message_box.hpp"
-#include "hui/scrollable_buttons_list_widget.hpp"
+#include "custom-hui/button.hpp"
+#include "custom-hui/dialog_box.hpp"
+#include "custom-hui/file_dialog_box.hpp"
+#include "custom-hui/message_box.hpp"
+#include "custom-hui/scrollable_buttons_list_widget.hpp"
 #include "rta/view/annotator/snapshot_annotator.hpp"
 #include <algorithm>
 #include <functional>

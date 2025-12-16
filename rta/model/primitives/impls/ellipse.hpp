@@ -34,6 +34,11 @@ class Ellipse : public Primitive {
     {
         return "Ellipse";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Ellipse;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "custom-hui/container_widget.hpp"
+#include "custom-hui/widget.hpp"
 #include "dr4/math/vec2.hpp"
 #include "dr4/texture.hpp"
-#include "hui/container_widget.hpp"
-#include "hui/widget.hpp"
 #include "rta/view/annotator/snapshot_annotator.hpp"
 #include "rta/view/panels/control/camera_control_panel.hpp"
 #include "rta/view/panels/control/objects_control_panel.hpp"

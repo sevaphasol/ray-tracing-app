@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hui/button.hpp"
-#include "hui/window_manager.hpp"
+#include "custom-hui/button.hpp"
+#include "custom-hui/window_manager.hpp"
 #include "rta/model/rendering/scene_manager.hpp"
 #include "rta/model/rendering/vector3.hpp"
 #include "rta/view/panels/control/base_control_panel.hpp"

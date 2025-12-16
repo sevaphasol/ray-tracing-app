@@ -34,6 +34,11 @@ class Triangle : public Primitive {
     {
         return "Triangle";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Triangle;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

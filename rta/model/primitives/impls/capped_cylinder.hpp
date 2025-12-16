@@ -35,6 +35,11 @@ class CappedCylinder : public Primitive {
     {
         return "CappedCylinder";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::CappedCylinder;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

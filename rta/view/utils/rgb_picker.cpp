@@ -1,8 +1,8 @@
 #include "rta/view/utils/rgb_picker.hpp"
+#include "custom-hui/widget.hpp"
+#include "custom-hui/window_manager.hpp"
 #include "dr4/math/color.hpp"
 #include "dr4/math/vec2.hpp"
-#include "hui/widget.hpp"
-#include "hui/window_manager.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>

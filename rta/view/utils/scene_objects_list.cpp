@@ -1,7 +1,7 @@
 #include "rta/view/utils/scene_objects_list.hpp"
-#include "hui/button.hpp"
-#include "hui/dialog_box.hpp"
-#include "hui/scrollable_buttons_list_widget.hpp"
+#include "custom-hui/button.hpp"
+#include "custom-hui/dialog_box.hpp"
+#include "custom-hui/scrollable_buttons_list_widget.hpp"
 #include "rta/model/rendering/scene_manager.hpp"
 #include <functional>
 #include <memory>

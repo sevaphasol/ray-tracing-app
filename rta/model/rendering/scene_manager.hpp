@@ -38,6 +38,7 @@ class SceneManager {
         Material    material;
         Vector3f    pos;
         std::string type_name;
+        PrimitiveCode code;
         std::string display_name;
         size_t      objects_idx;
     };
@@ -124,31 +125,10 @@ class SceneManager {
     {
         auto* obj = objects_[idx].get();
 
-        std::string obj_name;
-
-        if ( typeid( *obj ).hash_code() == typeid( Sphere ).hash_code() )
-        {
-            obj_name = "Sphere";
-        } else if ( typeid( *obj ).hash_code() == typeid( Plane ).hash_code() )
-        {
-            obj_name = "Plane";
-        } else if ( typeid( *obj ).hash_code() == typeid( AABB ).hash_code() )
-        {
-            obj_name = "AABB";
-        } else if ( typeid( *obj ).hash_code() == typeid( Torus ).hash_code() )
-        {
-            obj_name = "Torus";
-        } else if ( typeid( *obj ).hash_code() == typeid( HexPrism ).hash_code() )
-        {
-            obj_name = "HexPrism";
-        } else
-        {
-            obj_name = "Unknown";
-        }
-
         return { .material     = obj->getMaterial(),
                  .pos          = obj->getOrigin(),
-                 .type_name    = obj_name,
+                 .type_name    = obj->getName(),
+                 .code         = obj->getCode(),
                  .display_name = obj->getDisplayName(),
                  .objects_idx  = idx };
     }
@@ -157,31 +137,10 @@ class SceneManager {
     {
         auto* obj = objects_[idx].get();
 
-        std::string obj_name;
-
-        if ( typeid( *obj ).hash_code() == typeid( Sphere ).hash_code() )
-        {
-            obj_name = "Sphere";
-        } else if ( typeid( *obj ).hash_code() == typeid( Plane ).hash_code() )
-        {
-            obj_name = "Plane";
-        } else if ( typeid( *obj ).hash_code() == typeid( AABB ).hash_code() )
-        {
-            obj_name = "AABB";
-        } else if ( typeid( *obj ).hash_code() == typeid( Torus ).hash_code() )
-        {
-            obj_name = "Torus";
-        } else if ( typeid( *obj ).hash_code() == typeid( HexPrism ).hash_code() )
-        {
-            obj_name = "HexPrism";
-        } else
-        {
-            obj_name = "Unknown";
-        }
-
         return { .material     = obj->getMaterial(),
                  .pos          = obj->getOrigin(),
-                 .type_name    = obj_name,
+                 .type_name    = obj->getName(),
+                 .code         = obj->getCode(),
                  .display_name = obj->getDisplayName(),
                  .objects_idx  = idx };
     }

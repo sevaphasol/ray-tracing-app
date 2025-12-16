@@ -28,6 +28,11 @@ class AABB : public Primitive {
     {
         return "AABB";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::AABB;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

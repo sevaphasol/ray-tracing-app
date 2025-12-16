@@ -35,6 +35,11 @@ class Capsule : public Primitive {
     {
         return "Capsule";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Capsule;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

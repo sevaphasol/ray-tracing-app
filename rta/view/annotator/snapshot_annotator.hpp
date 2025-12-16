@@ -1,9 +1,9 @@
 #pragma once
 
 #include "cum/ifc/pp.hpp"
+#include "custom-hui/event.hpp"
+#include "custom-hui/widget.hpp"
 #include "dr4/texture.hpp"
-#include "hui/event.hpp"
-#include "hui/widget.hpp"
 #include "pp/canvas.hpp"
 #include "pp/shape.hpp"
 #include "pp/tool.hpp"

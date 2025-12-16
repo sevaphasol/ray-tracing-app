@@ -29,6 +29,11 @@ class Sphere : public Primitive {
     {
         return "Sphere";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Sphere;
+    }
 
     std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

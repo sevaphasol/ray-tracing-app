@@ -32,6 +32,11 @@ class Torus : public Primitive {
     {
         return "Torus";
     }
+    PrimitiveCode
+    getCode() const override final
+    {
+        return PrimitiveCode::Torus;
+    }
 
     virtual std::array<Vector3f, 8>
     getCircumscribedAABB() const override final;

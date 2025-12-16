@@ -1,5 +1,7 @@
 #pragma once
 
+/* Reference for all primtives — https://iquilezles.org/articles/intersectors/ */
+
 #include "rta/model/primitives/material.hpp"
 #include "rta/model/rendering/ray.hpp"
 #include "rta/model/rendering/vector2.hpp"
@@ -13,6 +15,24 @@
 
 namespace rta {
 namespace model {
+
+enum class PrimitiveCode {
+    Sphere,
+    Plane,
+    AABB,
+    Torus,
+    HexPrism,
+    Goursat,
+    RoundedBox,
+    Ellipsoid,
+    Capsule,
+    RoundedCone,
+    CappedCone,
+    CappedCylinder,
+    Wedge,
+    Ellipse,
+    Triangle
+};
 
 class Primitive {
   public:
@@ -29,6 +49,9 @@ class Primitive {
 
     virtual const char*
     getName() const = 0;
+
+    virtual PrimitiveCode
+    getCode() const = 0;
 
     void
     setDisplayName( const std::string& name )
