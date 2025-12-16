@@ -11,6 +11,8 @@ namespace hui {
 WindowManager::WindowManager( cum::Manager* pm, dr4::Window* win )
     : pm_( pm ), win_( win ), desktop_( this, { 0, 0 }, win->GetSize() )
 {
+    nerd_font_ = win->CreateFont();
+    nerd_font_->LoadFromFile( "assets/CaskaydiaCoveNerdFontMono-Regular.ttf" );
 }
 
 void

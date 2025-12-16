@@ -60,7 +60,10 @@ rta::view::BaseControlPanel::addClickButton( const dr4::Vec2f&           pos,
                                              const hui::Button::Theme&   theme,
                                              const hui::Button::ClickCb& cb )
 {
-    addButton( pos, title, theme )->setOnClick( cb );
+    auto* btn = addButton( pos, title, theme );
+    btn->setOnClick( cb );
+    btn->setFont( wm_->getNerdFont() );
+    btn->setTitle( title );
 }
 
 void
@@ -69,7 +72,10 @@ rta::view::BaseControlPanel::addHoldPressButton( const dr4::Vec2f&              
                                                  const hui::Button::Theme&       theme,
                                                  const hui::Button::HoldPressCb& cb )
 {
-    addButton( pos, title, theme )->setOnHoldPress( cb );
+    auto* btn = addButton( pos, title, theme );
+    btn->setOnHoldPress( cb );
+    btn->setFont( wm_->getNerdFont() );
+    btn->setTitle( title );
 }
 
 hui::Button*

@@ -33,6 +33,20 @@ Button::Button( hui::WindowManager*  wm,
     updateLabelPosition();
 }
 
+void
+Button::setFont( dr4::Font* font )
+{
+    label_->SetFont( font );
+    is_nerd_font_ = true;
+    updateLabelPosition();
+}
+
+void
+Button::setTitle( const std::string& title )
+{
+    label_->SetText( title );
+}
+
 const Button::Theme&
 Button::getTheme() const
 {
@@ -224,7 +238,7 @@ Button::updateLabelPosition()
     }
 
     float y = size_.y * 0.5f - bounds.y * 0.5f;
-    label_->SetPos( { x, y } );
+    label_->SetPos( { x, y + ( is_nerd_font_ ? -10 : 0 ) } );
 }
 
 } // namespace hui

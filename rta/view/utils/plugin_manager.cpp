@@ -225,6 +225,7 @@ rta::view::PluginManagerDialog::rebuild()
                                            btn_size,
                                            entry.first,
                                            rowTheme( plugin == active, plugin == selected_ ) );
+
         btn->setOnClick( [this, plugin]() {
             selected_ = plugin;
             rebuild();
@@ -243,7 +244,16 @@ rta::view::PluginManagerDialog::chooseSelected()
 {
     if ( selected_ != nullptr )
     {
+        // std::cerr << "annotator_->getActivePlugin() = " << annotator_->getActivePlugin()
+        // << std::endl;
+        // std::cerr << "selected_ = " << selected_ << std::endl;
+
         annotator_->setActivePlugin( selected_ );
+        // std::cerr << "selected_ = " << selected_ << std::endl;
+
+        // std::cerr << "annotator_->getActivePlugin() = " << annotator_->getActivePlugin()
+        //   << std::endl;
+
         rebuild();
     }
 }
@@ -255,6 +265,7 @@ rta::view::PluginManagerDialog::deleteSelected()
     {
         return;
     }
+
     annotator_->removePlugin( selected_ );
     annotator_->refreshPlugins();
     auto plugins = annotator_->listPlugins();
@@ -397,6 +408,8 @@ rta::view::ToolSelectorDialog::rebuild()
                                                   btn_size,
                                                   label,
                                                   rowTheme( t.enabled ) );
+        btn->setFont( wm_->getNerdFont() );
+        btn->setTitle( label );
         btn->setOnClick( [this, idx = t.index]() {
             annotator_->toggleToolEnabled( idx );
             rebuild();

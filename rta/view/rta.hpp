@@ -28,6 +28,9 @@ class RayTracingApp : public hui::ContainerWidget {
     void
     RedrawMyTexture() const override;
 
+    void
+    setupToolbar();
+
     Scene&
     scene();
     CameraControlPanel&

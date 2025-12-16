@@ -66,7 +66,7 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         color_label_->SetFont( wm->getWindow()->GetDefaultFont() );
         color_label_->SetFontSize( 13 );
         color_label_->SetColor( { 220, 220, 220, 255 } );
-        color_label_->SetText( "Color" );
+        // color_label_->SetText( "Color" );
         color_label_->SetPos( { size.x - 180.0f, TopBarHeight - 2.0f } );
         slider_reflection_.setParent( this );
         slider_refraction_.setParent( this );
@@ -388,6 +388,9 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                 defs.push_back( { "V.z", "vz" } );
                 break;
             case Type::Triangle:
+                defs.pop_back();
+                defs.pop_back();
+                defs.pop_back();
                 defs.push_back( { "V0.x", "v0x" } );
                 defs.push_back( { "V0.y", "v0y" } );
                 defs.push_back( { "V0.z", "v0z" } );
@@ -1278,10 +1281,10 @@ class ObjectEditorPanel : public hui::ClosablePanel {
                           Type                        initial,
                           std::function<void( Type )> on_ok,
                           std::function<void()>       on_cancel )
-            : DialogBox( wm, x, y, 220.0f, 260.0f, on_cancel, "Choose Type" ),
+            : DialogBox( wm, x, y, 220.0f, 300.0f, on_cancel, "Choose Type" ),
               list_( wm, { 10.0f, TopBarHeight + 10.0f }, { 200.0f, 180.0f }, 10.0f ),
-              ok_( wm, { 20.0f, 210.0f }, { 80.0f, 26.0f } ),
-              cancel_( wm, { 120.0f, 210.0f }, { 80.0f, 26.0f } ),
+              ok_( wm, { 20.0f, 230.0f }, { 80.0f, 26.0f } ),
+              cancel_( wm, { 120.0f, 230.0f }, { 80.0f, 26.0f } ),
               on_ok_( std::move( on_ok ) ),
               on_cancel_( std::move( on_cancel ) ),
               selected_( initial )
@@ -1307,11 +1310,11 @@ class ObjectEditorPanel : public hui::ClosablePanel {
         bool
         propagateEventToChildren( const hui::Event& event ) override
         {
-            if ( event.apply( &list_ ) )
-                return true;
             if ( event.apply( &ok_ ) )
                 return true;
             if ( event.apply( &cancel_ ) )
+                return true;
+            if ( event.apply( &list_ ) )
                 return true;
             return DialogBox::propagateEventToChildren( event );
         }

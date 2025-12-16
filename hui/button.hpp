@@ -42,6 +42,8 @@ class Button : public hui::Widget {
 
     Theme theme_;
 
+    bool is_nerd_font_ = false;
+
   public:
     explicit Button( hui::WindowManager* wm,
                      const std::string&  title,
@@ -53,6 +55,10 @@ class Button : public hui::Widget {
                      const std::string&  title,
                      const Theme&        theme = Theme::Default() );
 
+    void
+    setTitle( const std::string& title );
+    void
+    setFont( dr4::Font* font );
     const Theme&
     getTheme() const;
     void

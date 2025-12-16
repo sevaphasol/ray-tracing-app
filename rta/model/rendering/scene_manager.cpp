@@ -340,14 +340,18 @@ SceneManager::loadFromFile( const std::string& path )
 
     auto get_obj_array = [&]() -> std::vector<nlohmann::json> {
         if ( j.contains( "objects" ) && j["objects"].is_array() )
+        {
             return j["objects"].get<std::vector<nlohmann::json>>();
+        }
         std::vector<nlohmann::json> res;
         if ( j.is_object() )
         {
-            for ( auto& [k, v] : j.items() )
+            for ( const auto& [k, v] : j.items() )
             {
                 if ( v.is_object() )
+                {
                     res.push_back( v );
+                }
             }
         }
         return res;
@@ -388,7 +392,9 @@ SceneManager::loadFromFile( const std::string& path )
         auto add_with_name = [&]( auto obj_builder ) {
             obj_builder();
             if ( !objects_.empty() )
+            {
                 objects_.back()->setDisplayName( name );
+            }
         };
 
         if ( type == "Sphere" )

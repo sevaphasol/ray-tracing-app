@@ -108,6 +108,7 @@ class SceneManager {
     clear()
     {
         objects_.clear();
+        lights_.clear();
         target_obj_  = nullptr;
         need_update_ = true;
     }

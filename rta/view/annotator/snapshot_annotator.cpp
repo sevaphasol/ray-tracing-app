@@ -125,18 +125,30 @@ rta::view::SnapshotAnnotator::getActivePlugin() const
 void
 rta::view::SnapshotAnnotator::removePlugin( cum::PPToolPlugin* plugin )
 {
-    plugin_tools_.erase(
-        std::remove_if( plugin_tools_.begin(),
-                        plugin_tools_.end(),
-                        [plugin]( const PluginTools& p ) { return p.plugin == plugin; } ),
-        plugin_tools_.end() );
-
-    if ( active_plugin_ == plugin )
-    {
-        active_plugin_ = plugin_tools_.empty() ? nullptr : plugin_tools_.back().plugin;
-    }
-
-    rebuildToolPanel();
+    //     std::cerr << plugin_tools_.size() << std::endl;
+    //
+    //     for ( auto it = plugin_tools_.begin(); it != plugin_tools_.end(); ++it )
+    //     {
+    //         if ( it->plugin == plugin )
+    //         {
+    //             plugin_tools_.erase( it );
+    //         }
+    //     }
+    //
+    //     plugin_tools_.erase(
+    //         std::remove_if( plugin_tools_.begin(),
+    //                         plugin_tools_.end(),
+    //                         [plugin]( const PluginTools& p ) { return p.plugin == plugin; } ),
+    //         plugin_tools_.end() );
+    //
+    //     std::cerr << plugin_tools_.size() << std::endl;
+    //
+    //     if ( active_plugin_ == plugin )
+    //     {
+    //         active_plugin_ = plugin_tools_.empty() ? nullptr : plugin_tools_.back().plugin;
+    //     }
+    //
+    //     rebuildToolPanel();
 }
 
 std::vector<std::pair<std::string, cum::PPToolPlugin*>>

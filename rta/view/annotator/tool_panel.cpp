@@ -38,7 +38,7 @@ rta::view::ToolPanel::ToolPanel( hui::WindowManager* wm, float x, float y, float
     icon_font_.reset( wm->getWindow()->CreateFont() );
     try
     {
-        icon_font_->LoadFromFile( "assets/JetBrainsMono-Regular.ttf" );
+        icon_font_->LoadFromFile( "assets/CaskaydiaCoveNerdFontMono-Regular.ttf" );
         icon_font_loaded_ = true;
     } catch ( ... )
     {
@@ -68,8 +68,9 @@ rta::view::ToolPanel::addTools( const std::vector<pp::Tool*>& tools )
                                   { 50, 70, 30, 255 },
                                   { 100, 150, 0, 255 },
                                   { 220, 220, 220, 255 },
-                                  15 };
-        auto               btn = std::make_unique<hui::Button>(
+                                  35 };
+
+        auto btn = std::make_unique<hui::Button>(
             wm_,
             dr4::Vec2f( padding_, padding_ + i * ( button_size_ + padding_ ) ),
             dr4::Vec2f( button_size_, button_size_ ),

@@ -23,7 +23,7 @@ torusImplicit( const Vector3f& p, float Ra, float ra )
 {
     float Ra2  = Ra * Ra;
     float ra2  = ra * ra;
-    float len2 = scalarMul( p, p ); // x^2 + y^2 + z^2
+    float len2 = scalarMul( p, p );
     float s    = len2 + Ra2 - ra2;
     float xy2  = p.x * p.x + p.y * p.y;
     return s * s - 4.0f * Ra2 * xy2;
@@ -157,7 +157,7 @@ Torus::calcRayIntersection( const Ray& ray ) const
 }
 
 Vector3f
-Torus::calcNormal( const Vector3f& point, bool /*inside_object*/ ) const
+Torus::calcNormal( const Vector3f& point, bool ) const
 {
     Vector3f p   = worldToLocalPoint( point );
     float    Ra2 = major_radius_ * major_radius_;

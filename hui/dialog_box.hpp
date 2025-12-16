@@ -29,10 +29,10 @@ class DialogBox : public hui::ContainerWidget {
     };
 
     static const inline Theme DefaultTheme = {
-        { 32, 32, 32, 128 },
+        { 0, 0, 0, 255 },
         { 118, 185, 0, 255 },
         -2.0f,
-        { 32, 32, 32, 128 },
+        { 32, 32, 32, 255 },
         { 118, 185, 0, 255 },
         -2.0f,
         { 255, 255, 255, 255 },

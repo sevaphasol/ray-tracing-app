@@ -65,6 +65,16 @@ class WindowManager {
     {
         return hovered_wgt_;
     }
+    dr4::Font*
+    getNerdFont()
+    {
+        return nerd_font_;
+    }
+    void
+    setNerdFont( dr4::Font* font )
+    {
+        nerd_font_ = font;
+    }
 
   private:
     void
@@ -73,6 +83,7 @@ class WindowManager {
     draw();
 
   private:
+    dr4::Font*                                nerd_font_    = nullptr;
     Widget*                                   focused_wgt_  = nullptr;
     Widget*                                   captured_wgt_ = nullptr;
     Widget*                                   hovered_wgt_  = nullptr;

@@ -2,6 +2,7 @@
 #include "dr4/math/color.hpp"
 #include "dr4/texture.hpp"
 #include "hui/closable_panel.hpp"
+#include "hui/dialog_box.hpp"
 #include "hui/widget.hpp"
 #include "hui/window_manager.hpp"
 #include "rta/model/primitives/material.hpp"
@@ -53,27 +54,9 @@ rta::view::Scene::Scene( hui::WindowManager*         wm,
     model_.addLight( rta::model::Vector3f( 3, 3, -3 ), 1.0, 0.3, 0.9 );
     model_.addLight( rta::model::Vector3f( 0, 0, -11 ), 0.2, 0.3, 0.9 );
 
-    // model_.addTorus( model::Material( rta::model::Color( 118, 185, 0 ) ), { 0, 0, -5 }, 1,
-    // 2
-    // );
-
     model_.addAABB( model::Material( rta::model::Color( 255, 8, 8 ), 0.8f ),
                     rta::model::Vector3f( -2, 1, -8 ),
                     rta::model::Vector3f( 0.75, 0.75, -6.75 ) );
-
-    // model_.addAABB( model::Material( rta::model::Color( 8, 8, 8 ), 0.5f ),
-    //                 rta::model::Vector3f( -1, 0.5, -5 ),
-    //                 rta::model::Vector3f( 0.25, 0.25, 0.25 ) );
-
-    // model_.addHexPrism( model::Material( rta::model::Color( 8, 32, 8 ), 0.8f ),
-    //                     rta::model::Vector3f( 0, 0, -13 ),
-    //                     1,
-    //                     2 );
-
-    // model_.addTorus( model::Material( rta::model::Color( 8, 32, 8 ), 0.2f ),
-    //                  rta::model::Vector3f( 0, 0, -13 ),
-    //                  1,
-    //                  2 );
 
     model_.addSphere( model::Material( rta::model::Color( 8, 32, 8 ), 1.0f ),
                       rta::model::Vector3f( 0, 0, -13 ),
@@ -95,16 +78,6 @@ rta::view::Scene::Scene( hui::WindowManager*         wm,
                       rta::model::Vector3f( 1.2, -1.4, -14.1 ),
                       1.0 );
 
-    // model_.addTorus( model::Material( rta::model::Color( 118, 185, 0 ), 0.0, 0.7f, 0.8f ),
-    //                  rta::model::Vector3f( 1.2, -1.4, -14.1 ),
-    //                  1.0,
-    //                  2.0 );
-
-    // model_.addAABB( model::Material( rta::model::Color( 118, 185, 0 ), 0.9f
-    // ),
-    //                 rta::model::Vector3f( 0, -1, -8 ),
-    //                 { 1.5, 0.5, 1.5 } );
-
     model_.addAABB( model::Material( rta::model::Color( 118, 185, 0 ), 0.95f ),
                     rta::model::Vector3f( -4, 0, -12 ),
                     { 0.1, 3, 3 } );
@@ -117,28 +90,12 @@ rta::view::Scene::Scene( hui::WindowManager*         wm,
                     rta::model::Vector3f( 0, 0, -18 ),
                     { 3, 3, 0.1 } );
 
-    // model_.addSphere( model::Material( rta::model::Color( 8, 32, 8 ), 0.3f
-    // ),
-    //   rta::model::Vector3f( -2, 1, -1 ),
-    //   1.5 );
-
     model_.addAABB( model::Material( rta::model::Color( 58, 90, 0 ) ),
                     rta::model::Vector3f( 0, -3.5f, -12 ),
                     rta::model::Vector3f( 5.0f, 0.1, 5.0f ) );
     model_.addAABB( model::Material( rta::model::Color( 58, 90, 0 ) ),
                     rta::model::Vector3f( 0, 5.0f, -12 ),
                     rta::model::Vector3f( 5.0f, 0.1, 5.0f ) );
-
-    // model_.addHexPrism( model::Material( rta::model::ColorColor( 32, 255, 32 ), 0.3f ),
-    // rta::model::Vector3f( -3, 0, -6 ),
-    // 1.0f, // R
-    // 2.0f  // r
-    // );
-
-    // model_.addPlane( model::Material( rta::model::ColorColor( 1, 8, 127 ), 0.5f
-    // ),
-    //  rta::model::Vector3f( -5, -5, -5 ),
-    //  rta::model::Vector3f( 1, 1, 1 ) );
 }
 
 void
@@ -192,11 +149,6 @@ rta::view::Scene::onMousePress( const hui::Event& event )
 
     model::Primitive* obj = model_.getIntersectedObj( px, py );
 
-    // if ( model_.getTargetObj() != nullptr )
-    // {
-    // model_.getTargetObj()->revert_paint();
-    // }
-
     model_.setTargetObj( obj );
 
     if ( obj != nullptr )
@@ -214,23 +166,7 @@ rta::view::Scene::onMousePress( const hui::Event& event )
         }
     }
 
-    if ( hui::DialogBox::propagateEventToChildren( event ) )
-    {
-        return true;
-    }
-
-    // Let base handle dragging/topbar
-    if ( hui::Widget::onMousePress( event ) )
-    {
-        return true;
-    }
-
-    // if ( obj != nullptr )
-    // {
-    // model_.getTargetObj()->paint();
-    // }
-
-    return true;
+    return hui::DialogBox::onMousePress( event );
 }
 
 void

@@ -21,40 +21,40 @@ rta::view::CameraControlPanel::CameraControlPanel( hui::WindowManager*       wm,
     const auto& thm     = theme;
     const auto& btn_thm = theme.button_theme;
 
-    addHoldPressButton( thm.mv_l_pos, "Move left", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.mv_l_pos, "", btn_thm, [this, thm]() {
         moveCamera( { -thm.mv_step, 0.0f, 0.0f } );
     } );
-    addHoldPressButton( thm.mv_r_pos, "Move right", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.mv_r_pos, "", btn_thm, [this, thm]() {
         moveCamera( { thm.mv_step, 0.0f, 0.0f } );
     } );
-    addHoldPressButton( thm.mv_u_pos, "Move up", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.mv_u_pos, "", btn_thm, [this, thm]() {
         moveCamera( { 0.0f, thm.mv_step, 0.0f } );
     } );
-    addHoldPressButton( thm.mv_d_pos, "Move down", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.mv_d_pos, "", btn_thm, [this, thm]() {
         moveCamera( { 0.0f, -thm.mv_step, 0.0f } );
     } );
-    addHoldPressButton( thm.mv_f_pos, "Move forward", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.mv_f_pos, "", btn_thm, [this, thm]() {
         moveCamera( { 0.0f, 0.0f, -thm.mv_step } );
     } );
-    addHoldPressButton( thm.mv_b_pos, "Move Backward", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.mv_b_pos, "󰻂", btn_thm, [this, thm]() {
         moveCamera( { 0.0f, 0.0f, thm.mv_step } );
     } );
-    addHoldPressButton( thm.rt_l_pos, "Rotate left", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.rt_l_pos, "󰵘", btn_thm, [this, thm]() {
         rotateCamera( { thm.rt_step, 0.0f } );
     } );
-    addHoldPressButton( thm.rt_r_pos, "Rotate right", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.rt_r_pos, "󰵗", btn_thm, [this, thm]() {
         rotateCamera( { -thm.rt_step, 0.0f } );
     } );
-    addHoldPressButton( thm.rt_u_pos, "Rotate up", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.rt_u_pos, "󱃴", btn_thm, [this, thm]() {
         rotateCamera( { 0.0f, -thm.rt_step } );
     } );
-    addHoldPressButton( thm.rt_d_pos, "Rotate down", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.rt_d_pos, "󱃳", btn_thm, [this, thm]() {
         rotateCamera( { 0.0f, thm.rt_step } );
     } );
-    addHoldPressButton( thm.sc_u_pos, "Scale up", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.sc_u_pos, "", btn_thm, [this, thm]() {
         scaleCamera( -thm.sc_step );
     } );
-    addHoldPressButton( thm.sc_d_pos, "Scale down", btn_thm, [this, thm]() {
+    addHoldPressButton( thm.sc_d_pos, "", btn_thm, [this, thm]() {
         scaleCamera( thm.sc_step );
     } );
 }
