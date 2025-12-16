@@ -255,12 +255,8 @@ Goursat::calcRayIntersection( const Ray& ray ) const
 
     if ( t >= std::numeric_limits<float>::max() || t < 0.0f )
     {
-        fprintf( stderr, "FAILED\n" );
-
         return std::nullopt;
     }
-
-    fprintf( stderr, "SUCCESS\n" );
 
     Primitive::IntersectionInfo info;
     info.close_distance = t;

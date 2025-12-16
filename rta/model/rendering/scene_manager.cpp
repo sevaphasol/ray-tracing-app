@@ -428,7 +428,7 @@ SceneManager::loadFromFile( const std::string& path )
         } else if ( type == "Goursat" )
         {
             add_with_name( [&]() {
-                addGoursat( material, origin, size.value( "ka", 1.0f ), size.value( "kb", 1.0f ) );
+                addGoursat( material, origin, size.value( "ka", 1.0f ), size.value( "kb", 2.0f ) );
             } );
         } else if ( type == "RoundedBox" )
         {

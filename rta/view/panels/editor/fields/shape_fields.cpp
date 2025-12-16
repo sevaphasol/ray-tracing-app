@@ -25,6 +25,20 @@ layoutCommonXYZ( ObjEditFields& f, float start_y )
     return f.layoutFields( { { "X", "x" }, { "Y", "y" }, { "Z", "z" } }, start_y );
 }
 
+bool
+goursatHasSurface( double ka, double kb )
+{
+    if ( !std::isfinite( ka ) || !std::isfinite( kb ) )
+    {
+        return false;
+    }
+    if ( ka <= 0.0 )
+    {
+        return true;
+    }
+    return kb * kb >= ( 4.0 / 3.0 ) * ka;
+}
+
 void
 setPosDefaults( ObjEditFields& f )
 {
@@ -354,7 +368,7 @@ GoursatFields::prefillDefaults()
     ObjEditFields::prefillDefaults();
     setPosDefaults( *this );
     setField( "ka", "1.00" );
-    setField( "kb", "1.00" );
+    setField( "kb", "2.00" );
 }
 
 void
@@ -375,10 +389,22 @@ std::unique_ptr<model::Primitive>
 GoursatFields::buildNew( const CommonValues& common )
 {
     auto pos = parsePos();
-    auto ka  = parseField( "ka", []( double v ) { return v > 0; } );
-    auto kb  = parseField( "kb", []( double v ) { return v > 0; } );
+    auto ka  = parseField( "ka", []( double v ) { return std::isfinite( v ); } );
+    auto kb  = parseField( "kb", []( double v ) { return std::isfinite( v ); } );
     if ( !pos || !ka || !kb )
     {
+        return nullptr;
+    }
+    if ( !goursatHasSurface( *ka, *kb ) )
+    {
+        if ( auto* f = findField( "ka" ) )
+        {
+            f->input->setColor( { 255, 64, 64, 255 } );
+        }
+        if ( auto* f = findField( "kb" ) )
+        {
+            f->input->setColor( { 255, 64, 64, 255 } );
+        }
         return nullptr;
     }
     auto obj = std::make_unique<model::Goursat>( common.material,
@@ -398,10 +424,22 @@ GoursatFields::applyToExisting( const CommonValues& common, model::Primitive& ob
         return false;
     }
     auto pos = parsePos();
-    auto ka  = parseField( "ka", []( double v ) { return v > 0; } );
-    auto kb  = parseField( "kb", []( double v ) { return v > 0; } );
+    auto ka  = parseField( "ka", []( double v ) { return std::isfinite( v ); } );
+    auto kb  = parseField( "kb", []( double v ) { return std::isfinite( v ); } );
     if ( !pos || !ka || !kb )
     {
+        return false;
+    }
+    if ( !goursatHasSurface( *ka, *kb ) )
+    {
+        if ( auto* f = findField( "ka" ) )
+        {
+            f->input->setColor( { 255, 64, 64, 255 } );
+        }
+        if ( auto* f = findField( "kb" ) )
+        {
+            f->input->setColor( { 255, 64, 64, 255 } );
+        }
         return false;
     }
     g->setOrigin( *pos );
