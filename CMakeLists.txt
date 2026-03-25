@@ -4,6 +4,9 @@ project( rta LANGUAGES CXX )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+#
+# set( CC clang )
+# set( CXX clang++ )
 
 ###############################################################################
 
@@ -25,7 +28,7 @@ add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party )
 file( GLOB_RECURSE RTA_SOURCES CONFIGURE_DEPENDS
 	${CMAKE_CURRENT_SOURCE_DIR}/rta/*.cpp
 )
-add_executable( rta ${RTA_SOURCES} )
+add_library( rta SHARED ${RTA_SOURCES} )
 target_include_directories( rta PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/nlohmann/single_include
@@ -39,3 +42,4 @@ target_link_libraries( rta PRIVATE custom-hui )
 
 set( CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" )
 target_compile_options( rta PRIVATE -O3 -march=native -mtune=native -DNDEBUG )
+install( TARGETS rta )

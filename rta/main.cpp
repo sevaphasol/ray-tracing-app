@@ -7,8 +7,8 @@
 #include <memory>
 #include <string>
 
-int
-main()
+extern "C" int
+main_ray_tr()
 {
     cum::Manager manager;
 

@@ -1,0 +1,4 @@
+CompileFlags:
+  Add:
+    - "-I/usr/include/llvm-18"
+    - "-I/usr/include/llvm-c-18"
